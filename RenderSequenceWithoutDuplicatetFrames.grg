@@ -1,0 +1,190 @@
+// ******************************************************************************
+// *** RENDER IN/OUT FRAMES AS .PNG SEQUENCE WITH ALPHA CHANNEL IN A SUBFOLDER
+// ******************************************************************************
+PARAM none
+tv_saveMode "JPG"
+ext = ".jpg"
+//tv_AlphaSaveMode "NoPreMultiply"
+tv_Background "COLOR"
+tv_GetProjectName
+projectpath = result
+tv_WriteTextFile "Exists" '"'projectpath'"'
+testPath = result
+renderName = "FilenameBro"
+// *** Check if file is saved ***
+IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_warn "Please save project and try again!"
+	EXIT
+END
+// *** Duplicate project so we don't mess anything up
+tv_projectduplicate
+
+// **************************************
+// *** Hide all storyboard and overlay 
+// **************************************
+tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
+tv_layercolor hide Display 11 // Hide Overlay layer before rendering
+
+// *********************************************************************************************
+// *** Set layers named "*_Multiply" to multiply. And name all multiplied layers "*_Multiply"
+// *********************************************************************************************
+Zoekwoord = Multiply
+tv_LayerCurrentID
+layerRun = 1
+layerPos = 0
+WHILE layerRun
+	tv_LayerGetID layerPos	
+	lid = result
+	IF CMP(lid,"NONE")==0
+		// START RUN ON LAYER
+		tv_LayerInfo lid
+		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                last = LastPos(layerName,"_")
+                strlen = LEN(layerName)
+                IF CMP(last,0)
+                    Eerstewoord = layerName
+                ELSE
+                Eerstewoord = LeftString(layerName,last-1)
+                END
+                Tweedewoord = RightString(layerName,strlen-last)
+		IF CMP(Tweedewoord, Zoekwoord)
+			tv_layerblendingmode lid Multiply
+		END
+                tv_layerblendingmode lid
+                IF CMP(result,Multiply)
+                        Multiplylayername = Eerstewoord"_Multiply"
+                        tv_LayerRename lid Multiplylayername
+                END
+		// END RUN ON LAYER
+		layerPos = layerPos+1	
+	ELSE		
+		layerRun = 0
+	END
+END
+
+// *** Merge all layers
+tv_LayerMergeAll
+tv_layerRecomputeExposure // misschien niet nodig na tv_LayerMergeAll, testen!
+
+// *** Do the stuff
+projectpath = Replace(projectpath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+strlen = LEN(projectpath)
+last = LastPos(projectpath,"/") //Getting the directory where the TVPP file is saved
+projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
+projectname = RightString(projectpath,strlen-last) //Getting the name of the tvpp file without the path
+//Getting the name of the tvpp file without ".tvpp"
+last = LastPos(projectname,".")
+IF CMP(last,"0")==1
+	projectbase = projectname
+ELSE
+	projectbase = LeftString(projectname,last-1)
+END
+last_v = FindString(projectbase, "_v", 1) //File should be name _v001_L or something
+IF CMP(last_v,"0")==1
+	renderName = projectbase
+ELSE
+	renderName = LeftString(projectbase,last_v-1)
+END
+
+FOR i = 1 TO 1000
+	//todo kijken of seq1 map bestaat, zoja, seq2 maken, etc
+	folderName = renderName"_seq"i
+	saveDir = projectdir"/"folderName
+	tv_WriteTextFile "MkDir" '"'saveDir'"' //Now I create again
+	IF CMP (result,"Exists")==0 //Check if folder already exists
+		renderName = folderName
+		i = 1001
+	END
+END
+// ***********************************************************************************************************
+// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
+// ***********************************************************************************************************
+tv_markIn clip // get clip in
+PARSE result frame state
+IF CMP(state,"set ")==1
+	inpoint = frame
+ELSE
+	tv_firstImage
+	inpoint = result
+END
+//Get Clip Out
+tv_markOut clip
+PARSE result frame state
+IF CMP(state,"set ")==1
+	outpoint = frame
+ELSE
+	tv_LastImage
+	outpoint = result
+END
+
+// *********************************
+// *** Getting the filename right
+// *********************************
+tv_startFrame
+startFrame = inpoint+result
+endFrame = outpoint+1
+frame = addZeros("_",startFrame,5)
+renderFile = saveDir"/"renderName""frame""ext
+tv_Request "Render frame "startFrame" to "endFrame" to '"renderFile"'?|OK|Cancel" //1|0
+IF result == 0
+	tv_projectClose
+	EXIT
+END
+layer_save(saveDir, inpoint, outpoint)
+// *** Close duplicated project
+tv_projectClose
+
+// *******************************
+// *** INCLUDE EXTRA FUNCTIONS
+// *******************************
+#INCLUDE "Include.grg"
+
+// *** STOLEN FUNCTIONS
+FUNCTION layer_save(saveDir, inpoint, outpoint)
+	renderStart = inpoint
+	renderEnd = outpoint
+	offsetSTART= renderStart-inpoint+1
+	offsetEND = renderEnd-inpoint+1
+	// *** Create and write text file with render info
+	// * Get info
+	renderInfo = saveDir"/renderInfo.txt"
+	in = inpoint + 1
+	out = outpoint + 1
+	tv_frameRate 666 info
+	PARSE result projectFramerate previewFramerate
+	// * Write info
+	tv_WriteTextFile "Create" '"'renderInfo'"' "IN;"in
+	tv_WriteTextFile "Append" '"'renderInfo'"' "OUT;"out
+	tv_WriteTextFile "Append" '"'renderInfo'"' "FPS;"projectFramerate
+	// *** Start saving image files
+	curImage = renderStart
+	WHILE curImage <= renderEnd
+		tv_layerImage curImage
+		offsetImage = curImage-inpoint+1
+		frame = offsetImage + renderStart
+		frame = addZeros("_",frame,5)
+		imageName = saveDir"/"renderName""frame""ext
+		tv_saveDisplay imageName
+		tv_exposureNext
+		curImage=result
+		tv_exposureinfo curImage
+		PARSE result type rest
+		IF CMP(type,"Head")==0
+			curImage=renderEnd+1
+		END
+	END
+END
+
+// **************************************************************************************
+// *** Add a prefix and extra zeros to a number, to turn "2" into "_00002" for example
+// **************************************************************************************
+FUNCTION addZeros(prefix,number,digits)
+	LOCAL current i
+	current = LEN(number)
+	digits = digits - 1
+	FOR i = current TO digits
+		prefix = prefix"0"
+	END
+	prefix = prefix""number
+	RETURN prefix
+END

@@ -1,0 +1,453 @@
+Zoekwoord = Schaduw
+
+tv_readUserString "LayerVisibility" Zoekwoord "1"
+LijnVisibility = result
+IF CMP(LijnVisibility, 1)
+    VISIBLESCHAKELAAR = On
+    LOCKSCHAKELAAR = Off
+    tv_WriteUserString "LayerVisibility" Zoekwoord 0
+ELSE
+    VISIBLESCHAKELAAR = Off
+    LOCKSCHAKELAAR = On
+    tv_WriteUserString "LayerVisibility" Zoekwoord 1
+END
+
+// END SHIFT CHECKEN
+
+
+
+
+tv_LayerCurrentID
+Beginlayer = result
+
+layerRun = 1
+layerPos = 0
+WHILE layerRun	
+
+	tv_LayerGetID layerPos	
+	lid = result	
+	
+	IF CMP(lid,"NONE")==0		
+		// START RUN ON LAYER 
+		tv_LayerInfo lid
+		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                last = LastPos(layerName,"_")
+                strlen = LEN(layerName)
+                IF CMP(last,0)
+                    Eerstewoord = layerName
+                ELSE
+                Eerstewoord = LeftString(layerName,last-1)
+                END
+                Tweedewoord = RightString(layerName,strlen-last)
+		IF CMP(Tweedewoord, Zoekwoord)
+			tv_LayerDisplay lid VISIBLESCHAKELAAR
+			tv_LayerLock lid LOCKSCHAKELAAR
+		END
+		// END RUN ON LAYER
+		layerPos = layerPos+1	
+	ELSE		
+		layerRun = 0
+	END
+
+END
+
+tv_layerSet Beginlayer
+
+
+//{{{{INCLUDE
+
+//{{{ Find
+//------------------------------------------
+//
+//	Find
+//
+//	Function: find a character into a string
+//            from a specified start position
+//
+//	Call: Find(string,car,start)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//		start  = start position in string
+//
+//	Return: position of character
+//			0 if character does not exist
+//			into string
+//			-1 if invalid position
+//			(negative, null or higher
+//			 than string length)
+//
+//------------------------------------------
+
+FUNCTION Find(string,car,start)
+	LOCAL i size
+	i = start
+	size = LEN(string)
+	
+	IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+		RETURN -1
+	END
+	DO
+		IF (CMP(CHAR(string,i),car) == 1)
+			RETURN i
+		END
+	UNTIL ((i=i+1) > size)
+	RETURN 0
+END
+//}}}
+
+//{{{ FirstPos(string,car)
+//------------------------------------------
+//
+//	FirstPos
+//
+//	Function: find first occurence of a
+//			  character into a string
+//
+//	Call: FirstPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 id character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION FirstPos(string,car)
+	RETURN Find(string,car,1)
+END
+//}}}
+
+//{{{ LastPos(string,car)
+//------------------------------------------
+//
+//	LastPos
+//
+//	Function: find last occurence of a
+//			  character into a string
+//
+//	Call: LastPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 if character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION LastPos(string,car)
+	LOCAL loop  myChar 
+	pos = LEN(string)
+	loop = 1
+	WHILE loop
+		myChar = CHAR(string,pos)
+		
+		IF CMP(myChar,car) == 1
+			loop =0
+		ELSE
+			pos = pos-1
+		END
+		IF pos<1
+			loop=0
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ FindString(string,search,start)
+//------------------------------------------
+//
+//	FindString
+//
+//	Function: find a substring into a string
+//             from a specified start position
+//
+//	Call: FindString(string,search,start)
+//
+//	Arguments:
+//		string = characters string
+//		search = substring to look for
+//		start  = start position in string
+//
+//	Return: start position of substring
+//			0 if substring does not exist
+//			into string
+//			-1 if invalid start position
+//			(negative, null or higher
+//			than string length) or if
+//          substring is empty
+//
+//------------------------------------------
+
+FUNCTION FindString(string,search,start)
+	LOCAL found j pos lastpos lstr lsrch
+	found = 0
+	lastpos = start
+	lstr = LEN(string)
+	lsrch = LEN(search)
+	
+	IF (CMP(search,"") == 1)
+		RETURN -1
+	END
+	WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
+		j = 1
+		found = 1
+		IF (j == lsrch)
+			RETURN pos
+		END
+		WHILE ((j < lsrch) && (found == 1))
+			IF ((pos+j) > lstr)
+				RETURN 0
+			ELSE
+				IF (CMP(CHAR(search,j+1),CHAR(string,pos+j)) == 0)
+					lastpos = pos+j
+					found = 0
+				END
+			END
+			j = j+1
+		END
+		IF (found == 1)
+			RETURN pos
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ LeftString(string,number)
+//------------------------------------------
+//
+//	LeftString
+//
+//	Function: extract a substring beginning
+//            at the start of a string
+//			   
+//	Call: LeftString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION LeftString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,1,number)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ RightString(string,number)
+//------------------------------------------
+//
+//	RightString
+//
+//	Function: extract a substring ending
+//            at the end of a string
+//
+//	Call: RightString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION RightString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,size-number+1,size)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ MidString(string,first,size)
+//------------------------------------------
+//
+//	MidString
+//
+//	Function: extract a substring from a
+//			  string
+//
+//	Call: MidString(string,first,size)
+//
+//	Arguments:
+//		string  = characters string
+//		first   = start position in string
+//				  chaï¿½ne
+//		size    = number of characters
+//
+//	Return: result substring
+//			or 0 if number or first are
+//          negatives or null.
+//
+//------------------------------------------
+
+FUNCTION MidString(string,first,size)
+	LOCAL ln
+	ln = LEN(string)
+	
+	IF ((first > 0) && (size > 0))
+		IF ((first+size-1) > ln)
+			size = ln-first+1
+		END
+		RETURN CUT(string,first,first+size-1)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ Replace
+//------------------------------------------
+//
+//	Replace
+//
+//	Function: replace each occurence of a
+//            substring into a string with
+//            another string
+//
+//	Call: Replace(string,search,repl)
+//
+//	Arguments:
+//		string  = characters string
+//		search  = substring to look for
+//		repl    = replacement substring
+//
+//	Return: result string after replacement
+//
+//------------------------------------------
+
+FUNCTION Replace(string,search,repl)
+	LOCAL pos workstr str1 str2 size
+	pos = 1
+	workstr = string
+	size = LEN(search)
+	
+	WHILE ((pos = FindString(workstr,search,pos)) > 0)
+		IF (pos == 1)
+			str1 = CUT(workstr,size+1,LEN(workstr))
+			workstr = repl""str1
+			pos = 0
+		ELSE
+			str1 = CUT(workstr,1,pos-1)
+			IF ((pos+size) < LEN(workstr))
+				str2 = CUT(workstr,pos+size,LEN(workstr))
+				workstr = str1""repl""str2
+			ELSE
+				workstr = str1""repl
+			END
+		END
+		pos = pos+LEN(repl)
+	END
+	RETURN workstr
+END
+//}}}
+
+//{{{ FileRequester
+//------------------------------------------
+//
+//	FileRequester
+//
+//	Function: open a file requester
+//
+//	Call: FileRequester(title,path,file,pattern)
+//
+//	Arguments:
+//		title   = requester title
+//		path    = default directory
+//      file    = default filename
+//      pattern = default pattern
+//
+//	Return: 0 if user clicks on Cancel
+//          1 if user chooses a file. This
+//          function creates three global
+//          variables: pathname (path
+//          to choosen file), filename
+//          (name of choosen file without
+//          extension) and extension
+//          (extension of choosen file)
+//
+//------------------------------------------
+
+FUNCTION FileRequester(title,path,file,pattern)
+	LOCAL fullname point slash size titre
+	
+	pathname = ""
+	filename = ""
+	extension = ""
+	
+	IF (CMP(pattern,0) == 1)
+		titre = "|"
+	ELSE
+		titre = "|"pattern
+	END
+	IF (CMP(file,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"file""titre
+	END
+	IF (CMP(path,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"path""titre
+	END
+	IF (CMP(title,0) == 1)
+		titre = "Choose a file"titre
+	ELSE
+		titre = title""titre
+	END
+
+	tv_ReqFile titre
+	fullname = Result
+	size = LEN(fullname)
+	
+	IF (CMP(fullname,"Cancel") == 1)
+		RETURN 0
+	ELSE
+		IF ((point = LastPos(fullname,".")) != 0)
+			extension = CUT(fullname,point+1,size)
+			size = point-1
+			fullname = CUT(fullname,1,size)
+		END
+		IF ((slash = LastPos(fullname,"\")) != 0)
+			filename = CUT(fullname,slash+1,size)
+			size = slash-1
+			pathname = CUT(fullname,1,size)
+		END
+		RETURN 1
+	END
+END
+//}}}
+
+//}}}}

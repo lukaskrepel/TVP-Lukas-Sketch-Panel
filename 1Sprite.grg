@@ -1,0 +1,167 @@
+// ***************************************************************
+// *** 
+// *** Mappenstructuur moet zo zijn opgezet:
+// *** Projectname/WorkFolder/001_Intro_v001_L.tvpp
+// *** Projectname/RenderFolder/
+// ***
+// *** Script maakt dan bijvoorbeeld:
+// *** Projectname/RenderFolder/Mario/Walk_R_00001.png etc.
+// *** Projectname/RenderFolder/Mario/Talk_R_00001.png etc.
+// *** Projectname/RenderFolder/Mario/Idle_R_00001.png etc.
+// *** 
+// ***************************************************************
+
+RenderFolder = "Sprites" // Set name of the renderfolder in the project folder.
+
+
+		// *** LAGEN AAN/UITZETTEN ***
+		tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
+		tv_layercolor hide Display 11 // Hide Overlay layer before rendering
+
+		// ***************************
+		// *** BEGIN MULTIPLY DEEL ***
+		// ***************************
+		Zoekwoord = Multiply
+
+		tv_LayerCurrentID
+		Beginlayer = result
+
+		layerRun = 1
+		layerPos = 0
+		WHILE layerRun	
+
+			tv_LayerGetID layerPos	
+			lid = result	
+			
+			IF CMP(lid,"NONE")==0		
+				// START RUN ON LAYER
+				tv_LayerInfo lid
+				PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+						last = LastPos(layerName,"_")
+						strlen = LEN(layerName)
+						IF CMP(last,0)
+							Eerstewoord = layerName
+						ELSE
+						Eerstewoord = LeftString(layerName,last-1)
+						END
+						Tweedewoord = RightString(layerName,strlen-last)
+				IF CMP(Tweedewoord, Zoekwoord)
+					tv_layerblendingmode lid Multiply
+				END
+						tv_layerblendingmode lid
+						IF CMP(result,Multiply)
+								Multiplylayername = Eerstewoord"_Multiply"
+								tv_LayerRename lid Multiplylayername
+						END
+				// END RUN ON LAYER
+				layerPos = layerPos+1	
+			ELSE		
+				layerRun = 0
+			END
+
+		END
+
+		tv_layerSet Beginlayer
+		// **************************
+		// *** EIND MULTIPLY DEEL ***
+		// **************************
+
+		PARAM none
+		tv_saveMode "PNG"
+		ext = ".png"
+		tv_AlphaSaveMode "PreMultiply" // Of moet dit NoPreMultiply zijn?
+		tv_Background "NONE"
+		tv_GetProjectName
+		projectpath = result
+		tv_clipname
+		clipName = result
+		tv_WriteTextFile "Exists" '"'projectpath'"'
+		testPath = result
+
+		IF CMP(testPath,projectpath)==0
+			tv_warn "Please save project and try again!"
+		ELSE
+			// Save Current Frame So I can set the timelinecursor back at the end of the script
+			tv_layerGetImage
+			startImage = result
+			
+			//MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+			projectpath = Replace(projectpath,'\','/')
+			strlen = LEN(projectpath)
+			last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
+			projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
+			
+			//getting the name of the tvpp file without the path
+			projectname = RightString(projectpath,strlen-last)
+			// getting the name of the tvpp file without ".tvpp"
+			strlen = LEN(projectname)
+			last = LastPos(projectname,".")
+			IF CMP(last,"0")==1
+				projectbase = projectname
+			ELSE
+				projectbase = LeftString(projectname,last-2)
+			END
+				
+			//Mapje omhoog
+			last = LastPos(projectdir,"/")
+			projectdir = LeftString(projectpath,last-1)
+			
+			//Zoek naam van tvp file om al rendermapnaam te gebruiken, bijv "Mario_v001_L.tvpp" wordt "Mario"
+			first = FirstPos(projectname,"_")
+			projectname = LeftString(projectname,first-1)
+			RenderFolder = projectname
+
+			// Create the dir where we will save our sequence   
+			saveDir = projectdir"/"RenderFolder"/"clipName //WAARSCHUWING: shot 001 moet "/001" heten. Ik denk dat de clip gewoon "Walk_R" mag heten
+			// First I remove it or delete it so old files will be deleted!!
+			tv_WriteTextFile "Remove" '"'saveDir'"'
+			// now I create again
+			tv_WriteTextFile "MkDir" '"'saveDir'"'
+			
+			// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
+			//get clip in
+			tv_markIn clip
+			PARSE result frame state
+			IF CMP(state,"set ")==1
+				inpoint = frame
+			ELSE
+				tv_firstImage
+				inpoint = result
+			END
+			//Get Clip Out
+			tv_markOut clip
+			PARSE result frame state
+			IF CMP(state,"set ")==1
+				outpoint = frame
+			ELSE
+				tv_LastImage
+				outpoint = result
+			END
+			
+			//findProjectinout
+			// Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+			// for this I use tv_projectcurrentframe
+			tv_layerImage inpoint
+			tv_projectcurrentframe
+			projIN = result
+			tv_projectcurrentframe projIN
+			tv_layerImage outpoint
+			tv_projectcurrentframe
+			projOUT = result
+			tv_projectcurrentframe projOUT
+			
+			// getting the name of the current clip to file prefix
+			tv_startFrame
+			startFrame = inpoint+result
+			// setting the name of the first file
+			renderFile = saveDir"/"clipName"_0000"startFrame""ext
+			// saving the sequence
+			tv_projectsavesequence '"'renderFile'"' projIN projOUT "camera"
+			// setting the current frame again
+			tv_layerImage startImage
+		END
+	
+		tv_Background "COLOR" // WIT KLEURTJE ACHTER POPPEKE WEER AANZETTEN
+
+
+#INCLUDE "Include.grg"

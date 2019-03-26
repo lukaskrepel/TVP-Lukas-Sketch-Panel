@@ -1,0 +1,136 @@
+tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
+tv_layercolor hide Display 11 // Hide Overlay layer before rendering
+
+
+// BEGIN MULTIPLY DEEL
+Zoekwoord = Multiply
+
+tv_LayerCurrentID
+Beginlayer = result
+
+layerRun = 1
+layerPos = 0
+WHILE layerRun	
+
+	tv_LayerGetID layerPos	
+	lid = result	
+	
+	IF CMP(lid,"NONE")==0		
+		// START RUN ON LAYER
+		tv_LayerInfo lid
+		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                last = LastPos(layerName,"_")
+                strlen = LEN(layerName)
+                IF CMP(last,0)
+                    Eerstewoord = layerName
+                ELSE
+                Eerstewoord = LeftString(layerName,last-1)
+                END
+                Tweedewoord = RightString(layerName,strlen-last)
+		IF CMP(Tweedewoord, Zoekwoord)
+			tv_layerblendingmode lid Multiply
+		END
+                tv_layerblendingmode lid
+                IF CMP(result,Multiply)
+                        Multiplylayername = Eerstewoord"_Multiply"
+                        tv_LayerRename lid Multiplylayername
+                END
+		// END RUN ON LAYER
+		layerPos = layerPos+1	
+	ELSE		
+		layerRun = 0
+	END
+
+END
+
+tv_layerSet Beginlayer
+// EIND MULTIPLY DEEL
+
+
+
+
+
+
+PARAM none
+tv_saveMode "PNG"
+ext = ".png"
+tv_AlphaSaveMode "NoPreMultiply"
+tv_Background "NONE"
+tv_GetProjectName
+projectpath = result
+renderName = "TVP_Output"
+tv_WriteTextFile "Exists" '"'projectpath'"'
+testPath = result
+
+IF CMP(testPath,projectpath)==0
+	tv_warn "Please save project and try again!"
+ELSE
+	tv_layerGetImage // Save Current Frame So I CAN SET IT AT THE END OF SCRIPT
+	startImage = result
+	projectpath = Replace(projectpath,'\','/') // MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+	strlen = LEN(projectpath)
+	last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
+	projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
+
+	// getting the name of the tvpp file without the path
+	projectname = RightString(projectpath,strlen-last)
+	// getting the name of the tvpp file without ".tvpp"
+	strlen = LEN(projectname)
+	last = LastPos(projectname,".")
+	IF CMP(last,"0")==1
+		projectbase = projectname
+	ELSE
+		projectbase = LeftString(projectname,last-2)
+	END
+	// Create the dir with the TIFF is saved in              
+	saveDir = projectdir"/"renderName // WAARSCHUWING: shot 001 moet "/001" heten.
+        // First I remove it or delete it so old files will be deleted!!
+	tv_WriteTextFile "Remove" '"'saveDir'"'
+	// now I create again
+	tv_WriteTextFile "MkDir" '"'saveDir'"'
+	
+	// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
+	//get clip in
+	tv_markIn clip
+	PARSE result frame state
+	IF CMP(state,"set ")==1
+		inpoint = frame
+	ELSE
+		tv_firstImage
+		inpoint = result
+	END
+	//Get Clip Out
+	tv_markOut clip
+	PARSE result frame state
+	IF CMP(state,"set ")==1
+		outpoint = frame
+	ELSE
+		tv_LastImage
+		outpoint = result
+	END
+	
+	//findProjectinout
+	// Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+	// for this I use tv_projectcurrentframe
+	tv_layerImage inpoint
+	tv_projectcurrentframe
+	projIN = result
+	tv_projectcurrentframe projIN
+	tv_layerImage outpoint
+	tv_projectcurrentframe
+	projOUT = result
+	tv_projectcurrentframe projOUT
+	
+	// getting the name of the current clip to file prefix
+	tv_startFrame
+	startFrame = inpoint+result
+	// setting the name of the first file
+	// Er zijn 4 nullen en dan het startframe, dus het werkt alleen bij renderen vanaf frame 1 tm 9 vanaf frame 10 krijg je gekke getallen
+	renderFile = saveDir"/"renderName"_0000"startFrame""ext
+	// saving the TIFF
+	tv_projectsavesequence '"'renderFile'"' projIN projOUT "camera"
+	// setting the current frame again
+	tv_layerImage startImage
+END
+
+#INCLUDE "Include.grg"

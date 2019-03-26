@@ -1,0 +1,37 @@
+<xmeml version="4">
+  <sequence id="MijnAnimatieBestandje_seq1">
+    <uuid>69b229de-c9e4-410e-869c-c77e560b4e18</uuid>
+    <name>MijnAnimatieBestandje_seq1</name>
+    <duration>0</duration>
+    <rate>
+      <timebase>25</timebase>
+      <ntsc>false</ntsc>
+    </rate>
+    <in>5</in>
+    <out>24</out>
+    <timecode>
+      <string>00:00:00:00</string>
+      <frame>0</frame>
+      <displayformat>NDF</displayformat>
+      <rate>
+        <timebase>25</timebase>
+        <ntsc>false</ntsc>
+      </rate>
+    </timecode>
+    <media>
+      <video>
+        <format>
+          <samplecharacteristics>
+            <width>1920</width>
+            <height>1080</height>
+            <rate>
+              <timebase>25</timebase>
+              <ntsc>false</ntsc>
+            </rate>
+            <pixelaspectratio>square</pixelaspectratio>
+            <anamorphic>false</anamorphic>
+          </samplecharacteristics>
+        </format>
+        <track MZ.TrackName="video">
+          <enabled>true</enabled>
+          <locked>false</locked>

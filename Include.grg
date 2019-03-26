@@ -1,0 +1,1100 @@
+// Mads Juul INCLUDE file includes the functions from the basic.grg and the advanged.geg George files as well as the proceduresmade by users found in the wiki
+// http://wiki.tvpaint.fr/index.php?title=George_Command_Reference
+// Use at your own risk!
+
+//{{{ BASIC
+//{{{ Find(string,car,start)
+//------------------------------------------
+//
+//	Find
+//
+//	Function: find a character into a string
+//            from a specified start position
+//
+//	Call: Find(string,car,start)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//		start  = start position in string
+//
+//	Return: position of character
+//			0 if character does not exist
+//			into string
+//			-1 if invalid position
+//			(negative, null or higher
+//			 than string length)
+//
+//------------------------------------------
+
+FUNCTION Find(string,car,start)
+	LOCAL i size
+	i = start
+	size = LEN(string)
+	
+	IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+		RETURN -1
+	END
+	DO
+		IF (CMP(CHAR(string,i),car) == 1)
+			RETURN i
+		END
+	UNTIL ((i=i+1) > size)
+	RETURN 0
+END
+//}}}
+
+//{{{ FirstPos(string,car)
+//------------------------------------------
+//
+//	FirstPos
+//
+//	Function: find first occurence of a
+//			  character into a string
+//
+//	Call: FirstPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 id character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION FirstPos(string,car)
+	RETURN Find(string,car,1)
+END
+//}}}
+
+//{{{ LastPos(string,car)
+//------------------------------------------
+//
+//	LastPos
+//
+//	Function: find last occurence of a
+//			  character into a string
+//
+//	Call: LastPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 if character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION LastPos(string,car)
+	LOCAL loop  myChar 
+	pos = LEN(string)
+	loop = 1
+	WHILE loop
+		myChar = CHAR(string,pos)
+		
+		IF CMP(myChar,car) == 1
+			loop =0
+		ELSE
+			pos = pos-1
+		END
+		IF pos<1
+			loop=0
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ FindString(string,search,start)
+//------------------------------------------
+//
+//	FindString
+//
+//	Function: find a substring into a string
+//             from a specified start position
+//
+//	Call: FindString(string,search,start)
+//
+//	Arguments:
+//		string = characters string
+//		search = substring to look for
+//		start  = start position in string
+//
+//	Return: start position of substring
+//			0 if substring does not exist
+//			into string
+//			-1 if invalid start position
+//			(negative, null or higher
+//			than string length) or if
+//          substring is empty
+//
+//------------------------------------------
+
+FUNCTION FindString(string,search,start)
+	LOCAL found j pos lastpos lstr lsrch
+	found = 0
+	lastpos = start
+	lstr = LEN(string)
+	lsrch = LEN(search)
+	
+	IF (CMP(search,"") == 1)
+		RETURN -1
+	END
+	WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
+		j = 1
+		found = 1
+		IF (j == lsrch)
+			RETURN pos
+		END
+		WHILE ((j < lsrch) && (found == 1))
+			IF ((pos+j) > lstr)
+				RETURN 0
+			ELSE
+				IF (CMP(CHAR(search,j+1),CHAR(string,pos+j)) == 0)
+					lastpos = pos+j
+					found = 0
+				END
+			END
+			j = j+1
+		END
+		IF (found == 1)
+			RETURN pos
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ LeftString(string,number)
+//------------------------------------------
+//
+//	LeftString
+//
+//	Function: extract a substring beginning
+//            at the start of a string
+//			   
+//	Call: LeftString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION LeftString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,1,number)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ RightString(string,number)
+//------------------------------------------
+//
+//	RightString
+//
+//	Function: extract a substring ending
+//            at the end of a string
+//
+//	Call: RightString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION RightString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,size-number+1,size)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ MidString(string,first,size)
+//------------------------------------------
+//
+//	MidString
+//
+//	Function: extract a substring from a
+//			  string
+//
+//	Call: MidString(string,first,size)
+//
+//	Arguments:
+//		string  = characters string
+//		first   = start position in string
+//				  chaï¿½ne
+//		size    = number of characters
+//
+//	Return: result substring
+//			or 0 if number or first are
+//          negatives or null.
+//
+//------------------------------------------
+
+FUNCTION MidString(string,first,size)
+	LOCAL ln
+	ln = LEN(string)
+	
+	IF ((first > 0) && (size > 0))
+		IF ((first+size-1) > ln)
+			size = ln-first+1
+		END
+		RETURN CUT(string,first,first+size-1)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ InsertAtPos(string,insert,pos)
+//------------------------------------------
+//
+//	InsertAtPos
+//
+//	Function: insert a string in another
+//            string at a specified position
+//
+//	Call: InsertAtPos(string,insert,pos)
+//
+//	Arguments:
+//		string  = characters string 
+//		insert  = string to insert
+//		pos     = start position for insertion
+//
+//	Return: result string after insertion
+//			or 0 if start position is
+//			invalid (negative, null or
+//			higher than string length)
+//
+//------------------------------------------
+
+FUNCTION InsertAtPos(string,insert,pos)
+	LOCAL workstr str1 size
+	size = LEN(string)
+
+	IF ((pos < 0) || (pos > size))
+		RETURN 0
+	END
+	IF (pos == 0)
+		RETURN insert""string
+	END
+	IF (pos == size)
+		RETURN string""insert
+	END
+	workstr = CUT(string,1,pos)
+	IF (pos < size)
+		str1 = CUT(string,pos+1,size)
+		RETURN workstr""insert""str1
+	ELSE
+		RETURN workstr""insert
+	END
+END
+//}}}
+//}}}
+
+//{{{ ADVANCED
+//{{{ InsertAfter(string,insert,search)
+//------------------------------------------
+//
+//	InsertAfter
+//
+//	Function: insert a string after each
+//			  occurence of a character or
+//            a set of characters into
+//            another string
+//
+//	Call: InsertAfter(string,insert,search)
+//
+//	Arguments:
+//		string  = characters string
+//		insert  = string to insert
+//		search  = character or substring
+//                to look for
+//
+//	Return: result string after insertion
+//
+//------------------------------------------
+
+FUNCTION InsertAfter(string,insert,search)
+	LOCAL pos workstr size
+	pos = 1
+	workstr = string
+	size = LEN(search)
+	
+	WHILE ((pos = FindString(workstr,search,pos)) > 0)
+		workstr = InsertStringAtPos(workstr,insert,pos+size-1)
+		pos = pos+size+LEN(insert)
+	END
+	RETURN workstr
+END
+//}}}
+
+//{{{ InsertBefore(string,insert,search)
+//------------------------------------------
+//
+//	InsertBefore
+//
+//	Function: insert a string before each
+//			  occurence of a character or
+//            a set of characters into
+//            another string
+//
+//	Call: InsertBefore(string,insert,search)
+//
+//	Arguments:
+//		string  = characters string
+//		insert  = string to insert
+//		search  = character or substring
+//                to look for
+//
+//	Return: result string after insertion
+//
+//------------------------------------------
+
+FUNCTION InsertBefore(string,insert,search)
+	LOCAL pos workstr
+	pos = 1
+	workstr = string
+	
+	WHILE ((pos = FindString(workstr,search,pos)) > 0)
+		workstr = InsertStringAtPos(workstr,insert,pos-1)
+		pos = pos+LEN(search)+LEN(insert)
+	END
+	RETURN workstr
+END
+//}}}
+
+//{{{ Delete(string,search)
+//------------------------------------------
+//
+//	Delete
+//
+//	Function: delete all occurences of a
+//            substring into a string
+//
+//	Call: Delete(string,search)
+//
+//	Arguments:
+//		string  = characters string
+//		search  = substring to delete
+//
+//	Return: result string after deletion
+//
+//------------------------------------------
+
+FUNCTION Delete(string,search)
+	LOCAL workstr str1 str2 pos size
+	workstr = string
+	pos = 1
+	size = LEN(search)
+	
+	WHILE ((pos = FindString(workstr,search,1)) > 0)
+		IF ((pos != 1) && ((pos+size) < LEN(workstr)))
+			str1 = CUT(workstr,1,pos-1)
+			str2 = CUT(workstr,pos+size,LEN(workstr))
+			workstr = str1""str2
+		ELSE
+			IF (pos == 1)
+				IF ((size+1) < LEN(workstr))
+					workstr = CUT(workstr,size+1,LEN(workstr))
+				ELSE
+					workstr = ""
+				END
+			ELSE
+				workstr = CUT(workstr,1,pos-1)
+			END
+		END
+	END
+	RETURN workstr
+END
+//}}}}
+
+//{{{ Replace(string,search,repl)
+//------------------------------------------
+//
+//	Replace
+//
+//	Function: replace each occurence of a
+//            substring into a string with
+//            another string
+//
+//	Call: Replace(string,search,repl)
+//
+//	Arguments:
+//		string  = characters string
+//		search  = substring to look for
+//		repl    = replacement substring
+//
+//	Return: result string after replacement
+//
+//------------------------------------------
+
+FUNCTION Replace(string,search,repl)
+	LOCAL pos workstr str1 str2 size
+	pos = 1
+	workstr = string
+	size = LEN(search)
+	
+	WHILE ((pos = FindString(workstr,search,pos)) > 0)
+		IF (pos == 1)
+			str1 = CUT(workstr,size+1,LEN(workstr))
+			workstr = repl""str1
+			pos = 0
+		ELSE
+			str1 = CUT(workstr,1,pos-1)
+			IF ((pos+size) < LEN(workstr))
+				str2 = CUT(workstr,pos+size,LEN(workstr))
+				workstr = str1""repl""str2
+			ELSE
+				workstr = str1""repl
+			END
+		END
+		pos = pos+LEN(repl)
+	END
+	RETURN workstr
+END
+//}}}
+
+//{{{ NewParse(string,divider)
+//------------------------------------------
+//
+//	NewParse
+//
+//	Function: cut a string into several parts and
+//            store each part into a variable.
+//            The string is cut before each
+//            occurence of a specified character.
+//
+//	Call: NewParse(string,divider)
+//
+//	Arguments:
+//		string  = characters string
+//		divider = character used as a separator
+//                between each part of the string
+//
+//	Return: number of variables created.
+//          This function create global variables
+//			named var(1), var(2)...var(N), where
+//          N is the value returned by the function.
+//
+//  Note: if the string contained two or more
+//        successive separators, no variable is
+//        created for these parts of the string.
+//        For example, if you call the NewParse
+//        function for "First;;Second" with
+//        divider=";", only two variables are
+//        created (var(1)="First" and
+//        var(2)="Second").
+//
+//------------------------------------------
+
+FUNCTION NewParse(string,divider)
+	LOCAL pos i workstr size
+	i = 0
+	pos = 1
+	workstr = string
+	
+	IF ((CMP(workstr,"") == 0) && (CMP(divider,"") == 0) && (CMP(workstr,divider) == 0))
+		WHILE ((pos = Find(workstr,divider,1)) > 0)
+			IF ((pos != 1) && (pos != LEN(workstr)))
+				i = i+1
+				var(i) = CUT(workstr,1,pos-1)
+				workstr = CUT(workstr,pos+1,LEN(workstr))
+			ELSE
+				IF (pos == 1)
+					IF (pos != LEN(workstr))
+						workstr = CUT(workstr,2,LEN(workstr))
+					ELSE
+						workstr = ""
+					END
+				ELSE
+					workstr = CUT(workstr,pos,LEN(workstr))
+				END
+			END
+		END
+		if (CMP(workstr,0) == 0)
+			i = i+1
+			var(i) = workstr
+		END
+	END
+	RETURN i
+END
+//}}}}
+
+//{{{ FileRequester(title,path,file,pattern)
+//------------------------------------------
+//
+//	FileRequester
+//
+//	Function: open a file requester
+//
+//	Call: FileRequester(title,path,file,pattern)
+//
+//	Arguments:
+//		title   = requester title
+//		path    = default directory
+//      file    = default filename
+//      pattern = default pattern
+//
+//	Return: 0 if user clicks on Cancel
+//          1 if user chooses a file. This
+//          function creates three global
+//          variables: pathname (path
+//          to choosen file), filename
+//          (name of choosen file without
+//          extension) and extension
+//          (extension of choosen file)
+//
+//------------------------------------------
+
+FUNCTION FileRequester(title,path,file,pattern)
+	LOCAL fullname point slash size titre
+	
+	pathname = ""
+	filename = ""
+	extension = ""
+	
+	IF (CMP(pattern,0) == 1)
+		titre = "|"
+	ELSE
+		titre = "|"pattern
+	END
+	IF (CMP(file,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"file""titre
+	END
+	IF (CMP(path,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"path""titre
+	END
+	IF (CMP(title,0) == 1)
+		titre = "Choose a file"titre
+	ELSE
+		titre = title""titre
+	END
+
+	tv_ReqFile titre
+	fullname = Result
+	size = LEN(fullname)
+	
+	IF (CMP(fullname,"Cancel") == 1)
+		RETURN 0
+	ELSE
+		IF ((point = LastPos(fullname,".")) != 0)
+			extension = CUT(fullname,point+1,size)
+			size = point-1
+			fullname = CUT(fullname,1,size)
+		END
+		IF ((slash = LastPos(fullname,"\")) != 0)
+			filename = CUT(fullname,slash+1,size)
+			size = slash-1
+			pathname = CUT(fullname,1,size)
+		END
+		RETURN 1
+	END
+END
+//}}}
+//}}}
+
+//{{{ MADS JUUL PROCEDURES
+
+//{{{{TVP
+
+//{{{ tvp_canWrite()
+//Check if the TVpaint can read and write the file system else you have to restart TVP
+//RETURNS : Boolean 
+//DEPENDS : project_getPath()
+FUNCTION tvp_canWrite()
+	LOCAL projectpath rest project canWrite
+	projectpath =  project_getPath()
+	tv_writetextfile "Exists" projectpath
+	IF CMP(result,"Forbidden")==1
+		canWrite = 0
+	ELSE
+		canWrite = 1
+	END
+	result = canWrite
+	RETURN result
+END
+//}}}}
+
+//{{{ tvp_getSlash()
+//Returns the path seperater of the OS
+//RETURN : "/" or "\"
+FUNCTION tvp_getSlash()
+	LOCAL mySlash
+
+	tv_version "ComputerOS"
+
+	IF CMP(result,"WIN32")==1 || CMP(result,"WIN64")==1 
+		mySlash = "\"
+	ELSE
+		mySlash = "/"
+	END
+	result = mySlash
+	RETURN result
+END
+//}}}}
+
+//}}}}
+
+//{{{{PROJECT
+
+//{{{ project_getPath()
+//Returns complete path of current project
+FUNCTION project_getPath()
+       LOCAL rest
+	tv_ProjectInfo 0
+	PARSE result result rest
+	RETURN result
+END
+//}}}}
+
+//{{{ project_isSaved()
+//Returns a Boolean to tell if current Project is saved or not
+//DEPEND on project_getPath()
+FUNCTION project_isSaved()
+	LOCAL projectpath exists slash myResult
+	projectpath =  project_getPath()
+	tv_writetextfile "Exists" projectpath
+	exists = projectpath 
+	slash = tvp_getSlash()
+	IF CMP(exists,projectpath)!=1||CMP(exists,slash )
+		myResult = 0
+	ELSE
+		myResult = 1
+	END
+	result = myResult 
+	RETURN result
+END
+//}}}}
+
+//{{{  project_getParent()
+FUNCTION project_getParent()
+	project_getPath()
+	file_getParent(result)
+	RETURN result
+END
+//}}}}
+
+//{{{ project_getName()
+FUNCTION project_getName()
+	project_getPath()
+	file_getName(result)
+	RETURN result
+END
+//}}}}
+
+//{{{ project_getBaseName()
+FUNCTION project_getBaseName()
+	LOCAL projectName strlen last projectbase
+	projectName = project_getName()
+	IF CMP(projectName,"-1")==1
+		result = -1
+	ELSE
+		strlen = LEN(projectname)
+		last = LastPos(projectname,".")
+		IF CMP(last,"0")==1
+			projectbase = projectname
+		ELSE
+			projectbase = LeftString(projectname,last-1)
+		END
+		result = projectbase
+	END
+	RETURN result
+END
+//}}}}
+
+//{{{ project_getBound()
+FUNCTION project_getBound()
+	LOCAL x2 y2
+	tv_getWidth
+	x2= result
+	x2=x2-1
+	tv_getHeight 
+	y2 = result
+	y2=y2-1
+	result = "0 0 "x2" "y2
+	RETURN result
+END
+//}}}}
+
+//{{{ project_getAspect()
+FUNCTION project_getAspect()
+	LOCAL height width aspect
+	myResult = -1
+	tv_GetHeight
+	height = result
+	tv_GetWidth
+	width = result
+	
+	aspect = width/height
+	myResult = aspect
+END
+//}}}}
+
+//{{{ project_incrementalSave(divider,part,ask,minimumDigitLength)
+//Saves an Incremental file of current TVPP project in the same folder as the currentProject.
+//Find the Part of the current file name with the "divider" and the "part" variabled passed to the function
+
+//lets say we have a file called thefox_Q002_S002_v02.tvpp
+//And we want to increment the "v02" part. We would calle the function like this
+//project_incrementalSave("_",4,1)
+FUNCTION project_incrementalSave(divider,part,ask,minimumDigitLength)
+	LOCAL name slash dir newName myReturn
+	//CHANGELOG
+	//2014-11-11 project name can start with a number like "0001_v01.tvpp" without the leading zeros disappear when saving
+	project_isSaved()
+	IF CMP(result,"1")1==1
+		name = project_getName()
+		slash = tvp_getSlash()
+		name="/"name
+		dir = project_getParent()
+		string_incrementalPart(name,divider,part,minimumDigitLength)
+		newName = dir""result
+		IF CMP(ask,"1")==1
+			tv_Request "Increment and save : "newName" |Save|CANCEL"
+			IF result
+				tv_SaveProject newName
+			END
+		ELSE
+			tv_SaveProject newName
+		END
+		myReturn = newName
+	ELSE
+		myReturn = 0
+	END
+	
+	result = myReturn
+	RETURN result
+END
+//}}}}
+
+//}}}}
+
+//{{{{STRING
+
+//{{{ string_addZeros(prefix,string,length)
+FUNCTION string_addZeros(prefix,string,length)
+	LOCAL stringPrefix digit stringPostfix cur i
+	// CHANGELOG
+	//2014-11-11 Second parameter can be a string instead of an integer with letters before and after string
+	stringPrefix = string_getPrefix(string)
+	digit = string_getDigit(string)
+	PARSE digit digit rest
+	stringPostfix = string_getPostfix(string)
+	prefix=prefix""stringPrefix
+	length=length*1
+	digit=digit*1
+	cur = LEN(digit)
+	length=length-1
+	FOR i=cur TO length
+		prefix=prefix"0"
+	END
+	result = prefix""digit""stringPostfix
+	RETURN result
+END
+//}}}}
+
+//{{{ char_isDigit(char)
+FUNCTION char_isDigit(char)
+	LOCAL myResult
+	myResult = 0
+	IF CMP('"0"',char)==1
+		myResult = 1
+	END
+	IF CMP('"1"',char)==1
+		myResult = 1
+	END
+	IF CMP('"2"',char)==1
+		myResult = 1
+	END
+	IF CMP('"3"',char)==1
+		myResult = 1
+	END
+	IF CMP('"4"',char)==1
+		myResult = 1
+	END
+	IF CMP('"5"',char)==1
+		myResult = 1
+	END
+	IF CMP('"6"',char)==1
+		myResult = 1
+	END
+	IF CMP('"7"',char)==1
+		myResult = 1
+	END
+	IF CMP('"8"',char)==1
+		myResult = 1
+	END
+	IF CMP('"9"',char)==1
+		myResult = 1
+	END
+	IF CMP('" "',char)==1
+		myResult = 0
+	END
+	result = myResult
+	RETURN result
+END
+//}}}}
+
+//{{{ string_getPrefix(string)
+FUNCTION string_getPrefix(string)
+	LOCAL myLen pos prefix all loop cur test
+	myLen = LEN(string)
+	pos = 1
+	myResult=""
+	loop=1
+	WHILE pos<=myLen && loop ==1
+		cur = CHAR(string,pos)
+		test = '"'cur'"'
+		char_isDigit(test)
+		IF result==1
+			loop=0
+		ELSE
+			 myResult=myResult""cur
+		END
+		pos=pos+1
+	END
+	RETURN myResult
+END
+//}}}}
+
+//{{{ string_getDigit(string)
+FUNCTION string_getDigit(string)
+	LOCAL myLen pos number loop cur test length
+	myLen = LEN(string)
+	pos = 1
+	number="0"
+	loop=1
+	length=0
+	WHILE pos<=myLen && loop ==1
+		cur = CHAR(string,pos)
+		test = '"'cur'"'
+		char_isDigit(test)
+		IF result==1
+			number=number""cur
+			length=length+1
+		ELSE
+			IF length>0
+				loop=0
+			END
+		END
+		pos=pos+1
+	END
+	result = number" "length
+	RETURN result
+END
+//}}}}
+
+//{{{ string_getPostfix(string)
+FUNCTION string_getPostfix(string)
+	LOCAL myLen pos part cur test
+	myLen = LEN(string)
+	pos = 1
+	myResult=""
+	part=0
+	WHILE pos<=myLen
+		cur = CHAR(string,pos)
+		test = '"'cur'"'
+		char_isDigit(test)
+		IF result==1
+			IF part==0
+				part=1
+			END
+		ELSE
+			IF part==1
+				part=2
+			END
+		END
+		IF part==2
+			 myResult=myResult""cur
+		END
+		pos=pos+1
+	END
+
+	RETURN myResult
+END
+//}}}}
+
+//{{{ string_increment(divider,string,minimumDigitLength)
+FUNCTION string_increment(divider,string,minimumDigitLength)
+	LOCAL prefix  digit length postfix
+	prefix = string_getPrefix(string)
+	prefix = divider""prefix 
+	string_getDigit(string)
+	PARSE result digit length
+	digit=digit*1
+	digit=digit+1
+	IF length<minimumDigitLength
+		length=minimumDigitLength
+	END
+	postfix = string_getPostfix(string)
+	string_addZeros(prefix,digit,length)
+	result = result""postfix
+	RETURN result
+END
+//}}}}
+
+//{{{ string_incrementalPart(string,divider,part,minimumDigitLength)
+FUNCTION string_incrementalPart(string,divider,part,minimumDigitLength)
+	LOCAL length myPart increment all i 
+	length = newPARSE(string,divider)
+	myPart = var(part)
+	string_increment(divider,myPart,minimumDigitLength)
+	increment = result
+	all=""
+	FOR i=1 TO length
+		iF i==part
+			all=all""increment
+		ELSE
+			myPart=var(i)
+			IF i==1
+				all=all""myPart
+			ELSE
+				all=all""divider""myPart
+			END
+		END
+	END
+	result=all
+	RETURN result
+END
+//}}}}
+
+//}}}}
+
+//{{{{FILES
+
+//{{{ file_getExt(path)
+FUNCTION file_getExt(path)
+	newParse(path,".")
+	result = var(2)
+	RETURN result
+END
+//}}}}
+
+//{{{ file_getParent(path)
+FUNCTION file_getParent(path)
+	LOCAL strlen last 
+	path = Replace(path,'\','/')
+	strlen = LEN(path)
+	last = LastPos(path,"/")
+	path = LeftString(path,last-1)
+	IF CMP(last,strlen)==1
+		strlen = LEN(path)
+		last = LastPos(path,"/")
+		path = LeftString(path,last-1)
+	END
+	result = path
+	RETURN result
+END
+//}}}}
+
+//{{{ file_exists(path)
+FUNCTION file_exists(path)
+	LOCAL exists
+	IF CMP(path,"0")==1
+		exists = 0
+	ELSE
+		tv_WriteTextFile "Exists" path
+		exists=result
+		if CMP(exists,path)==1
+			exists = 1
+		ELSE
+			exists = 0
+		END
+	END
+	result = exists
+	RETURN result
+END
+//}}}}
+
+//{{{ file_getName(path)
+FUNCTION file_getName(path)
+	LOCAL  fileName strlen last
+	IF CMP(path,"/")==1 || CMP(path,"\")==1
+		fileName = -1
+	ELSE
+		path = Replace(path,'\','/')
+		strlen = LEN(path)
+		last = LastPos(path,'/')
+		fileName = RightString(path,strlen-last)
+		
+	END
+	result = fileName
+	RETURN result
+END
+//}}}}
+
+//{{{ file_readTextFile(textFilePath)
+FUNCTION file_readTextFile(textFilePath)
+	LOCAL myReturn fileExists i line text
+	myReturn = 0
+	tv_WriteTextFile "Exists" textFilePath
+	fileExists = result
+	
+	IF CMP(fileExists,textFilePath)==1
+		loop = 1
+		i=0
+		WHILE loop==1
+			tv_readtextfile  i textFilePath
+			PARSE result line text
+			
+			IF CMP( line, "EOF"  ) == 1
+				loop=0
+			ELSE
+			
+			
+				length = LEN(text)
+				length=length-2
+				text = CUT(text,1,length)
+				IF i==0
+					myReturn=text
+				ELSE
+					myReturn=myReturn"\n"text
+				END
+		
+			END
+			i=i+1
+	
+		END
+	END
+	result= myReturn
+	RETURN result
+END
+//}}}}
+
+//}}}}
+
+//}}}}

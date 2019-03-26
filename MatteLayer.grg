@@ -1,0 +1,80 @@
+// MatteLayer.grg
+// Svengali © 2013
+// Dec 28, 2013 ver .2  Matte layer (all or selected frames) - fill all pixels with solid-APen color
+
+param none
+ScriptName = "MatteLayer"
+
+
+// ----- collect information -----
+
+tv_AreaInit backup									// save original fill parameters
+OriginalAreaInit = result
+
+tv_GetActiveShape
+parse result Shape									// read shape
+tv_GetActiveTool 
+parse result Tool									// get complete tool type AND parameters
+
+tv_GetWidth											// width of project
+PWidth = result
+tv_GetHeight										// height of project
+PHeight = result
+
+tv_LayerCurrentID									// save original layer ID
+OriginalLayerID = result
+tv_LayerGetImage									// save current frame to restore at end of script
+OriginalFrame = result
+tv_LayerInfo OriginalLayerID						// get information about current layer
+parse result d d d d d Lstart Lend d				// get start and end frame
+
+tv_LayerSelectInfo 									// get first selected frame and length of selection
+parse result SelectFirst SelectLength
+SelectLast = SelectLength + SelectFirst - 1			// calculate Last selected frame
+
+IF SelectFirst == 0 && SelectLast == 0				// If no frames selected extend matte to all frames
+	SelectFirst = Lstart
+	SelectLast = Lend
+END
+
+
+
+
+
+// ----- process all (or selected) frames to solid APen color -----
+
+tv_UndoOpenStack									// open UNDO
+
+tv_AreaInit Reset
+tv_AreaInit MODE 0 OPACITY 100 MAP_GRADIENT 0		// set fill parameters
+tv_AreaInit FILLINSIDE 0							// turn off fillinside
+
+tv_Preserve ALPHA "on"								// set alpha mask on
+
+tv_GetDrawMode										// save drawmode
+OriginalDrawMode  = result
+tv_SetDrawMode "color"								// assure that color mode is selected
+
+FOR i = SelectFirst to SelectLast					// apply matte to selected frames OR to all frames
+	tv_LayerImage i
+	tv_RectFill 0 0 PWidth PHeight 0				// fill frame with APen color (excluding alpha area)
+
+END
+
+tv_Preserve Alpha "off"								// set alpha mask off
+
+
+
+
+
+// ----- restore all to original settings -----
+
+tv_SetActiveShape Shape								// restore shape back to original
+tv_AreaInit OriginalAreaInit						// restore fill parameters back to original
+tv_cmd Tool											// restore tool to original
+tv_SetDrawMode OriginalDrawMode						// set drawmode back to original
+tv_LayerSet OriginalLayerID							// return to layer to original
+tv_LayerImage OriginalFrame							// return to frame to original
+
+tv_UndoCloseStack									// close UNDO
+

@@ -1,0 +1,609 @@
+//{ TVP projectmap zoeken
+tv_GetProjectName
+projectpath = result
+projectpath = Replace(projectpath,'\','/') // MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
+projectdir = LeftString(projectpath,last-1)
+//}
+//{ Moho file aanwijzen en info eruit halen
+FileRequester("Show me the Moho file!",projectdir,Shot.anme,anme)
+IF CMP(Result,Cancel)
+    EXIT
+END
+AnmeFilePath = result
+AnmeFilePath = Replace(AnmeFilePath,'\','/')
+strlen = LEN(AnmeFilePath)
+last = LastPos(AnmeFilePath,"/")
+AnmeFileFolder = LeftString(AnmeFilePath,last-1)
+AnmeFileName = RightString(AnmeFilepath,strlen-last)
+strlen = LEN(AnmeFileName)
+last = LastPos(AnmeFileName,".")
+FileExtension = RightString(AnmeFilename,strlen-last)
+AnmeFileName = LeftString(AnmeFileName,last-1)
+IF (CMP(FileExtension,"anme")==0)
+    Print AnmeFileName
+    Print FileExtension
+    tv_Warn "Dit is geen .anme file hoor! Ik kap ermee."
+    EXIT
+END
+//{ Info uit anme file pakken
+tv_ReadTextfile 7 AnmeFilePath
+PARSE result Line Stuff ProjectWidth ProjectHeight
+tv_ReadTextfile 8 AnmeFilePath
+PARSE result Line Stuff ProjectStartFrame ProjectEndFrame
+ProjectStartFrame = ProjectStartFrame-1
+ProjectEndFrame = ProjectEndFrame-1
+tv_ReadTextfile 9 AnmeFilePath
+PARSE result Line Stuff ProjectFramerate
+tv_ReadTextfile 10 AnmeFilePath
+PARSE result Line Stuff BgRed BgGreen BgBlue
+tv_ReadTextFile 21 AnmeFilePath
+PARSE result Line Stuff SoundFilePath
+ProjectField = none
+ProjectPixelaspect = 1
+ProjectName = AnmeFileName
+//}
+//}
+//{ Nieuw project maken op basis van info uit .anme
+tv_ProjectNew ProjectName ProjectWidth ProjectHeight ProjectPixelaspect ProjectFramerate ProjectField ProjectStartframe
+tv_Background Color BgRed BgGreen BgBlue BgRed BgGreen BgBlue
+tv_markIn ProjectStartFrame set
+tv_markOut ProjectEndFrame set
+//}
+//{ Mapjes van sequentiemap doorlopen
+SequenceFolder = AnmeFileFolder
+loop = 1
+foldernumber = 0
+WHILE (loop == 1)
+    tv_readtextfile Foldernumber Sequencefolder
+    parse result eof foldername
+    IF (CMP(eof, "EOF")==1)
+        loop = 0
+    ELSE
+	//{ Zorgen dat hij de .anme file overslaat en niet als folder behandelt
+        last = LastPos(foldername,".")
+        strlen = LEN(foldername)
+        Extensioncheck = RightString(foldername,strlen-last)
+        IF (CMP(Extensioncheck,"anme")==0) //}
+            //{ Eerste file van sequentie zoeken}
+            loopinloop = 1
+            filenumber = 0
+            WHILE (loopinloop == 1)
+                tv_readtextfile filenumber Sequencefolder"/"foldername
+                PARSE result eof1 filename
+                INVISIBLEFILEALSIE1IS = FirstPos(filename,".") // Invisible system files usually start with ._
+                IF (CMP(eof1, "EOF")==0) && (CMP(INVISIBLEFILEALSIE1IS, 1)==0)
+                    //#PRINT SequenceFolder"/"Foldername"/"Filename"  Filenumber:"filenumber // IMPORT
+                    tv_LayerInfo
+                    PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                    IF (CMP(LayerName,Foldername)==0) // Als de laag nog niet bestaat.
+                        IF CMP(LayerName,"Untitled 1")
+                            tv_LayerCurrentID
+                            StartLayerID = result
+                        END
+                        tv_LayerCreate Foldername
+                        tv_LayerCurrentID
+                        LayerID = result
+                        NextFilenumber = Filenumber + 1
+                        tv_readtextfile NextFilenumber Sequencefolder"/"foldername
+                        PARSE result eof2 NextFilename
+                        IF (CMP(eof2, "EOF")==0) // Tweede plaatje bestaat!
+                            tv_LayerAnim
+                            tv_LayerStretch LayerID end ProjectEndFrame clear
+                        ELSE
+                            tv_layerpostbehavior LayerID Hold
+                        END
+                        tv_LayerImage 0
+                    END
+                    tv_LoadImage SequenceFolder"/"Foldername"/"Filename // IMPORTEERMOMENT!
+                    tv_LayerGetImage
+                    CurrentImage = result
+                    CurentImage = CurrentImage + 1
+                    tv_LayerImage CurentImage
+                ELSE
+                    IF (CMP(eof1, "EOF")==1)
+                        loopinloop = 0
+                    END
+                END
+                filenumber = filenumber + 1
+            END
+            //}
+            tv_layerRecomputeExposure
+            last = LastPos(foldername,"_")
+            strlen = LEN(foldername)
+            IF CMP(last,0)
+                Eerstewoord = foldername
+            ELSE
+            Eerstewoord = LeftString(foldername,last-1)
+            END
+            Tweedewoord = RightString(foldername,strlen-last)
+            tv_LayerCurrentID
+            LayerID = result
+            //{ ARRAY
+            Colorgroup[1] = "Character1"
+            Colorgroup[2] = "Character2"
+            Colorgroup[3] = "Character3"
+            Colorgroup[4] = "Character4"
+            Colorgroup[5] = "Character5"
+            Colorgroup[6] = "Character6"
+            Colorgroup[7] = "Character7"
+            Colorgroup[8] = "FG"
+            Colorgroup[9] = "BG"
+            Colorgroup[10] = "FX"
+            Colorgroup[11] = "Overlay"
+            Colorgroup[12] = "Storyboard"
+            For i = 1 TO 12
+                // PRINT Colorgroup[i]
+                IF CMP(Eerstewoord,Colorgroup[i])
+                    tv_layercolor set LayerID i
+                END
+            END
+            //}
+            IF CMP(Tweedewoord,"lijn")
+                tv_LayerImage 0
+                tv_LayerSelect ProjectStartFrame ProjectEndFrame+1
+                tv_StackLoadBin ScanCleaner
+                tv_StackApply // SCANCLEANER EROP!
+                tv_layerRecomputeExposure
+                //{ Lijnlaag 1 naar boven zetten zodat ie altijd boven kleur komt (EIGENLIJK EERST CHECKEN OF KLEUR BESTAAT)
+                tv_LayerGetPos
+                LayerPos = result
+                LayerUp = LayerPos - 1
+                //{ Controleren of laag boven deze lijnlaag wel een kleurlaag is van zelfde ding
+                tv_LayerGetID LayerUp
+                tv_LayerInfo result
+                PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+                last = LastPos(LayerName,"_")
+                strlen = LEN(LayerName)
+                IF CMP(last,0)
+                    Eerstewoord = LayerName
+                ELSE
+                LayerUpEerstewoord = LeftString(LayerName,last-1)
+                END
+                LayerUpTweedewoord = RightString(LayerName,strlen-last)
+                IF CMP(LayerUpEerstewoord,Eerstewoord) && CMP(LayerUpTweedewoord,kleur)
+                    //}
+                    tv_LayerMove LayerUp
+                    tv_LayerGetID LayerPos
+                    GoBack = result
+                    tv_LayerSet GoBack
+                END
+                //}                        
+            ELSE
+                IF CMP(Tweedewoord,"kleur")
+                    // Dingen met kleurlaag doen?
+                END
+            END
+            //{ BG zonderaan zetten!
+            IF CMP(Eerstewoord,"BG")
+                BottomLayerSearchLoop = 1
+                i= 0
+                WHILE BottomLayerSearchLoop
+                    tv_LayerGetID i
+                    curLID= result	
+                    IF CMP(curLID,"NONE")==0
+                        i = i + 1	
+                    ELSE		
+                        BottomLayerSearchLoop=0
+                        BottomLayer = i
+                    END
+                END
+                tv_LayerMove BottomLayer
+                tv_LayerSet StartLayerID
+            END //}
+            //{ FG bovenaan zetten
+            IF CMP(Eerstewoord,"FG") && (CMP(Tweedewoord,"lijn")==0)
+                tv_LayerMove 0
+                tv_LayerSet LayerID // ipv startlayerid
+            END //}
+        ELSE
+            // #PRINT "anme file is: " foldernumber foldername
+        END
+    END
+    foldernumber = foldernumber + 1
+END
+//}
+//{ Afronden
+tv_Layerset StartLayerID
+tv_Layerkill StartLayerID
+tv_LayerImage ProjectStartFrame
+tv_ResetDisplay
+//}
+
+//{{{{INCLUDE
+
+//{{{ Find
+//------------------------------------------
+//
+//	Find
+//
+//	Function: find a character into a string
+//            from a specified start position
+//
+//	Call: Find(string,car,start)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//		start  = start position in string
+//
+//	Return: position of character
+//			0 if character does not exist
+//			into string
+//			-1 if invalid position
+//			(negative, null or higher
+//			 than string length)
+//
+//------------------------------------------
+
+FUNCTION Find(string,car,start)
+	LOCAL i size
+	i = start
+	size = LEN(string)
+	
+	IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+		RETURN -1
+	END
+	DO
+		IF (CMP(CHAR(string,i),car) == 1)
+			RETURN i
+		END
+	UNTIL ((i=i+1) > size)
+	RETURN 0
+END
+//}}}
+
+//{{{ FirstPos(string,car)
+//------------------------------------------
+//
+//	FirstPos
+//
+//	Function: find first occurence of a
+//			  character into a string
+//
+//	Call: FirstPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 id character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION FirstPos(string,car)
+	RETURN Find(string,car,1)
+END
+//}}}
+
+//{{{ LastPos(string,car)
+//------------------------------------------
+//
+//	LastPos
+//
+//	Function: find last occurence of a
+//			  character into a string
+//
+//	Call: LastPos(string,car)
+//
+//	Arguments:
+//		string = characters string
+//		car    = character to look for
+//
+//	Return: position of character
+//			or 0 if character does not
+//			exist into string.
+//
+//------------------------------------------
+
+FUNCTION LastPos(string,car)
+	LOCAL loop  myChar 
+	pos = LEN(string)
+	loop = 1
+	WHILE loop
+		myChar = CHAR(string,pos)
+		
+		IF CMP(myChar,car) == 1
+			loop =0
+		ELSE
+			pos = pos-1
+		END
+		IF pos<1
+			loop=0
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ FindString(string,search,start)
+//------------------------------------------
+//
+//	FindString
+//
+//	Function: find a substring into a string
+//             from a specified start position
+//
+//	Call: FindString(string,search,start)
+//
+//	Arguments:
+//		string = characters string
+//		search = substring to look for
+//		start  = start position in string
+//
+//	Return: start position of substring
+//			0 if substring does not exist
+//			into string
+//			-1 if invalid start position
+//			(negative, null or higher
+//			than string length) or if
+//          substring is empty
+//
+//------------------------------------------
+
+FUNCTION FindString(string,search,start)
+	LOCAL found j pos lastpos lstr lsrch
+	found = 0
+	lastpos = start
+	lstr = LEN(string)
+	lsrch = LEN(search)
+	
+	IF (CMP(search,"") == 1)
+		RETURN -1
+	END
+	WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
+		j = 1
+		found = 1
+		IF (j == lsrch)
+			RETURN pos
+		END
+		WHILE ((j < lsrch) && (found == 1))
+			IF ((pos+j) > lstr)
+				RETURN 0
+			ELSE
+				IF (CMP(CHAR(search,j+1),CHAR(string,pos+j)) == 0)
+					lastpos = pos+j
+					found = 0
+				END
+			END
+			j = j+1
+		END
+		IF (found == 1)
+			RETURN pos
+		END
+	END
+	RETURN pos
+END
+//}}}
+
+//{{{ LeftString(string,number)
+//------------------------------------------
+//
+//	LeftString
+//
+//	Function: extract a substring beginning
+//            at the start of a string
+//			   
+//	Call: LeftString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION LeftString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,1,number)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ RightString(string,number)
+//------------------------------------------
+//
+//	RightString
+//
+//	Function: extract a substring ending
+//            at the end of a string
+//
+//	Call: RightString(string,number)
+//
+//	Arguments:
+//		string  = characters string
+//		number  = number of character to
+//			      extract from string
+//
+//	Return: result substring
+//			or 0 if number is negative
+//          or null.
+//
+//------------------------------------------
+
+FUNCTION RightString(string,number)
+	LOCAL size
+	size = LEN(string)
+	
+	IF (number > 0)
+		IF (number > size)
+			number = size
+		END
+		RETURN CUT(string,size-number+1,size)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ MidString(string,first,size)
+//------------------------------------------
+//
+//	MidString
+//
+//	Function: extract a substring from a
+//			  string
+//
+//	Call: MidString(string,first,size)
+//
+//	Arguments:
+//		string  = characters string
+//		first   = start position in string
+//				  chaï¿½ne
+//		size    = number of characters
+//
+//	Return: result substring
+//			or 0 if number or first are
+//          negatives or null.
+//
+//------------------------------------------
+
+FUNCTION MidString(string,first,size)
+	LOCAL ln
+	ln = LEN(string)
+	
+	IF ((first > 0) && (size > 0))
+		IF ((first+size-1) > ln)
+			size = ln-first+1
+		END
+		RETURN CUT(string,first,first+size-1)
+	END
+	RETURN 0
+END
+//}}}
+
+//{{{ Replace
+//------------------------------------------
+//
+//	Replace
+//
+//	Function: replace each occurence of a
+//            substring into a string with
+//            another string
+//
+//	Call: Replace(string,search,repl)
+//
+//	Arguments:
+//		string  = characters string
+//		search  = substring to look for
+//		repl    = replacement substring
+//
+//	Return: result string after replacement
+//
+//------------------------------------------
+
+FUNCTION Replace(string,search,repl)
+	LOCAL pos workstr str1 str2 size
+	pos = 1
+	workstr = string
+	size = LEN(search)
+	
+	WHILE ((pos = FindString(workstr,search,pos)) > 0)
+		IF (pos == 1)
+			str1 = CUT(workstr,size+1,LEN(workstr))
+			workstr = repl""str1
+			pos = 0
+		ELSE
+			str1 = CUT(workstr,1,pos-1)
+			IF ((pos+size) < LEN(workstr))
+				str2 = CUT(workstr,pos+size,LEN(workstr))
+				workstr = str1""repl""str2
+			ELSE
+				workstr = str1""repl
+			END
+		END
+		pos = pos+LEN(repl)
+	END
+	RETURN workstr
+END
+//}}}
+
+//{{{ FileRequester
+//------------------------------------------
+//
+//	FileRequester
+//
+//	Function: open a file requester
+//
+//	Call: FileRequester(title,path,file,pattern)
+//
+//	Arguments:
+//		title   = requester title
+//		path    = default directory
+//      file    = default filename
+//      pattern = default pattern
+//
+//	Return: 0 if user clicks on Cancel
+//          1 if user chooses a file. This
+//          function creates three global
+//          variables: pathname (path
+//          to choosen file), filename
+//          (name of choosen file without
+//          extension) and extension
+//          (extension of choosen file)
+//
+//------------------------------------------
+
+FUNCTION FileRequester(title,path,file,pattern)
+	LOCAL fullname point slash size titre
+	
+	pathname = ""
+	filename = ""
+	extension = ""
+	
+	IF (CMP(pattern,0) == 1)
+		titre = "|"
+	ELSE
+		titre = "|"pattern
+	END
+	IF (CMP(file,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"file""titre
+	END
+	IF (CMP(path,0) == 1)
+		titre = "|"titre
+	ELSE
+		titre = "|"path""titre
+	END
+	IF (CMP(title,0) == 1)
+		titre = "Choose a file"titre
+	ELSE
+		titre = title""titre
+	END
+
+	tv_ReqFile titre
+	fullname = Result
+	size = LEN(fullname)
+	
+	IF (CMP(fullname,"Cancel") == 1)
+		RETURN 0
+	ELSE
+		IF ((point = LastPos(fullname,".")) != 0)
+			extension = CUT(fullname,point+1,size)
+			size = point-1
+			fullname = CUT(fullname,1,size)
+		END
+		IF ((slash = LastPos(fullname,"\")) != 0)
+			filename = CUT(fullname,slash+1,size)
+			size = slash-1
+			pathname = CUT(fullname,1,size)
+		END
+		RETURN 1
+	END
+END
+//}}}
+
+//}}}}

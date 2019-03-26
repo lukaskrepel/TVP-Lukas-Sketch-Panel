@@ -1,0 +1,15 @@
+// *****************************************
+// *** Set IN and OUT point to selection
+// *****************************************
+tv_LayerSelectInfo
+PARSE result firstSelectedFrame amountOfSelectedFrames
+lastSelectedFrame = firstSelectedFrame + amountOfSelectedFrames - 1
+// *** If no frames are selected, set in/out points at first and last frame
+IF CMP(amountOfSelectedFrames, 1)==1 && CMP(firstSelectedFrame, 0)==1 && CMP(lastSelectedFrame, 0)==1
+	tv_firstImage
+	firstSelectedFrame = result
+	tv_LastImage
+	lastSelectedFrame = result
+END
+tv_markIn firstSelectedFrame set
+tv_markOut lastSelectedFrame set

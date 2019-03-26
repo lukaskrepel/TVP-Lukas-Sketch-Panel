@@ -1,0 +1,13 @@
+tv_Request "Clear All Image marks from current layer?|OK|Cancel"
+Reply = result
+IF Reply == 0
+  EXIT
+END
+tv_LayerGetImage
+CurrentImage = result
+tv_LayerInfo
+parse result d d d d d LStart LEnd d
+FOR i = LStart to LEnd
+  tv_LayerMarkSet 0 i 0
+END
+tv_LayerImage CurrentImage

@@ -1,0 +1,111 @@
+// Fix multiply stuff from non-pro .tvpp files
+
+Blendingmode[1] = "Color"
+Blendingmode[2] = "Behind"
+Blendingmode[3] = "Erase"
+Blendingmode[4] = "Shade"
+Blendingmode[5] = "Light"
+Blendingmode[6] = "Colorize"
+Blendingmode[7] = "Hue"
+Blendingmode[8] = "Add"
+Blendingmode[9] = "Sub"
+Blendingmode[10] = "Multiply"
+Blendingmode[11] = "Screen"
+Blendingmode[12] = "Replace"
+Blendingmode[13] = "Copy"
+Blendingmode[14] = "ReplaceSet"
+Blendingmode[15] = "Difference"
+Blendingmode[16] = "Divide"
+Blendingmode[17] = "Overlay"
+Blendingmode[18] = "Light2"
+Blendingmode[19] = "Shade2"
+Blendingmode[20] = "HardLight"
+Blendingmode[21] = "SoftLight"
+Blendingmode[22] = "GrainExtract"
+Blendingmode[23] = "GrainMerge"
+Blendingmode[24] = "Sub2"
+Blendingmode[25] = "Darken"
+Blendingmode[26] = "Lighten"
+Blendingmode[27] = "Saturation"
+
+tv_undoOpenStacktack
+
+tv_LayerCurrentID
+Beginlayer = result
+
+layerRun = 1
+layerPos = 0
+WHILE layerRun	
+
+	tv_LayerGetID layerPos	
+	lid = result	
+	
+	IF CMP(lid,"NONE")==0
+		//---START RUN ON LAYER---
+		
+		//PARSE LAYER INFO
+		tv_LayerInfo lid
+		PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+		
+		//REPLACE SPACES IN LayerName BY UNDERSCORES
+		PARSE LayerName LayerName1 LayerName2 LayerName3 LayerName4 Layername5
+		IF CMP(Layername5,"")==0
+			PRINT "This layername has too many spaces: "LayerName
+		END
+		IF CMP(LayerName4,"")==0
+			LayerName = LayerName1"_"LayerName2"_"LayerName3"_"LayerName4
+		ELSE
+			IF CMP(LayerName3,"")==0
+				LayerName = LayerName1"_"LayerName2"_"LayerName3
+			ELSE
+				IF CMP(LayerName2,"")==0
+					LayerName = LayerName1"_"LayerName2
+				END
+			END
+		END
+		
+		lastUnderscore = LastPos(LayerName,"_")
+		
+		strlen = LEN(LayerName)
+		LastWord = RightString(LayerName,strlen-lastUnderscore)	
+		IF CMP(lastUnderscore,0)
+			FirstPart = LayerName
+		ELSE
+			FirstPart = LeftString(LayerName,lastUnderscore-1)
+		END
+
+
+		FOR i = 2 TO 27
+			//CHECK LAYERBLENDING AND SET NAME TO MULTIPLY
+			tv_layerblendingmode lid
+			IF CMP(result,Blendingmode[i]) && CMP(LastWord,Blendingmode[i])==0
+				LastWord = Blendingmode[i]
+				LayerName = LayerName"_"LastWord
+				tv_LayerRename lid LayerName
+			ELSE
+				IF CMP(result,Blendingmode[i])
+					LastWord = Blendingmode[i]
+					LayerName = FirstPart"_"LastWord
+					tv_LayerRename lid LayerName
+				END
+			END
+			
+			//SET LAYER TO BLENDINGMODE IF NAME IS BLENDINGMODE
+			IF CMP(LastWord, Blendingmode[i])
+				tv_layerblendingmode lid Blendingmode[i]
+			END
+			tv_layerblendingmode lid LastWord
+		END
+		
+		//---END RUN ON LAYER---
+		layerPos = layerPos+1
+	ELSE
+		layerRun = 0
+	END
+END
+
+tv_layerSet Beginlayer
+
+tv_undoCloseStack
+
+#INCLUDE "Include.grg"

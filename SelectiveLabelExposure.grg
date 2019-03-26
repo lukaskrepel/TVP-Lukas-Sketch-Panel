@@ -1,0 +1,94 @@
+//{ Label exposure, haalt kleur weg als ie matched met COLOR
+//}
+OLDCOLOR = 7
+NEWCOLOR = 0
+
+tv_LayerSelectInfo
+PARSE RESULT firstSelectedFrame amountOfSelectedFrames
+lastSelectedFrame = firstSelectedFrame + amountOfSelectedFrames
+
+IF (amountOfSelectedFrames > 1)
+	FOR i = firstSelectedFrame TO lastSelectedFrame-1
+		IF CMP (i, firstSelectedFrame)
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			IF CMP(exposureType, Exposure)				
+				exposureType = Exposure
+				WHILE CMP(exposureType, Exposure)
+					i = i - 1
+					tv_exposureinfo i
+					PARSE RESULT exposureType d d
+					tv_LayerMarkGet 0 i
+					COLORID = result
+					IF COLORID==OLDCOLOR
+						tv_layermarkset 0 i NEWCOLOR
+					END
+				END
+			END
+		END	
+		tv_exposureinfo i
+		IF CMP(result, Head)
+			lastHead = i
+			tv_LayerMarkGet 0 i
+			COLORID = result
+			IF COLORID==OLDCOLOR
+				tv_layermarkset 0 i NEWCOLOR
+			END
+			exposureType = Exposure
+			WHILE CMP(exposureType, Exposure)
+				i = i + 1
+				tv_exposureinfo i
+				PARSE RESULT exposureType d d
+				IF CMP(exposureType, Exposure)
+					tv_LayerMarkGet 0 i
+					COLORID = result
+					IF COLORID==OLDCOLOR
+						tv_layermarkset 0 i NEWCOLOR
+					END
+				ELSE
+				i = i - 1
+				END
+			END
+		END
+	END
+ELSE
+	tv_layergetimage
+	i = result
+	tv_exposureinfo i
+	PARSE RESULT exposureType d d
+	IF CMP(exposureType, Exposure)			
+		exposureType = Exposure
+		WHILE CMP(exposureType, Exposure)
+			i = i - 1
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			tv_LayerMarkGet 0 i
+			COLORID = result
+			IF COLORID==OLDCOLOR
+				tv_layermarkset 0 i NEWCOLOR
+			END				
+		END
+	END
+
+	tv_exposureinfo i
+	IF CMP(result, Head)
+		tv_LayerMarkGet 0 i
+		COLORID = result
+		IF COLORID==OLDCOLOR
+			tv_layermarkset 0 i NEWCOLOR
+		END
+		exposureType = Exposure
+		WHILE CMP(exposureType, Exposure)
+			i = i + 1
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			IF CMP(exposureType, Exposure)
+				tv_LayerMarkGet 0 i
+				COLORID = result
+				IF COLORID==OLDCOLOR
+					tv_layermarkset 0 i NEWCOLOR
+				END
+			END
+		END
+	END
+END

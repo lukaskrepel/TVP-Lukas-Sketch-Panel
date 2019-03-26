@@ -1,0 +1,67 @@
+// MARK IN OUT START
+tv_markIn
+PARSE result InFrame InType
+IF CMP(InType,"set ") // Moet met spatie na set voor TVP9
+INPOINT = "OK"
+ELSE
+INPOINT = "NOT SET!"
+tv_markIn InFrame set
+INPOINT = "OK"
+END
+tv_markOut
+PARSE result OutFrame OutType
+IF CMP(type,"set ") // Moet met spatie na set voor TVP9
+OUTPOINT = "OK"
+ELSE
+OUTPOINT = "NOT SET!"
+tv_markOut OutFrame set
+OUTPOINT = "OK"
+END
+
+IF CMP(InFrame,OutFrame)
+    INOUTSAME = "WARNING: In-point and Out-point are identical!"
+ELSE
+    INOUTSAME = ""
+END
+// MARK IN OUT END
+
+// NAME START
+tv_clipname
+oldclipname = result
+IF CMP(oldclipname, Untitled)
+tv_ReqString "Please rename clip|001_Shotname"
+newclipname = result
+IF CMP (newclipname, Cancel)
+newclipname = oldclipname
+END
+tv_clipname ClipID newclipname
+END
+tv_clipname
+CLIPNAME = result
+// NAME END
+
+tv_ProjectInfo
+PARSE result projectname projectwidth projectheight projectpixelaspect PROJECTFRAMERATE projectfield projectprojectstartframe
+
+// CAMERA START
+tv_CameraEnumPoints 0
+PARSE result camX camY camAngle CAMSIZE
+CAMZOOM = CAMSIZE * 100
+tv_CameraInfo 1920 1080 0 25 1 0
+tv_CameraInfo // Return nieuwe instellingen, ter controle omdat dit command nieuw is.
+PARSE result CAMWIDTH CAMHEIGTH filedmode CAMFRAMERATE aspectratio blur
+CAMSETTINGS = "WRONG!"
+IF CMP(CAMWIDTH, 1920)
+IF CMP(CAMHEIGTH, 1080)
+IF CMP(CAMFRAMERATE, 25)
+IF CMP(CAMZOOM, 150)
+CAMSETTINGS = "OK"
+END
+END
+END
+END
+// CAMERA END
+
+// POPUP START
+tv_warn '"'CLIPNAME'"' '\n' '\n' CAMWIDTH"*"CAMHEIGTH '('CAMFRAMERATE "FPS"')' '\n' '\n' "Zoom: "CAMZOOM"%" '\n' '\n' "Camera is" CAMSETTINGS '\n' "In Point is" INPOINT '\n' "Out Point is" OUTPOINT '\n' INOUTSAME
+// POPUP END

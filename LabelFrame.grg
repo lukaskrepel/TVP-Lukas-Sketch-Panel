@@ -1,0 +1,16 @@
+//{ Kleur alle geselecteerde of huidige frame met label kleur
+//}
+
+COLOR = 7
+tv_LayerSelectInfo
+PARSE RESULT firstSelectedFrame amountOfSelectedFrames
+lastSelectedFrame = firstSelectedFrame + amountOfSelectedFrames - 1
+IF (amountOfSelectedFrames > 1)
+FOR i = firstSelectedFrame TO lastSelectedFrame
+	tv_layermarkset 0 i COLOR
+END
+ELSE
+tv_layergetimage
+curImage = result
+	tv_layermarkset 0 curImage COLOR
+END

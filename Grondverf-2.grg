@@ -1,0 +1,116 @@
+// FigFill.grg
+// Svengali © 2012
+// April 11, 2012 - ver .7
+
+// revision history
+
+//	VERSION	.7	April 16, 2012	delay reading of crosshair parameters to guarantee fill mode = color AND original fill mode is restored oon exit
+
+// version	.6  April 11, 2012	adapted ZigOtto Pixel Matrix Invert method so FigFill becomes compatible with TVPaint 9
+
+// version	.5: April 2012	if generating fills for multiple frames, FigFill now skips over exposure frames
+
+// version	.4: April 2012	new simplified method of figure-filling, scripted variation of Chad Essley's manual method (thanks!) 
+//							script works around an odd bug discovered in tv_LayerStencil command using tv_Image Push and tv_Image Pop commands
+
+// version	.3: March 2012	fixed typo in (SavingVillingShape) and limited endline-fill to work only with unselected frame
+
+// REVISION update - April 24 2013 make upper left pixel X1=0 Y1=0 as seed location for shape fills
+
+// What FigFill does: Fills enclosed areas of line-drawn figures (for single or selected frames) on a separate layer below line-drawn figure layer
+//		Before starting, Set B color to what you want the Fill Color to be
+
+Param None
+// Designate pixel in upper left corner
+X1 = 0
+Y1 = 0
+X2 = 0
+Y2 = 0
+tv_GetActiveTool									// save tool
+Tool = result
+parse result ToolType d								// get type of tool
+tv_cmd ToolType Mode 0
+
+tv_GetActiveShape									// save shape setting
+Shape = result
+tv_GetWidth											// get frame width
+Width = result
+tv_GetHeight										// get frame height
+Height = result
+tv_GetAPen											// get A pen color
+APenColor = result
+tv_GetBPen											// get B pen color
+BPenColor = result
+parse result Br Bg Bb Ba							// components of BPenColor
+
+tv_LayerSelectInfo									// read which are selected frames (tells first selected frame and number of selected frames)
+parse result SelectStart SelectTotal
+SelectEnd = SelectStart + SelectTotal - 1			// calculate last selected frame
+tv_LayerGetImage									// get current frame number (on GLOBAL timeline)
+parse result FrameNo	
+IF SelectEnd == SelectStart							// trap for no selected frames - so just fill the current FrameNo
+	SelectEnd = FrameNo
+	SelectStart = FrameNo
+END
+
+tv_LayerCurrentID									// get ID for current / line layer
+DrawLayerID = result
+tv_LayerStencil DrawLayerID OFF						// assures that outline layer stencil mask is OFF
+tv_LayerInfo DrawLayerID							// query info on line layer
+parse result d DrawLayerPosition d					// get layer position of line layer
+FillLayerPosition = DrawLayerPosition + 1			// next lower layer is fill layer
+tv_LayerGetID FillLayerPosition						// query ID for fill layer
+FillLayerID = result
+
+IF CMP(FillLayerID, "None")						// traps if there is no fill layer and display warning
+	tv_warn "No Fill Layer found UNDER Draw Layer, aborting..."
+	tv_LayerSet DrawLayerID							// reselect the drawing layer (figure outlines)
+	tv_LayerImage FrameNo							// return to original frame
+	tv_SetAPen APenColor							// restore APen to original color
+	tv_SetActiveShape Shape							// restore shape parameters
+	tv_cmd Tool										// restore tool and parameters
+	EXIT
+END
+
+tv_LayerInfo DrawLayerID
+parse result d Dposition d d Dtype Dstart Dend d	// parameters for Draw Layer
+tv_LayerInfo FillLayerID
+parse result d Fposition d d Ftype Fstart Fend d	// parameters for Fill Layer
+
+IF (Dend != Fend)									// traps if Draw and Fill Layers aren't of equal length
+	tv_warn "Draw Layer and Fill Layer must be equal length... please recreate Fill Layer... (exiting)"
+END
+	
+tv_UndoOpenStack									// set restore point
+
+
+tv_LayerStencil FillLayerID OFF	NORMAL				// assures that fill layer stencil mask is OFF
+SavedFillingShape = result							// saves original FillingShape parameters (result always equals previous parameters)
+tv_LayerSet FillLayerID								// move to fill layer
+tv_AreaInit MODE 1 MAP_GRADIENT 0 OPACITY 100 GAP 0 EXPAND 2 RANGE 10 SRC 1 SMOOTH 1 AALIASING 0	// tweak Expand and Smooth to refine fill edge
+
+For CurrentFrame = SelectStart to SelectEnd			// loop if more than one frame is selected for fill process
+	tv_LayerImage CurrentFrame						// move to current frame on Line layer
+	tv_ExposureInfo CurrentFrame					// test this frame type" head(instance) or exposure?
+	parse result FrameType d
+	IF CMP(FrameType, "Head")						// if frame type is head(instance) then create filled figures for this frame on the Fill Layer 
+		tv_clear									// clear Fill Layer
+		tv_SetAPen 0 0 0							// set mask color to black
+		tv_Fill X1 Y1 0								// mask contiguous BACKGROUND around figures
+		IF SelectStart == SelectEnd					// if filling single frame, then permit test for another fill at second X,Y seed point
+			IF X1 != X2 || Y1 != Y2
+				tv_Fill X2 Y2 0						// flood the negative space at end point of line ONLY IF a line was drawn AND MULTIPLE FRAMES are not selected
+			END
+		END
+		tv_pixelmatrix 1 0 0 0 Br   0 1 0 0 Bg   0 0 1 0 Bb   0 0 0 -1 255	// ZigOtto innovation for reversing the fill and background
+	END
+
+END
+tv_LayerSet DrawLayerID								// reselect the drawing layer (figure outlines)
+tv_LayerImage FrameNo								// return to original frame
+tv_UndoCloseStack
+
+tv_SetAPen APenColor								// restore APen to original color
+tv_SetActiveShape Shape								// restore shape parameters
+tv_AreaInit SavedFillingShape						// restore FillingShape's original parameters
+tv_cmd Tool											// restore tool and parameters

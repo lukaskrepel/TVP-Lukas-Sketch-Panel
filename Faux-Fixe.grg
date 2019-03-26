@@ -1,0 +1,99 @@
+// Script werkt alleen bij repeat Faux-Fixe
+// Normaal klikken is Faux-Fixe optellen
+// SHIFT is Faux-Fixe aftellen
+// CTRL is ouderwets Faux-Fixe menu
+// ALT update de kleurenmarkers
+
+tv_getmodifiers
+PARSE result SHIFT CTRL ALT
+
+tv_LayerGetImage
+CurrentImage = Result
+
+tv_exposureinfo CurrentImage
+PARSE result Onzin CurrentFauxFixeDubbel
+PARSE CurrentFauxFixeDubbel CurrentFauxFixe Onzin
+
+IF (0 == 0) // NIKS INGEDRUKT DEZE CMP IS LELIJK
+    // BEGIN EXPOSUREWAARDE VERHOGEN
+    IF (CurrentFauxFixe < 1)
+        NewFauxFixe = 2
+    ELSE
+        NewFauxFixe = CurrentFauxFixe + 1
+    END
+	// EINDE EXPOSUREWAARDE VERHOGEN
+END
+
+IF (SHIFT == 1)
+    // BEGIN EXPOSUREWAARDE VERLAGEN
+    NewFauxFixe = CurrentFauxFixe - 1
+    // EIND EXPOSUREWAARDE VERLAGEN
+END
+
+IF (ALT == 1)
+    // FAUX-FIXE LATEN ZOALS IE WAS
+    NewFauxFixe = CurrentFauxFixe
+    // EIND FAUX-FIXE LATEN ZOALS IE WAS
+END
+
+IF (CTRL == 1)
+    tv_ReqNum CurrentFauxFixe 0 999 FauxFixe
+    MenuFauxFixe = result
+    IF CMP(MenuFauxFixe, Cancel)
+        MenuFauxFixe = CurrentFauxFixe
+    END
+    NewFauxFixe = MenuFauxFixe
+END
+
+tv_exposureFauxFixe CurrentImage NewFauxFixe // NIEUWE EXPOSUREWAARDE INSTELLEN
+
+// BEGIN COLORMARK INSTELLEN
+IF (NewFauxFixe < 2)
+    tv_LayerMarkSet 0 CurrentImage 0 // MARKER WEGHALEN
+// ALLES MOET EIGENLIJK UIT
+loop = 1
+WHILE loop
+	tv_exposureinfo CurrentImage
+	PARSE result MOETEXPOSUREZIJN FAUXFIXWAARDE stuff
+	IF CMP(MOETEXPOSUREZIJN, exposure)
+			// START RUN ON FRAMES
+				FauxFixeStart = CurrentImage - NewFauxFixe
+				tv_LayerMarkGet 0 FauxFixeStart
+				StartMarker = result
+				tv_LayerMarkSet 0 CurrentImage 0 // MARKERS WEGHALEN
+		// END RUN ON FRAMES
+		CurrentImage= CurrentImage+1
+	ELSE		
+		loop = 0
+	END
+END
+// ALLES MOET EIGENLIJK UIT
+ELSE
+tv_exposureinfo CurrentImage
+PARSE result MOETEXPOSUREZIJN FAUXFIXWAARDE stuff
+IF CMP(MOETEXPOSUREZIJN, exposure) == 0 // Geen rekening gehouden met tweede Faux-Fix binnen dezelfde exposure
+	PRINT "JE MOET WEL OP EEN LEGE EXPOSURE STAAN"
+END
+// START LOOPGEBEUREN
+loop = 1
+WHILE loop
+	tv_exposureinfo CurrentImage
+	PARSE result MOETEXPOSUREZIJN FAUXFIXWAARDE stuff
+	IF CMP(MOETEXPOSUREZIJN, exposure)
+			// START RUN ON FRAMES
+				FauxFixeStart = CurrentImage - NewFauxFixe
+				tv_LayerMarkGet 0 FauxFixeStart
+				StartMarker = result
+				tv_LayerMarkSet 0 CurrentImage StartMarker // MARKER INSTELLEN
+		// END RUN ON FRAMES
+		CurrentImage= CurrentImage+1
+	ELSE		
+		loop = 0
+	END
+END
+// EID LOOPGEBEUREN
+END
+// EIND COLORMARK INSTELLEN
+
+tv_LayerGetImage
+tv_LayerImage result // DIT REFRESHED DE VIEWPORT
