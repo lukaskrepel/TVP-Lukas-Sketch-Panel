@@ -111,6 +111,8 @@ WHILE loop
 		tv_clipname
 		clipName = result
 		clipName = i"_"clipName // 001_Untitled for example
+		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
+		DeleteInvisibleLayers()
 		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
 		FixMultiply()
 		PARAM none
@@ -251,11 +253,9 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		Message = CONCAT("Rendering all clips with XML file | ", (filePath))
 		tv_lockdisplay Message
 		//
-		frameEnd = frame + 1 //todo 
-
+		frameEnd = frame + 1 //todo
 		OffsetFrame = frame + clipOffset
 		filePathWithQuotes = '"' filePath '"'   // enclose path-filename with (single quote double quote singlequotes)
-
 		//tv_warn filePath
 		//todo
 		warning = CONCAT("ClipOffset: ", (clipOffset))
@@ -264,16 +264,9 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		//tv_warn warning
 		warning = CONCAT("OffsetFrame: ", (OffsetFrame))
 		//tv_warn warning
-
-
 		//Save image file
-		tv_ProjectSaveSequence filePathWithQuotes CAMERA OffsetFrame OffsetFrame
-		
-		
+		tv_ProjectSaveSequence filePathWithQuotes CAMERA OffsetFrame OffsetFrame		
 		//tv_warn "nu zou er een plaatje moeten bestaan"
-
-
-
 		frameStart = frame
 		tv_exposureNext //Goes to next exposure
 		curImage = result
@@ -311,22 +304,50 @@ FUNCTION FixMultiply()
 			// START RUN ON LAYER
 			tv_LayerInfo layerID
 			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-	                last = LastPos(layerName,"_")
-	                strlen = LEN(layerName)
-	                IF CMP(last,0)
-	                    Eerstewoord = layerName
-	                ELSE
-	                Eerstewoord = LeftString(layerName,last-1)
-	                END
-	                Tweedewoord = RightString(layerName,strlen-last)
+	        last = LastPos(layerName,"_")
+	        strlen = LEN(layerName)
+	        IF CMP(last,0)
+                Eerstewoord = layerName
+            ELSE
+  		        Eerstewoord = LeftString(layerName,last-1)
+            END
+            Tweedewoord = RightString(layerName,strlen-last)
 			IF CMP(Tweedewoord, Zoekwoord)
 				tv_layerblendingmode layerID Multiply
 			END
-	                tv_layerblendingmode layerID
-	                IF CMP(result,Multiply)
-	                        Multiplylayername = Eerstewoord"_Multiply"
-	                        tv_LayerRename layerID Multiplylayername
-	                END
+            tv_layerblendingmode layerID
+	        IF CMP(result,Multiply)
+                Multiplylayername = Eerstewoord"_Multiply"
+                tv_LayerRename layerID Multiplylayername
+	        END
+			// END RUN ON LAYER
+			layerPos = layerPos+1	
+		ELSE		
+			layerRun = 0
+		END
+	END
+	tv_layerSet beginLayer
+END
+
+// *********************************************************************************************
+// *** Delete all invisible layers (necessary before merging, otherwise they won't be merged)
+// *********************************************************************************************
+FUNCTION DeleteInvisibleLayers()
+	tv_LayerCurrentID
+	beginLayer = result
+	layerRun = 1
+	layerPos = 0
+	WHILE layerRun
+		tv_LayerGetID layerPos
+		layerID = result
+		IF CMP(layerID,"NONE")==0
+			// START RUN ON LAYER
+			tv_LayerInfo layerID
+			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+			IF CMP(layerdisplay, "OFF")
+				tv_layerKill layerID
+				layerPos = layerPos-1 //Layer has been deleted, so we need to make sure the next layer does not get skipped.
+			END
 			// END RUN ON LAYER
 			layerPos = layerPos+1	
 		ELSE		
