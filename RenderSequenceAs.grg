@@ -1,48 +1,8 @@
-tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
-tv_layercolor hide Display 11 // Hide Overlay layer before rendering
-
-// **************************************************************************************
-// *** SET LAYERS NAMED "*_Multiply" TO MULTIPLY, NAME ALL MULTIPLY LAYERS "*_Multiply"
-// **************************************************************************************
-Zoekwoord = Multiply
-tv_LayerCurrentID
-Beginlayer = result
-layerRun = 1
-layerPos = 0
-WHILE layerRun
-	tv_LayerGetID layerPos	
-	lid = result
-	IF CMP(lid,"NONE")==0
-		// START RUN ON LAYER
-		tv_LayerInfo lid
-		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                last = LastPos(layerName,"_")
-                strlen = LEN(layerName)
-                IF CMP(last,0)
-                    Eerstewoord = layerName
-                ELSE
-                Eerstewoord = LeftString(layerName,last-1)
-                END
-                Tweedewoord = RightString(layerName,strlen-last)
-		IF CMP(Tweedewoord, Zoekwoord)
-			tv_layerblendingmode lid Multiply
-		END
-                tv_layerblendingmode lid
-                IF CMP(result,Multiply)
-                        Multiplylayername = Eerstewoord"_Multiply"
-                        tv_LayerRename lid Multiplylayername
-                END
-		// END RUN ON LAYER
-		layerPos = layerPos+1	
-	ELSE		
-		layerRun = 0
-	END
-END
-tv_layerSet Beginlayer
-
 // ******************************************************************************
 // *** RENDER IN/OUT FRAMES AS .PNG SEQUENCE WITH ALPHA CHANNEL IN A SUBFOLDER
 // ******************************************************************************
+ FixMultiply()
+
 PARAM none
 tv_saveMode "PNG"
 ext = ".png"

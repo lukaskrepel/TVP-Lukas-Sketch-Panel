@@ -1,5 +1,9 @@
+// *******************************************************************************************************************
+// *** Render all clips from a project as .JPG or .PNG sequences (without duplicate frames) along with an .XML file
+// *******************************************************************************************************************
+
 //Preparing
-message = "Rendering all clips with XML file..."
+message = "Rendering single clip with XML file..."
 tv_lockdisplay message
 //
 tv_GetprojectName
@@ -91,7 +95,7 @@ WHILE loop
 		ELSE
 			colorLabel = "Blue"
 		END
-		tv_clipname
+		tv_clipname clipID //*?
 		clipName = result
 		clipName = i"_"clipName // 001_Untitled for example
 		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
@@ -119,12 +123,7 @@ WHILE loop
 		clipDir = projectDir"/"RenderFolder"/"clipName
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
 		tv_WriteTextFile "MkDir" '"'clipDir'"'
-		
-		//Clear in/out marks of clip (hack)
-		tv_markin clear
-		tv_markout clear
-
-		//Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
+		// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 		//get clip in
 		tv_markIn clip
 		PARSE result frame state
@@ -143,7 +142,6 @@ WHILE loop
 			tv_LastImage
 			outpoint = result
 		END
-
 		//Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
 		//For this I use tv_projectcurrentframe
 		tv_layerImage inpoint
@@ -184,8 +182,6 @@ END
 XMLend(TotalXMLfile)
 //Finishing
 tv_projectClose
-//tv_undoclosestack
-//tv_unlockdisplay
 tv_warn "ALL CLIPS RENDERED."
 
 // *****************************

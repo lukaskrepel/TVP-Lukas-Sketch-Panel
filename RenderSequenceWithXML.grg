@@ -1,8 +1,13 @@
-// ******************************************************************************
-// *** RENDER IN/OUT FRAMES AS .PNG SEQUENCE WITH ALPHA CHANNEL IN A SUBFOLDER
-// ******************************************************************************
-PARAM none
+// *******************************************************************************************************************
+// *** Render all clips from a project as .JPG or .PNG sequences (without duplicate frames) along with an .XML file
+// *******************************************************************************************************************
 
+//Preparing
+message = "Rendering single clip with XML file..."
+tv_lockdisplay message
+tv_undoopenstack
+tv_updateundo
+//
 tv_GetprojectName
 projectpath = result
 tv_WriteTextFile "Exists" '"'projectpath'"'
@@ -12,34 +17,34 @@ IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor wi
 	tv_warn "Please save project and try again!"
 	EXIT
 END
-
+//
 tv_Request "Image type?|JPG|PNG" //1|0
 IF CMP(result, 1)
 	imageType = jpg
+	tv_saveMode "JPG"
+	ext = ".jpg"
+	tv_Background "COLOR"
 ELSE
 	imageType = png
-END
-
-IF CMP(imageType, "png")
 	tv_saveMode "PNG"
 	ext = ".png"
 	tv_AlphaSaveMode "PreMultiply" // Of moet dit NoPreMultiply zijn?
 	tv_Background "NONE"
-ELSE
-	tv_saveMode "JPG"
-	ext = ".jpg"
 END
-
 // *** Get project info
 tv_ProjectInfo
 PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
-// *** Get path
-projectpath = Replace(projectpath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+tv_firstImage
+projectIn = result
+tv_LastImage
+projectOut = result
+projectpath = Replace(projectpath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
 strlen = LEN(projectpath)
-last = LastPos(projectpath,"/") //Getting the directory where the TVPP file is saved
-projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
+last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
+projectDir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
 projectName = RightString(projectpath,strlen-last) //Getting the name of the tvpp file without the path
-//Getting the name of the tvpp file without ".tvpp"
+strlen = LEN(projectName) //Getting the name of the tvpp file without ".tvpp"
+//
 last = LastPos(projectName,".")
 IF CMP(last,"0")==1
 	projectbase = projectName
@@ -48,293 +53,137 @@ ELSE
 END
 last_v = FindString(projectbase, "_v", 1) //File should be name _v001_L or something
 IF CMP(last_v,"0")==1
-	renderName = projectbase
+	projectName = projectbase
 ELSE
-	renderName = LeftString(projectbase,last_v-1)
+	projectName = LeftString(projectbase,last_v-1)
 END
 // *** Create folder
 FOR i = 1 TO 1000
-	folderName = renderName"_seq"i
-	saveDir = projectdir"/"folderName
+	RenderFolder = projectName"_seq"i
+	saveDir = projectDir"/"RenderFolder
 	tv_WriteTextFile "Exists" '"'saveDir'"'
 	IF CMP (result,"")==1 //Folder doesn't exist yet!
-		renderName = folderName
+		projectName = RenderFolder
 		i = 1001
 	END
 END
-// ***********************************************************************************************************
-// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
-// ***********************************************************************************************************
-tv_markIn clip // get clip in
-PARSE result frame state
-IF CMP(state,"set ")==1
-	inpoint = frame
-ELSE
-	tv_firstImage
-	inpoint = result
-END
-//Get Clip Out
-tv_markOut clip
-PARSE result frame state
-IF CMP(state,"set ")==1
-	outpoint = frame
-ELSE
-	tv_LastImage
-	outpoint = result
-END
-// *********************************
-// *** Getting the filename right
-// *********************************
-tv_startFrame
-startFrame = inpoint+result
-endFrame = outpoint+1
-frame = addZeros("_",startFrame,5)
-renderFile = saveDir"/"renderName""frame""ext
-tv_Request "Render frame "startFrame" to "endFrame" to '"renderFile"'?|OK|Cancel" //1|0
+saveDir = projectDir"/"projectName
+tv_Request "Render single clip as ."imageType" sequence in '"saveDir"'?|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
 tv_WriteTextFile "MkDir" '"'saveDir'"'
-// *** Duplicate project so we don't mess anything up
-tv_projectduplicate
-// *** Hide all storyboard and overlay 
-tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
-tv_layercolor hide Display 11 // Hide Overlay layer before rendering
-// *** Fix multiply layers if working on both standard and Pro TVPaint versions
-FixMultiply()
-//todo delete all invisible layers?
-//Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip
-tv_LayerCreate tempLayer
-tempLayerID = result
-tv_LayerAnim
-tv_LayerShift tempLayerID inpoint
-tv_LayerPostBehavior layerID "hold"
-tv_LayerCreate tempLayer
-tempLayerID = result
-tv_LayerAnim
-tv_LayerShift tempLayerID outpoint
-tv_LayerPreBehavior tempLayerID "hold"
-// *** Merge all layers
-tv_LayerMergeAll
-// *** Render layer to images and create XML
-ExportImagesAndXML(saveDir, inpoint, outpoint)
-// *** Close duplicated project
-tv_projectClose
-// *** End of main script
+// *** Duplicate project so we don't have to undo any layer deleting/merging
+//tv_ProjectDuplicate
+
+// **********************************
+// *** ALLE CLIPS DOORLOPEN START ***
+// **********************************
+tv_clipcurrentid
+clipToRenderID = result
+loop=1
+i=0
+addSomeFrames = 0
+clipOffset = -1 // Start
+colorLabel = "Blue"
+WHILE loop
+	tv_clipenumid -1 i
+ 	clipID = result
+	IF CMP(clipID,"none")==1
+		loop=0
+	ELSE
+		tv_clipHidden clipID
+		IF CMP(result,"0")==1
+			tv_clipSelect clipID
+		END
+	END
+	i=i+1
+	IF CMP(clipID,"none")==0
+		tv_clipname clipID
+		clipName = result
+		clipName = i"_"clipName // 001_Untitled for example
+		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
+		DeleteInvisibleLayers() //Function is in Include file
+		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
+		FixMultiply()
+		// Save Current Frame So I can set the timelinecursor back at the end of the script
+		tv_layerGetImage
+		startImage = result
+
+		//UITGEZET
+		//Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
+		//Get clip in
+		//tv_markIn clip
+		//PARSE result frame state
+		//IF CMP(state,"set ")==1
+		//	inpoint = frame
+		//ELSE
+		//	tv_firstImage
+		//	inpoint = result
+		//END
+		// Get Clip Out
+		//tv_markOut clip
+		//PARSE result frame state
+		//IF CMP(state,"set ")==1
+		//	outpoint = frame
+		//ELSE
+		//	tv_LastImage
+		//	outpoint = result
+		//END
+
+		//ignore in/out marks and set in/out frames? todo
+		tv_firstImage
+		inpoint = result
+		tv_LastImage
+		outpoint = result
+		//Clear in/out marks of clip (hack)
+		tv_markin clear
+		tv_markout clear
+
+
+		//
+		//Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+		//For this I use tv_projectcurrentframe
+		tv_layerImage inpoint
+		tv_projectcurrentframe
+		projIN = result
+		tv_projectcurrentframe projIN
+		tv_layerImage outpoint
+		tv_projectcurrentframe
+		projOUT = result
+		tv_projectcurrentframe projOUT
+		//Getting the name of the current clip to file prefix
+		tv_startFrame
+		startFrame = inpoint + result
+		//Saving the sequence
+
+		//Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip
+		tv_LayerCreate tempLayer
+		tempLayerID = result
+		tv_LayerAnim
+		tv_LayerShift tempLayerID inpoint
+		tv_LayerPostBehavior layerID "hold"
+		tv_LayerCreate tempLayer
+		tempLayerID = result
+		tv_LayerAnim
+		tv_LayerShift tempLayerID outpoint
+		tv_LayerPreBehavior tempLayerID "hold"
+		tv_layerMergeAll
+
+		IF CMP(clipToRenderID, clipID)
+			//ONLY RENDER THIS 1 CLIP
+			clipOffset = projIN-1-inpoint //hack, only works because we are rendering 1 clip max
+			ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
+		END
+	END
+END
+// *** End of clip loop ***
+//Finishing
+tv_undoCloseStack
+tv_undo
+tv_warn "CLIP RENDERED."
 
 // *****************************
 // *** Include extra functions
 // *****************************
 #INCLUDE "Include.grg"
-
-// ***********************
-// *** Render images and save XML
-// ***********************
-FUNCTION ExportImagesAndXML(saveDir, inpoint, outpoint)
-	renderStart = inpoint
-	renderEnd = outpoint
-	offsetSTART= renderStart-inpoint+1
-	offsetEND = renderEnd-inpoint+1
-	// *** Get info
-	XMLfile = saveDir"/"renderName".xml"
-	in = inpoint + 1
-	out = outpoint + 1
-	// *** Write info
-	XMLbegin(in, out, projectFramerate)
-	// *** Start saving image files
-	curImage = renderStart
-	WHILE curImage <= renderEnd
-		tv_layerImage curImage
-		offsetImage = curImage - inpoint + 1
-		frame = offsetImage + renderStart
-		prefixedFrame = addZeros("_",frame,5)
-		filename = renderName""prefixedFrame""ext
-		filepath = saveDir"/"filename
-		frameEnd = frame + 1 //todo uitvogelen
-		tv_saveDisplay filepath
-		frameStart = frame
-		tv_exposureNext //Goes to next exposure
-		curImage = result
-		// *** Find next frame
-		tv_layerImage curImage
-		offsetImage = curImage - inpoint + 1
-		frame = offsetImage + renderStart
-		frameEnd = frame
-		// *** Check if we reached the last frame
-		tv_exposureinfo curImage
-		PARSE result type rest
-		XMLimage(filename, filepath, frameStart, frameEnd, projectWidth, projectHeight)
-		IF CMP(type,"Head")==0
-			curImage=renderEnd+1
-		END
-	END
-	XMLend()
-	tv_warn "XML exported."
-END
-
-// **************************************************************************************
-// *** Add a prefix and extra zeros to a number, to turn "2" into "_00002" for example
-// **************************************************************************************
-FUNCTION addZeros(prefix,number,digits)
-	LOCAL current i
-	current = LEN(number)
-	digits = digits - 1
-	FOR i = current TO digits
-		prefix = prefix"0"
-	END
-	prefix = prefix""number
-	RETURN prefix
-END
-
-// ******************************
-// *** Write start of XML file
-// ******************************
-function XMLbegin(in, out, projectFramerate)
-	tv_WriteTextFile "Create" '"'XMLfile'"' "<xmeml version="'"4"'">" //klopt
-	renderNameWithQuotes = '"'renderName'"'
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<sequence id="renderNameWithQuotes">" //SEQUENCE NAME (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<uuid>69b229de-c9e4-410e-869c-c77e560b4e18</uuid>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name>"renderName"</name>" //SEQUENCE NAME
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<duration>0</duration>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<in>"in"</in>" //IN
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<out>"out"</out>" //OUT
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<timecode>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<string>00:00:00:00</string>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<frame>0</frame>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<displayformat>NDF</displayformat>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "</timecode>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<media>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<format>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<samplecharacteristics>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<width>"projectWidth"</width>" //PROJECT WIDTH
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<height>"projectHeight"</height>" //PROJECT HEIGHT
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio>square</pixelaspectratio>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic>false</anamorphic>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</format>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<track MZ.TrackName="'"video"'">"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<enabled>true</enabled>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<locked>false</locked>"
-end
-
-// ****************************************************
-// *** Write middle part of XML file, for each image
-// ****************************************************
-function XMLimage(filename, filepath, frameStart, frameEnd, width, height)
-	frameStart = frameStart - inpoint - 1
-	frameEnd = frameEnd - inpoint - 1
-	filenameWithQuotes = '"'filename'"'
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<clipitem id="filenameWithQuotes">" //FILENAAM (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<masterclipid>"filename"</masterclipid>" //FILENAAM
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name>"filename"</name>" //FILENAAM
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<enabled>true</enabled>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<duration>25</duration>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<start>"frameStart"</start>" //STARTFRAME
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<end>"frameEnd"</end>" //EINDFRAME
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<in>0</in>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<out>25.0</out>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<alphatype/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<file id="filenameWithQuotes">" //FILENAAM (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pathurl>"filepath"</pathurl>" //FILEPATH
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timecode>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<string>00:00:00:00</string>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<frame>0</frame>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<displayformat>NDF</displayformat>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</timecode>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<width>"projectWidth"</width>" //RESOLUTIE.X
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<height>"projectHeight"</height>" //RESOLUTIE.Y
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio>square</pixelaspectratio>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic>false</anamorphic>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</file>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<labels/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</clipitem>"
-END
-
-// ******************************
-// *** Write end of XML file
-// ******************************
-FUNCTION XMLend()
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</track>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</labels>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</sequence>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</xmeml>"
-END
-
-// *********************************************************************************************
-// *** Set layers named "*_Multiply" to multiply. And name all multiplied layers "*_Multiply"
-// *********************************************************************************************
-FUNCTION FixMultiply()
-	Zoekwoord = Multiply
-	tv_LayerCurrentID
-	layerRun = 1
-	layerPos = 0
-	WHILE layerRun
-		tv_LayerGetID layerPos	
-		layerID = result
-		IF CMP(layerID,"NONE")==0
-			// START RUN ON LAYER
-			tv_LayerInfo layerID
-			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-	                last = LastPos(layerName,"_")
-	                strlen = LEN(layerName)
-	                IF CMP(last,0)
-	                    Eerstewoord = layerName
-	                ELSE
-	                Eerstewoord = LeftString(layerName,last-1)
-	                END
-	                Tweedewoord = RightString(layerName,strlen-last)
-			IF CMP(Tweedewoord, Zoekwoord)
-				tv_layerblendingmode layerID Multiply
-			END
-	                tv_layerblendingmode layerID
-	                IF CMP(result,Multiply)
-	                        Multiplylayername = Eerstewoord"_Multiply"
-	                        tv_LayerRename layerID Multiplylayername
-	                END
-			// END RUN ON LAYER
-			layerPos = layerPos+1	
-		ELSE		
-			layerRun = 0
-		END
-	END
-END
