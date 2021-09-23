@@ -93,7 +93,8 @@ WHILE loop
 		END
 		tv_clipname
 		clipName = result
-		clipName = i"_"clipName // 001_Untitled for example
+		clipNumber = addZeroesPostfix("_",i,3)
+		clipName = clipNumber""clipName // 001_Untitled for example
 		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
 		DeleteInvisibleLayers() //Function is in Include file
 		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
@@ -158,7 +159,7 @@ WHILE loop
 		tv_startFrame
 		startFrame = inpoint+result
 		//Setting the name of the first file
-		frame = addZeros("_",startFrame,5)
+		frame = addZeros("",startFrame,5)
 		renderFile = clipDir"/"clipName""frame""ext
 		//Saving the sequence
 		//Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip

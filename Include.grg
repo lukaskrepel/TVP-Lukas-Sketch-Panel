@@ -126,6 +126,20 @@ FUNCTION addZeros(prefix,number,digits)
 	RETURN prefix
 END
 
+// **************************************************************************************
+// *** Add zeroes to a number without prefix - don't fix this shitty code, without a prefix a "0" is not seen as a string but as an integer
+// **************************************************************************************
+FUNCTION addZeroesPostfix(postfix,number,digits)
+	LOCAL current i
+	current = LEN(number)
+	number = number""postfix
+	digits = digits - 1
+	FOR i = current TO digits
+		number = "0"number
+	END
+	RETURN number
+END
+
 // ******************************
 // *** Write start of XML file
 // ******************************
