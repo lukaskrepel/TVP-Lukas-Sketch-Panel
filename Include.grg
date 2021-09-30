@@ -1396,3 +1396,93 @@ END
 //}}}}
 
 //}}}}
+
+FUNCTION count_layers()
+	// Count layers:
+	layerRun = 1
+	layerPos = 0
+	WHILE layerRun
+		tv_LayerGetID layerPos
+		lid = result
+		IF CMP(lid,"NONE")==0
+			layerPos = layerPos+1
+		ELSE		
+			layerRun = 0
+		END
+	END
+	layerCount = layerPos - 1
+	RETURN layerCount
+END
+
+// Add Shotnumber and Title in the corner of all Clips, for example "001_Intro"
+FUNCTION draw_shotNumber(text)
+	tv_getmodifiers
+	PARSE result shift ctrl alt
+	// Define name of layer we're using for shotnumbers:
+	shotNumberLayerName = "Shotnumber"
+	// Remember starting layer:
+	tv_LayerCurrentID
+	Beginlayer = result
+	// Count layers:
+	layerCount = count_layers()
+	// Loop backwards trough layers and delete all existing shotnumber-layers:
+	layerRun = 1
+	layerPos = layerCount
+	WHILE layerRun
+		tv_LayerGetID layerPos
+		lid = result
+		IF CMP(lid,"NONE")==0
+			// START RUN ON LAYER 
+			tv_LayerInfo lid
+			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+			IF CMP(layerName, shotNumberLayerName)==1
+				tv_LayerKill lid
+			END
+			// END RUN ON LAYER
+			layerPos = layerPos - 1 // We're going backwards so we're subtracting 1 instead of adding 1.
+		ELSE		
+			layerRun = 0
+		END
+	END
+	// Only add new shotnumbers if ALT is NOT pressed:
+	IF CMP(alt,1)==0
+		// Create layer:
+		tv_LayerCreate shotNumberLayerName
+		shotNumberLayer = result
+		tv_layerSet shotNumberLayer
+		tv_LayerMove 0
+		tv_layerpostbehavior shotNumberLayer "hold"
+		// Set text tool:
+		fontName = "Consolas"
+		fontSize = 50
+		resetVal = 1 // * 1 = true
+		letterVal = 0 // * 0 = Word
+		borderSize = 5
+		borderR = 0
+		borderG = 0
+		borderB = 0
+		stepVal = 9999999 // * Super big step so word is only drawn once
+		tv_textTool reset resetVal letter letterVal text text font fontName size fontSize border borderSize border_col borderR borderG borderB step stepVal
+		// Set text color:
+		textColR = 255
+		textColG = 255
+		textColB = 255
+		tv_SetAPen textColR textColG textColB
+		// Create custom brush based on tv_textTool settings:
+		tv_textBrush text
+		// Set brush origin at the top-left corner:
+		tv_BrushRestore handle 0 0
+		// Smooth pixel edge of stamp
+		tv_BrushRestore SubPixel 2
+		// Draw the text on the canvas:
+		pixelsFromEdge = 10
+		x1 = pixelsFromEdge
+		y1 = pixelsFromEdge
+		x2 = pixelsFromEdge
+		y2 = pixelsFromEdge
+		click = 0
+		tv_Line x1 y1 x2 y2 click
+		// Return to starting layer:
+		tv_layerSet Beginlayer
+	END
+END
