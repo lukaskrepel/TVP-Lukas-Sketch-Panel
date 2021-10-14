@@ -62,9 +62,6 @@ END
 tv_WriteTextFile "MkDir" '"'saveDir'"'
 TotalXMLfile = saveDir"/"projectName".xml"
 XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
-MohoTemplate = "/Users/lukas/Nextcloud/meggamma/Club\ Baboo/SHOTS/Construction/CS21_Elasmosaurus/EMPTY\ TEXT\ MOHO\ DOC.mohoproj"
-NewMohoFile = saveDir"/"projectName".moho"
-CreateMohoFile(MohoTemplate, NewMohoFile)
 // *** Duplicate project so we don't have to undo any layer deleting/merging
 tv_ProjectDuplicate
 
@@ -124,6 +121,12 @@ WHILE loop
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
 		tv_WriteTextFile "MkDir" '"'clipDir'"'
 		
+		// * Moho file:
+		MohoTemplate = "MohoTemplate.mohoproj"
+		MohoTemplate = projectDir"/"MohoTemplate
+		NewMohoFile = clipDir"/"clipName".moho"
+		CreateMohoFile(MohoTemplate, NewMohoFile)
+
 		//Clear in/out marks of clip (hack)
 		tv_markin clear
 		tv_markout clear

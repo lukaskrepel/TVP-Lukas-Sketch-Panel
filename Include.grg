@@ -144,18 +144,24 @@ END
 // *** FOR MOHO FILE>????
 // ******************************
 FUNCTION CreateMohoFile(sourceFile, newFile)
+	message = "Creating Moho file "newFile
+	tv_lockdisplay message
 	loop = 1
 	line = 0
 	WHILE (loop == 1)
-		tv_readtextfile  line sourceFile
-		PARSE result eof string
+		tv_readtextfile  line '"'sourceFile'"'
+		PARSE result eof a b c d e f g h i j k l m n o p q r s t u v w x y z
+		string = a""b""c""d""e""f""g""h""i""j""k""l""m""n""o""p""q""r""s""t""u""v""w""x""y""
+		tv_warn a
+		tv_warn b
+		tv_warn string
 		IF (CMP(eof, "EOF") == 1)
-	        loop = 0
+			loop = 0
 		ELSE
-			IF (CMP(line == 1))
-				tv_WriteTextFile "Create" '"'newFile'"' string
+			IF (line == 0)
+				tv_WriteTextFile "Create" '"'newFile'"' '"'string'"'
 			ELSE
-				tv_WriteTextFile "Append" '"'newFile'"' string
+				tv_WriteTextFile "Append" '"'newFile'"' '"'string'"'
 			END
 		END
 		line = line + 1
