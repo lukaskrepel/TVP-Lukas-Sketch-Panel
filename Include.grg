@@ -141,6 +141,28 @@ FUNCTION addZeroesPostfix(postfix,number,digits)
 END
 
 // ******************************
+// *** FOR MOHO FILE>????
+// ******************************
+FUNCTION CreateMohoFile(sourceFile, newFile)
+	loop = 1
+	line = 0
+	WHILE (loop == 1)
+		tv_readtextfile  line sourceFile
+		PARSE result eof string
+		IF (CMP(eof, "EOF") == 1)
+	        loop = 0
+		ELSE
+			IF (CMP(line == 1))
+				tv_WriteTextFile "Create" '"'newFile'"' string
+			ELSE
+				tv_WriteTextFile "Append" '"'newFile'"' string
+			END
+		END
+		line = line + 1
+	END
+END
+
+// ******************************
 // *** Write start of XML file
 // ******************************
 FUNCTION XMLbegin(XMLfile, sequenceName, sequenceIn, sequenceOut, projectFramerate)

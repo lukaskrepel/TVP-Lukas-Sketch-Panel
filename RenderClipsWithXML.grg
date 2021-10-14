@@ -62,6 +62,9 @@ END
 tv_WriteTextFile "MkDir" '"'saveDir'"'
 TotalXMLfile = saveDir"/"projectName".xml"
 XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
+MohoTemplate = "/Users/lukas/Nextcloud/meggamma/Club\ Baboo/SHOTS/Construction/CS21_Elasmosaurus/EMPTY\ TEXT\ MOHO\ DOC.mohoproj"
+NewMohoFile = saveDir"/"projectName".moho"
+CreateMohoFile(MohoTemplate, NewMohoFile)
 // *** Duplicate project so we don't have to undo any layer deleting/merging
 tv_ProjectDuplicate
 
