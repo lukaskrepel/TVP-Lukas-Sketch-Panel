@@ -12,25 +12,25 @@ IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor wi
 	EXIT
 END
 //
-tv_Request "Image type?|JPG|PNG" //1|0
+tv_Request "Image type?|JPG|PNG" //* 1|0
 IF CMP(result, 1)
 	imageType = jpg
 ELSE
 	imageType = png
 END
-// *** Get project info
+//* Get project info:
 tv_ProjectInfo
 PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
 tv_firstImage
 projectIn = result
 tv_LastImage
 projectOut = result
-projectpath = Replace(projectpath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+projectpath = Replace(projectpath,'\','/') //* Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
 strlen = LEN(projectpath)
-last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
-projectDir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
-projectName = RightString(projectpath,strlen-last) //Getting the name of the tvpp file without the path
-strlen = LEN(projectName) //Getting the name of the tvpp file without ".tvpp"
+last = LastPos(projectpath,"/") //* Getting the directory where the TVPP file is saved
+projectDir = LeftString(projectpath,last-1) //* Getting the directory where the TVPP file is saved
+projectName = RightString(projectpath,strlen-last) //* Getting the name of the tvpp file without the path
+strlen = LEN(projectName) //* Getting the name of the tvpp file without ".tvpp"
 //
 last = LastPos(projectName,".")
 IF CMP(last,"0")==1
@@ -38,18 +38,18 @@ IF CMP(last,"0")==1
 ELSE
 	projectbase = LeftString(projectName,last-1)
 END
-last_v = FindString(projectbase, "_v", 1) //File should be name _v001_L or something
+last_v = FindString(projectbase, "_v", 1) //* File should be name _v001_L or something
 IF CMP(last_v,"0")==1
 	projectName = projectbase
 ELSE
 	projectName = LeftString(projectbase,last_v-1)
 END
-// *** Create folder
+//* Create folder:
 FOR i = 1 TO 1000
 	RenderFolder = projectName"_clips"i
 	saveDir = projectDir"/"RenderFolder
 	tv_WriteTextFile "Exists" '"'saveDir'"'
-	IF CMP (result,"")==1 //Folder doesn't exist yet!
+	IF CMP (result,"")==1 //* Folder doesn't exist yet!
 		projectName = RenderFolder
 		i = 1001
 	END
@@ -62,16 +62,16 @@ END
 tv_WriteTextFile "MkDir" '"'saveDir'"'
 TotalXMLfile = saveDir"/"projectName".xml"
 XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
-// *** Duplicate project so we don't have to undo any layer deleting/merging
+//* Duplicate project so we don't have to undo any layer deleting/merging:
 tv_ProjectDuplicate
 
-// **********************************
-// *** ALLE CLIPS DOORLOPEN START ***
-// **********************************
+//**********************************
+//*** ALLE CLIPS DOORLOPEN START ***
+//**********************************
 loop=1
 i=0
 addSomeFrames = 0
-clipOffset = -1 // Start
+clipOffset = -1 //* Start
 colorLabel = "Blue"
 WHILE loop
 	tv_clipenumid -1 i
@@ -94,10 +94,10 @@ WHILE loop
 		tv_clipname
 		clipName = result
 		clipNumber = addZeroesPostfix("_",i,3)
-		clipName = clipNumber""clipName // 001_Untitled for example
-		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
+		clipName = clipNumber""clipName //* 001_Untitled for example
+		//* Delete all invisible layers, because they won't get merged correctly by TVPaint.
 		DeleteInvisibleLayers() //Function is in Include file
-		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
+		//* Fix multiply layers if working on both standard and Pro TVPaint versions
 		FixMultiply()
 		PARAM none
 
@@ -118,19 +118,21 @@ WHILE loop
 		//WAARSCHUWING: shot 001 moet "/001" heten. Ik denk dat de clip gewoon "Walk_R" mag heten			
 		renderDir = projectDir"/"RenderFolder
 		clipDir = projectDir"/"RenderFolder"/"clipName
+		stbDir = clipDir"/STB"
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
 		tv_WriteTextFile "MkDir" '"'clipDir'"'
+		tv_WriteTextFile "MkDir" '"'stbDir'"'
 		
 		// * Moho file:
-		MohoTemplate = "MohoTemplate.mohoproj"
-		MohoTemplate = projectDir"/"MohoTemplate
-		NewMohoFile = clipDir"/"clipName".moho"
-		CreateMohoFile(MohoTemplate, NewMohoFile)
-
+		//MohoTemplate = "MohoTemplate.mohoproj"
+		//MohoTemplate = projectDir"/"MohoTemplate
+		//NewMohoFile = clipDir"/"clipName".moho"
+		//CreateMohoFile(MohoTemplate, NewMohoFile)
+		// *
+		
 		//Clear in/out marks of clip (hack)
 		tv_markin clear
 		tv_markout clear
-
 		//Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 		//get clip in
 		tv_markIn clip
@@ -151,8 +153,8 @@ WHILE loop
 			outpoint = result
 		END
 
-		//Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
-		//For this I use tv_projectcurrentframe
+		//* Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+		//* For this I use tv_projectcurrentframe
 		tv_layerImage inpoint
 		tv_projectcurrentframe
 		projIN = result
@@ -161,14 +163,14 @@ WHILE loop
 		tv_projectcurrentframe
 		projOUT = result
 		tv_projectcurrentframe projOUT
-		//Getting the name of the current clip to file prefix
+		//* Getting the name of the current clip to file prefix
 		tv_startFrame
 		startFrame = inpoint+result
-		//Setting the name of the first file
+		//* Setting the name of the first file
 		frame = addZeros("",startFrame,5)
-		renderFile = clipDir"/"clipName""frame""ext
-		//Saving the sequence
-		//Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip
+		renderFile = stbDir"/"clipName""frame""ext
+		//* Saving the sequence
+		//* Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip
 		tv_LayerCreate tempLayer
 		tempLayerID = result
 		tv_LayerAnim
@@ -180,22 +182,22 @@ WHILE loop
 		tv_LayerShift tempLayerID outpoint
 		tv_LayerPreBehavior tempLayerID "hold"
 		tv_layerMergeAll
-		ExportImagesAndXML(clipDir, clipName, inpoint, outpoint, clipOffset)
-		//Adding clip offset so next clip can calculate starting frame
+		ExportImagesAndXML(stbDir, clipName, inpoint, outpoint, clipOffset)
+		//* Adding clip offset so next clip can calculate starting frame
 		clipOffset = clipOffset + curImage
 	END
-	tv_Background "COLOR" //Turn color background back on.
+	tv_Background "COLOR" //* Turn color background back on.
 END
 // *** End of clip loop ***
 // *** End overall XML
 XMLend(TotalXMLfile)
-//Finishing
+//* Finishing:
 tv_projectClose
 //tv_undoclosestack
 //tv_unlockdisplay
 tv_warn "ALL CLIPS RENDERED."
 
-// *****************************
-// *** Include extra functions
-// *****************************
+//*****************************
+//*** Include extra functions
+//*****************************
 #INCLUDE "Include.grg"
