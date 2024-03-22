@@ -23,7 +23,7 @@ IF CMP(result, 1)
 	imageType = jpg
 	tv_saveMode "JPG"
 	ext = ".jpg"
-	tv_Background "COLOR"
+	tv_Background "COLOR" 255 255 255
 ELSE
 	imageType = png
 	tv_saveMode "PNG"
