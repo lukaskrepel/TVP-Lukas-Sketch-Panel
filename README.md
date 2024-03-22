@@ -16,6 +16,17 @@ There's a bunch of tools and buttons that will need explanation, but don't have 
 - Cmd L: '1-1'
 - `: 'Label'
 
+Keyboard shortcut | Panel button
+--- | ---
+`Left` | *Previous Frame (and Clip)*
+`Right` | *Next Frame (and Clip)*
+`Up` | *Up*
+`Down` | *Down*
+`H` | *Toggle show/hide other layers*
+`Shift H` | *Toggle show/hide other layers*
+`Cmd L` | *1-1*
+`` ` ``| *Label*
+
 ## Change Log
 - [2.2]
   - Changed light table buttons to toggle instead of simply turning on/off
