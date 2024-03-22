@@ -2,7 +2,7 @@
 // Normaal klikken is Faux-Fixe optellen
 // SHIFT is Faux-Fixe aftellen
 // CTRL is ouderwets Faux-Fixe menu
-// ALT update de kleurenmarkers
+// ALT update de color-markers
 
 tv_getmodifiers
 PARSE result SHIFT CTRL ALT

@@ -1,4 +1,4 @@
-//{ Label exposure, haalt kleur weg als ie matched met COLOR
+//{ Label exposure, haalt color weg als ie matched met COLOR
 //}
 OLDCOLOR = 7
 NEWCOLOR = 0

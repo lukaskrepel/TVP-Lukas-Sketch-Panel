@@ -6,13 +6,13 @@ PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerSt
 last = LastPos(layerName,"_")
             strlen = LEN(layerName)
             IF CMP(last,0)
-                Eerstewoord = layerName
+                firstWord = layerName
             ELSE
-            Eerstewoord = LeftString(layerName,last-1)
+            firstWord = LeftString(layerName,last-1)
             END
-            Tweedewoord = RightString(layerName,strlen-last)
+            secondWord = RightString(layerName,strlen-last)
 
-newName = Eerstewoord"_kleur"
+newName = firstWord"_color"
 tv_LayerRename curID newName
 
 #INCLUDE "Include.grg"

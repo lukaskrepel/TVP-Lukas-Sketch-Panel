@@ -1,15 +1,15 @@
-Zoekwoord = Kleur
+searchWord = Kleur
 
-tv_readUserString "LayerVisibility" Zoekwoord "1"
+tv_readUserString "LayerVisibility" searchWord "1"
 LijnVisibility = result
 IF CMP(LijnVisibility, 1)
     VISIBLESCHAKELAAR = On
     LOCKSCHAKELAAR = Off
-    tv_WriteUserString "LayerVisibility" Zoekwoord 0
+    tv_WriteUserString "LayerVisibility" searchWord 0
 ELSE
     VISIBLESCHAKELAAR = Off
     LOCKSCHAKELAAR = On
-    tv_WriteUserString "LayerVisibility" Zoekwoord 1
+    tv_WriteUserString "LayerVisibility" searchWord 1
 END
 
 // END SHIFT CHECKEN
@@ -34,12 +34,12 @@ WHILE layerRun
                 last = LastPos(layerName,"_")
                 strlen = LEN(layerName)
                 IF CMP(last,0)
-                    Eerstewoord = layerName
+                    firstWord = layerName
                 ELSE
-                Eerstewoord = LeftString(layerName,last-1)
+                firstWord = LeftString(layerName,last-1)
                 END
-                Tweedewoord = RightString(layerName,strlen-last)
-		IF CMP(Tweedewoord, Zoekwoord)
+                secondWord = RightString(layerName,strlen-last)
+		IF CMP(secondWord, searchWord)
 			tv_LayerDisplay lid VISIBLESCHAKELAAR
 			tv_LayerLock lid LOCKSCHAKELAAR
 		END

@@ -76,7 +76,7 @@ FUNCTION SelectPrevFrame()
 					
 				ELSE
 					IF CMP (exposureType, "None")==1
-						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze laag was en of die niet op hold staat
+						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze layer was en of die niet op hold staat
 						FrameBeforeNone = TargetFrame - 1 //beetje onduidelijke namen
 						tv_exposureinfo FrameBeforeNone
 						parse result exposureType d d
@@ -139,7 +139,7 @@ FUNCTION SelectLastInstanceOfClip()
 	           		layerRun = 0
 				ELSE
 					IF CMP (exposureType, "None")==1
-						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze laag was en of die niet op hold staat
+						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze layer was en of die niet op hold staat
 						FrameBeforeNone = TargetFrame - 1 //beetje onduidelijke namen
 						tv_exposureinfo FrameBeforeNone
 						parse result exposureType d d

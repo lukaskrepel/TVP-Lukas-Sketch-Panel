@@ -4,7 +4,7 @@ tv_layercolor hide Display 11 // Hide Overlay layer before rendering
 // **************************************************************************************
 // *** SET LAYERS NAMED "*_Multiply" TO MULTIPLY, NAME ALL MULTIPLY LAYERS "*_Multiply"
 // **************************************************************************************
-Zoekwoord = Multiply
+searchWord = Multiply
 tv_LayerCurrentID
 Beginlayer = result
 layerRun = 1
@@ -19,17 +19,17 @@ WHILE layerRun
                 last = LastPos(layerName,"_")
                 strlen = LEN(layerName)
                 IF CMP(last,0)
-                    Eerstewoord = layerName
+                    firstWord = layerName
                 ELSE
-                Eerstewoord = LeftString(layerName,last-1)
+                firstWord = LeftString(layerName,last-1)
                 END
-                Tweedewoord = RightString(layerName,strlen-last)
-		IF CMP(Tweedewoord, Zoekwoord)
+                secondWord = RightString(layerName,strlen-last)
+		IF CMP(secondWord, searchWord)
 			tv_layerblendingmode lid Multiply
 		END
                 tv_layerblendingmode lid
                 IF CMP(result,Multiply)
-                        Multiplylayername = Eerstewoord"_Multiply"
+                        Multiplylayername = firstWord"_Multiply"
                         tv_LayerRename lid Multiplylayername
                 END
 		// END RUN ON LAYER

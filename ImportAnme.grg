@@ -76,7 +76,7 @@ WHILE (loop == 1)
                     //#PRINT SequenceFolder"/"Foldername"/"Filename"  Filenumber:"filenumber // IMPORT
                     tv_LayerInfo
                     PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                    IF (CMP(LayerName,Foldername)==0) // Als de laag nog niet bestaat.
+                    IF (CMP(LayerName,Foldername)==0) // Als de layer nog niet bestaat.
                         IF CMP(LayerName,"Untitled 1")
                             tv_LayerCurrentID
                             StartLayerID = result
@@ -112,11 +112,11 @@ WHILE (loop == 1)
             last = LastPos(foldername,"_")
             strlen = LEN(foldername)
             IF CMP(last,0)
-                Eerstewoord = foldername
+                firstWord = foldername
             ELSE
-            Eerstewoord = LeftString(foldername,last-1)
+            firstWord = LeftString(foldername,last-1)
             END
-            Tweedewoord = RightString(foldername,strlen-last)
+            secondWord = RightString(foldername,strlen-last)
             tv_LayerCurrentID
             LayerID = result
             //{ ARRAY
@@ -134,34 +134,34 @@ WHILE (loop == 1)
             Colorgroup[12] = "Storyboard"
             For i = 1 TO 12
                 // PRINT Colorgroup[i]
-                IF CMP(Eerstewoord,Colorgroup[i])
+                IF CMP(firstWord,Colorgroup[i])
                     tv_layercolor set LayerID i
                 END
             END
             //}
-            IF CMP(Tweedewoord,"lijn")
+            IF CMP(secondWord,"line")
                 tv_LayerImage 0
                 tv_LayerSelect ProjectStartFrame ProjectEndFrame+1
                 tv_StackLoadBin ScanCleaner
                 tv_StackApply // SCANCLEANER EROP!
                 tv_layerRecomputeExposure
-                //{ Lijnlaag 1 naar boven zetten zodat ie altijd boven kleur komt (EIGENLIJK EERST CHECKEN OF KLEUR BESTAAT)
+                //{ Lijnlayer 1 naar boven zetten zodat ie altijd boven color komt (EIGENLIJK EERST CHECKEN OF KLEUR BESTAAT)
                 tv_LayerGetPos
                 LayerPos = result
                 LayerUp = LayerPos - 1
-                //{ Controleren of laag boven deze lijnlaag wel een kleurlaag is van zelfde ding
+                //{ Controleren of layer boven deze linelayer wel een colorlayer is van zelfde ding
                 tv_LayerGetID LayerUp
                 tv_LayerInfo result
                 PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
                 last = LastPos(LayerName,"_")
                 strlen = LEN(LayerName)
                 IF CMP(last,0)
-                    Eerstewoord = LayerName
+                    firstWord = LayerName
                 ELSE
-                LayerUpEerstewoord = LeftString(LayerName,last-1)
+                LayerUpfirstWord = LeftString(LayerName,last-1)
                 END
-                LayerUpTweedewoord = RightString(LayerName,strlen-last)
-                IF CMP(LayerUpEerstewoord,Eerstewoord) && CMP(LayerUpTweedewoord,kleur)
+                LayerUpsecondWord = RightString(LayerName,strlen-last)
+                IF CMP(LayerUpfirstWord,firstWord) && CMP(LayerUpsecondWord,color)
                     //}
                     tv_LayerMove LayerUp
                     tv_LayerGetID LayerPos
@@ -170,12 +170,12 @@ WHILE (loop == 1)
                 END
                 //}                        
             ELSE
-                IF CMP(Tweedewoord,"kleur")
-                    // Dingen met kleurlaag doen?
+                IF CMP(secondWord,"color")
+                    // Dingen met colorlayer doen?
                 END
             END
             //{ BG zonderaan zetten!
-            IF CMP(Eerstewoord,"BG")
+            IF CMP(firstWord,"BG")
                 BottomLayerSearchLoop = 1
                 i= 0
                 WHILE BottomLayerSearchLoop
@@ -192,7 +192,7 @@ WHILE (loop == 1)
                 tv_LayerSet StartLayerID
             END //}
             //{ FG bovenaan zetten
-            IF CMP(Eerstewoord,"FG") && (CMP(Tweedewoord,"lijn")==0)
+            IF CMP(firstWord,"FG") && (CMP(secondWord,"line")==0)
                 tv_LayerMove 0
                 tv_LayerSet LayerID // ipv startlayerid
             END //}

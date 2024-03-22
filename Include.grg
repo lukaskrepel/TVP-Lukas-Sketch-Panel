@@ -73,7 +73,7 @@ END
 // *** Set layers named "*_Multiply" to multiply. And name all multiplied layers "*_Multiply"
 // *********************************************************************************************
 FUNCTION FixMultiply()
-	Zoekwoord = Multiply
+	searchWord = Multiply
 	tv_LayerCurrentID
 	beginLayer = result
 	layerRun = 1
@@ -88,17 +88,17 @@ FUNCTION FixMultiply()
 	        last = LastPos(layerName,"_")
 	        strlen = LEN(layerName)
 	        IF CMP(last,0)
-                Eerstewoord = layerName
+                firstWord = layerName
             ELSE
-  		        Eerstewoord = LeftString(layerName,last-1)
+  		        firstWord = LeftString(layerName,last-1)
             END
-            Tweedewoord = RightString(layerName,strlen-last)
-			IF CMP(Tweedewoord, Zoekwoord)
+            secondWord = RightString(layerName,strlen-last)
+			IF CMP(secondWord, searchWord)
 				tv_layerblendingmode layerID Multiply
 			END
             tv_layerblendingmode layerID
 	        IF CMP(result,Multiply)
-                Multiplylayername = Eerstewoord"_Multiply"
+                Multiplylayername = firstWord"_Multiply"
                 tv_LayerRename layerID Multiplylayername
 	        END
 			// END RUN ON LAYER
