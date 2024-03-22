@@ -1,19 +1,51 @@
-name[1] = "BABOO"
-name[2] = "ROCKY"
-name[3] = "KATY"
-name[4] = "LUNA"
-name[5] = "DUKE"
+// Menu
+tv_ListRequest "Characters/BABOO|Characters/ROCKY|Characters/KATY|Characters/LUNA|Characters/DUKE|Dinosaurs/TRICERATOPS|BG|PROPS"
+// Exit if no choice is made
+IF CMP(result, "-1 Cancel")
+	EXIT
+END
+// Get label from menu result
+string = result
+firstCharacter = FindString(string,"/",1)+1
+IF firstCharacter == 1
+	firstCharacter = 3
+END
+label = CUT(string,firstCharacter,LEN(string))
+// Set color based on label
+// Default to no color
+color = 0
+// Character colors
+IF CMP(label, "BABOO")
+	color = 2
+END
+IF CMP(label, "ROCKY")
+	color = 11
+END
+IF CMP(label, "KATY")
+	color = 19
+END
+IF CMP(label, "LUNA")
+	color = 5
+END
+IF CMP(label, "DUKE")
+	color = 20
+END
+// BG/Props etc
+IF CMP(label, "BG")
+	color = 25
+END
+IF CMP(label, "PROPS")
+	color = 17
+END
+// Extra characters
+IF CMP(label, "TRICERATOPS")
+	color = 22
+END
+// Do the thing
+tv_layercolor "set" 0 color
+tv_layerrename 0 label
 
-color[1] = 2
-color[2] = 11
-color[3] = 19
-color[4] = 5
-color[5] = 20
-
-i = 5
-
-layerName = name[i]
-layerColor = color[i]
-
-tv_layercolor "set" 0 layerColor
-tv_layerrename 0 layerName
+// -----------------------
+// Include extra functions
+// -----------------------
+#INCLUDE "Include.grg"
