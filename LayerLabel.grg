@@ -1,0 +1,19 @@
+name[1] = "BABOO"
+name[2] = "ROCKY"
+name[3] = "KATY"
+name[4] = "LUNA"
+name[5] = "DUKE"
+
+color[1] = 2
+color[2] = 11
+color[3] = 19
+color[4] = 5
+color[5] = 20
+
+i = 5
+
+layerName = name[i]
+layerColor = color[i]
+
+tv_layercolor "set" 0 layerColor
+tv_layerrename 0 layerName
