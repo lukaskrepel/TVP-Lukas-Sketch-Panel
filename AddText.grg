@@ -1,0 +1,89 @@
+// Variables
+dialogueLayerName = "DIALOGUE"
+dialogueLayerColor = 7
+
+// Ask user to insert the dialogue
+tv_ReqString "multiline" "Dialogue|"
+IF CMP(result, "Cancel") || CMP(result, "")
+	EXIT
+END
+text_to_add = result
+text_to_add = Replace(text_to_add, "\n", " ") // Replace linebreaks with spaces
+// TODO divide linebreaks into multiple strings instead
+
+// ----------------------------------------------------
+// Remember settings to revert to after script finished
+// ----------------------------------------------------
+// Remember starting color
+tv_GetAPen
+PARSE result R G B A
+// Remember starting paper
+tv_paperinfo
+beginPaper = result
+parse result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
+// Remember starting shape (line etc)
+tv_getactiveshape
+beginActiveShape = result
+// Remember starting brush
+tv_restorebrush backup
+beginBrush = result
+// Remember starting layer
+tv_LayerCurrentID
+beginLayer = result
+// TODO also remember brush stamp (origin/alpha/etc)
+
+// Loop backwards trough layers to find DIALOGUE layer:
+layerRun = 1
+layerPos = 0
+WHILE layerRun
+	tv_LayerGetID layerPos
+	lid = result
+	IF CMP(lid,"NONE")==0
+		// Start run on layer
+		tv_LayerInfo lid
+		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+		IF CMP(layerName, dialogueLayerName)==1
+			tv_layerSet lid
+			layerRun = 0
+		END
+		// End run on layer
+		layerPos = layerPos + 1
+	ELSE
+		// Create or go to the dialogue layer
+		tv_LayerCreate dialogueLayerName
+		tv_layercolor "set" 0 dialogueLayerColor
+		tv_LayerMove 0 // Move the dialogue layer to top
+		layerRun = 0
+	END
+END
+
+// Create blue text brush
+tv_SetAPen 0 150 255 // Blue
+//tv_TextTool "letter 0" "text 'hello world'" "smooth 1" //TODO FIX multiple words in a sentence, spaces break the string
+tv_TextTool text '"'text_to_add'"'
+
+// Clear frame of dialogue layer
+tv_layeranim
+currentFrame = tv_projectcurrentframe
+tv_exposurebreak currentFrame
+tv_Clear 0
+// Paste brush at center of screen
+tv_ProjectInfo
+PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+x = projectwidth / 2
+y = projectheight / 2
+button = 0 // left mouse button
+tv_Dot x y button
+
+// Revert to starting layer
+tv_layerSet beginLayer
+
+// Revert to starting brush/tool
+tv_brushrestore beginBrush // Reset brush
+//TODO Reset brush stamp mode (origin/alpha/etc)
+tv_SetActiveShape beginActiveShape // Reset shape mode
+tv_SetAPen R" "G" "B" "A // Reset A pen color to start color
+tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
+
+// Include
+#INCLUDE "Include.grg"
