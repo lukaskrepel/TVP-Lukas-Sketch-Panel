@@ -15,7 +15,7 @@ Keyboard shortcut | Panel button
 `Down` | *Down*
 `H` | *Toggle show/hide other layers*
 `Shift H` | *Toggle show/hide other layers*
-`Cmd L` | *1-1*
+`Cmd L` / `Ctrl L` | *1-1*
 `` ` ``| *Label*
 
 ## Change Log
