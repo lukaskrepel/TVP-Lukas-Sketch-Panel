@@ -3,7 +3,7 @@ A Custom Panel with a collection of tools and scripts for TVPaint.
 > [!NOTE]
 > There's a bunch of very useful buttons that will need explanation, but don't have any. Good luck!
 ## How to install
-Download [Lukas_Sketch_Panel.tvpx](Panels/Lukas_Sketch_Panel.tvpx) and drag it into TVPaint.
+Download [Lukas_Sketch_Panel.tvpx](panels/Lukas_Sketch_Panel.tvpx?raw=1) and drag it into TVPaint.
 > [!CAUTION]
 > Some buttons might not work in older versions of TVPaint or non-Pro versions.
 ## Recommended shortcuts
