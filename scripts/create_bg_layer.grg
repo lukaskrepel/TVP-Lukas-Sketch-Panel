@@ -1,0 +1,11 @@
+tv_LayerCreate
+tv_LayerRename 0 "BG"
+tv_LayerColor "set" 0 25
+tv_LayerMove 999
+tv_LayerPostBehavior 0 hold
+
+
+// -----------------------
+// Include extra functions
+// -----------------------
+#INCLUDE "Include.grg"

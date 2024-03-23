@@ -11,6 +11,10 @@ Keyboard shortcut | Panel button
 --- | ---
 `Left` | Previous Frame (and Clip)
 `Right` | Next Frame (and Clip)
+`,` | Previous Instance (and Clip)
+`.` | Next Instance (and Clip)
+`<` | Add clip exposure
+`>` | Remove clip exposure
 `Up` | Move up a layer (skip locked layers)
 `Down` | Move down a layer (skip locked layers)
 `H` | Toggle show/hide other layers
@@ -24,6 +28,9 @@ Keyboard shortcut | Panel button
 ## Change Log
 <img align="right" src="screenshot.png">
 
+- [2.6]
+  - Added `Add/remove clip exposure`.
+  - Added `Create BG layer`.
 - [2.5]
   - `Create color fill layer` adds appropriate `_line` and `_color` postfixes to layers it uses.
   - Updated and translated `Toggle visibilty for line/color/detail/shading layers` to use English layer naming conventions.
