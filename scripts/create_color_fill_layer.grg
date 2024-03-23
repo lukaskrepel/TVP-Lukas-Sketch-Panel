@@ -1,0 +1,104 @@
+// Thanks to Svengali for fixing the script
+
+tv_getModifiers
+PARSE result shift ctrl alt
+useBColor = false
+IF CMP(shift,"1")==1
+	useBColor = true
+END
+
+Param None //?
+
+tv_UndoOpenStack
+
+// Remember starting paper
+tv_paperinfo
+beginPaper = result
+parse result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
+
+tv_LayerGetImage // get original frame number
+parse result OriginalFrameNo // original frame number
+tv_LayerCurrentID // get id for current layer
+OriginalLayerID = result // store ID for original layer
+tv_LayerInfo OriginalLayerID // get info on original layer
+parse result d Position d OriginalLayerName d First Last d // get position, first and last frames
+colorLayerName = OriginalLayerName"_color"	
+TotalFrames = Last - First + 1 // get total selected frames
+tv_LayerSelect First TotalFrames // select all frames
+
+LayerID = 0	// init LayerID
+Counter = 0 // init counter
+While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+	tv_LayerGetID Counter // get LayerID
+	LayerID = result
+	tv_LayerInfo LayerID // get LayerInfo
+	parse result d d d LayerName d // get Layer name
+	tv_warn(layerName)
+	IF CMP(LayerName, colorLayerName) // is this a corresponding '_color' layer?
+		tv_LayerKill LayerID // yes, so delete it but don't increment counter
+	ELSE
+		Counter = Counter + 1 // increment counter
+	END
+END
+
+tv_LayerColor GET OriginalLayerID
+ColorIndex = result // Layer labelcolor
+
+tv_LayerCreate colorLayerName // create color layer
+ColorLayerID = result // store ID for color layer
+tv_LayerColor SET ColorLayerID ColorIndex // set Color layer to same color group as original layer
+ColorPosition = Position + 1 // new  position of color 
+tv_LayerMove ColorPosition // move color layer to new position
+tv_LayerSelect ColorLayerID	// select Color layer
+tv_LayerAnim // convert Color layer to anim layer
+tv_ExposureSet 0 TotalFrames // extend Color layer frame count 
+tv_LayerShift ColorLayerID First // slide Color layer to same position as OriginalLayer
+tv_LayerSet OriginalLayerID	// select original layer (with black lines)
+X1 = 0 // Designate pixel in upper left corner as seed position
+Y1 = 0
+
+tv_GetActiveTool // save tool
+Tool = result
+parse result ToolType d	// get type of tool
+tv_cmd ToolType Mode 0 // set mode to color
+tv_GetActiveShape // save shape setting
+Shape = result // store activeshape
+
+// Get fill color
+tv_GetAPen
+APenColor = result
+parse result Fr Fg Fb Fa
+IF CMP(useBColor, true) == 1
+	tv_GetBPen
+	parse result Fr Fg Fb Fa
+END
+
+tv_LayerStencil OriginalLayerID OFF // confirm stencil for line layer is off
+tv_LayerStencil FillLayerID OFF	NORMAL // assures that fill layer stencil mask is OFF
+SavedFillingShape = result // saves original FillingShape parameters (result always equals previous parameters)
+tv_LayerSet ColorLayerID // move to fill layer
+tv_AreaInit MODE 1 MAP_GRADIENT 0 OPACITY 100 GAP 0 EXPAND 2 RANGE 10 SRC 1 SMOOTH 1 AALIASING 0 // set fill parameters (user tweakable)
+For CurrentFrame = First to Last // loop to fill frames
+	tv_LayerImage CurrentFrame // move to current frame on Line layer
+	tv_ExposureInfo CurrentFrame // test this frame type" head(instance) or exposure?
+	parse result FrameType d // store type of frame
+	IF CMP(FrameType, "Head") // if frame type is head(instance) then create filled figures for this frame on the Fill Layer 
+		tv_LayerSet ColorLayerID // select Color layer
+		tv_ExposureBreak CurrentFrame // convert exposure frame to instant if necessary
+		tv_clear // clear Fill Layer
+		tv_SetAPen 0 0 0 // set mask color to black
+		tv_Fill X1 Y1 0	 // mask contiguous BACKGROUND around figures
+		tv_pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// ZigOtto innovation for reversing the fill and background to BPen color
+		tv_LayerSet OriginalLayerID	// select line layer
+	END
+END
+tv_LayerSet OriginalLayerID	// reselect the drawing layer
+tv_LayerImage OriginalFrameNo // return to original frame
+
+tv_UndoCloseStack
+
+tv_SetAPen APenColor // restore APen to original color
+tv_SetActiveShape Shape	// restore shape parameters
+tv_AreaInit SavedFillingShape // restore FillingShape's original parameters
+tv_cmd Tool	// restore tool and parameters
+tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName

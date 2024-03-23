@@ -1,11 +1,11 @@
 # Lukas Sketch Panel
-![Screenshot of Lukas Sketch Panel](screenshot.png)
-
-Lukas Sketch Panel is a TVPaint panel.
-
-## Tools
-There's a bunch of tools and buttons that will need explanation, but don't have any. Good luck!
-
+A Custom Panel with a collection of tools and scripts for TVPaint.
+> [!NOTE]
+> There's a bunch of very useful buttons that will need explanation, but don't have any. Good luck!
+## How to install
+Download [Lukas_Sketch_Panel.tvpx](Panels/Lukas_Sketch_Panel.tvpx) and drag it into TVPaint.
+> [!CAUTION]
+> Some buttons might not work in older versions of TVPaint or non-Pro versions.
 ## Recommended shortcuts
 Keyboard shortcut | Panel button
 --- | ---
@@ -18,8 +18,15 @@ Keyboard shortcut | Panel button
 `Cmd L` / `Ctrl L` | *1-1*
 `` ` ``| *Label*
 `/`| *Set In/Out to selection*
+`T`| *Tintlasso (Normal)*
+`Y`| *Eraselasso (Normal)*
 
 ## Change Log
+<img align="right" src="screenshot.png">
+
+- [2.4]
+  - Fixed 'Create color fill layer' button for TVP11
+  - Changed 'Toggle color layers' button to use english layer naming conventions
 - [2.3]
   - Fixed Add static/animated layer buttons for TVP11
   - Renamed *Up/Down* buttons to *Move up/down a layer (skip locked layers)*
