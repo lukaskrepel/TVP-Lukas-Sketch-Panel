@@ -22,7 +22,17 @@ tv_LayerCurrentID // get id for current layer
 OriginalLayerID = result // store ID for original layer
 tv_LayerInfo OriginalLayerID // get info on original layer
 parse result d Position d OriginalLayerName d First Last d // get position, first and last frames
-colorLayerName = OriginalLayerName"_color"	
+
+LayerNamePreFix = OriginalLayerName
+PostFixPos = FindString(OriginalLayerName, "_line", 1)
+IF PostFixPos == 0
+	LineLayerName = LayerNamePreFix"_line"
+	tv_LayerRename OriginalLayerID LineLayerName
+ELSE
+	LayerNamePreFix = LeftString(OriginalLayerName,PostFixPos-1)
+	tv_warn (LayerNamePreFix)
+END
+colorLayerName = LayerNamePreFix"_color"	
 TotalFrames = Last - First + 1 // get total selected frames
 tv_LayerSelect First TotalFrames // select all frames
 
@@ -41,12 +51,9 @@ While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
 	END
 END
 
-tv_LayerColor GET OriginalLayerID
-ColorIndex = result // Layer labelcolor
-
 tv_LayerCreate colorLayerName // create color layer
 ColorLayerID = result // store ID for color layer
-tv_LayerColor SET ColorLayerID ColorIndex // set Color layer to same color group as original layer
+
 ColorPosition = Position + 1 // new  position of color 
 tv_LayerMove ColorPosition // move color layer to new position
 tv_LayerSelect ColorLayerID	// select Color layer
@@ -92,6 +99,16 @@ For CurrentFrame = First to Last // loop to fill frames
 		tv_LayerSet OriginalLayerID	// select line layer
 	END
 END
+
+// Match post/pre-behaviour of color layer to line layer
+tv_layerprebehavior OriginalLayerID
+tv_layerprebehavior ColorLayerID result
+tv_layerpostbehavior OriginalLayerID
+tv_layerpostbehavior ColorLayerID result
+// Match color group/label of color layer to line layer
+tv_LayerColor GET OriginalLayerID
+tv_LayerColor SET ColorLayerID result
+
 tv_LayerSet OriginalLayerID	// reselect the drawing layer
 tv_LayerImage OriginalFrameNo // return to original frame
 
@@ -102,3 +119,6 @@ tv_SetActiveShape Shape	// restore shape parameters
 tv_AreaInit SavedFillingShape // restore FillingShape's original parameters
 tv_cmd Tool	// restore tool and parameters
 tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
+
+// Include extra functions
+#INCLUDE "include.grg"

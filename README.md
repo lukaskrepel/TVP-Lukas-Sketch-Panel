@@ -24,15 +24,18 @@ Keyboard shortcut | Panel button
 ## Change Log
 <img align="right" src="screenshot.png">
 
+- [2.5]
+  - `Create color fill layer` adds appropriate `_line` and `_color` postfixes to layers it uses.
+  - Updated and translated `Toggle visibilty for line/color/detail/shading layers` to use English layer naming conventions.
 - [2.4]
-  - Fixed `Create color fill layer` for TVP11
-  - Changed `Toggle color layers` to use English layer naming conventions
+  - Fixed `Create color fill layer` for TVP11.
+  - Changed `Toggle color layers` to use English layer naming conventions.
 - [2.3]
-  - Fixed `New static/animated layer` for TVP11
-  - Renamed `Up/Down` to `Move up/down a layer (skip locked layers)`
+  - Fixed `New static/animated layer` for TVP11.
+  - Renamed `Up/Down` to `Move up/down a layer (skip locked layers)`.
 - [2.2]
-  - Changed light table buttons to toggle instead of simply turning on/off
+  - Changed light table buttons to toggle instead of simply turning on/off.
 - [2.1]
-  - Fixed XML export
+  - Fixed XML export.
 - [2.0]
-  - Release
+  - Release.
