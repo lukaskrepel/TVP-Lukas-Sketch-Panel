@@ -9,27 +9,27 @@ Download [Lukas_Sketch_Panel.tvpx](Panels/Lukas_Sketch_Panel.tvpx) and drag it i
 ## Recommended shortcuts
 Keyboard shortcut | Panel button
 --- | ---
-`Left` | *Previous Frame (and Clip)*
-`Right` | *Next Frame (and Clip)*
-`Up` | *Move up a layer (skip locked layers)*
-`Down` | *Move down a layer (skip locked layers)*
-`H` | *Toggle show/hide other layers*
-`Shift H` | *Toggle show/hide other layers*
-`Cmd L` / `Ctrl L` | *1-1*
-`` ` ``| *Label*
-`/`| *Set In/Out to selection*
-`T`| *Tintlasso (Normal)*
-`Y`| *Eraselasso (Normal)*
+`Left` | Previous Frame (and Clip)
+`Right` | Next Frame (and Clip)
+`Up` | Move up a layer (skip locked layers)
+`Down` | Move down a layer (skip locked layers)
+`H` | Toggle show/hide other layers
+`Shift H` | Toggle show/hide other layers
+`Cmd L` / `Ctrl L` | 1-1
+`` ` ``| Label
+`/`| Set In/Out to selection
+`T`| Tintlasso (Normal)
+`Y`| Eraselasso (Normal)
 
 ## Change Log
 <img align="right" src="screenshot.png">
 
 - [2.4]
-  - Fixed 'Create color fill layer' button for TVP11
-  - Changed 'Toggle color layers' button to use english layer naming conventions
+  - Fixed `Create color fill layer` for TVP11
+  - Changed `Toggle color layers` to use English layer naming conventions
 - [2.3]
-  - Fixed Add static/animated layer buttons for TVP11
-  - Renamed *Up/Down* buttons to *Move up/down a layer (skip locked layers)*
+  - Fixed `New static/animated layer` for TVP11
+  - Renamed `Up/Down` to `Move up/down a layer (skip locked layers)`
 - [2.2]
   - Changed light table buttons to toggle instead of simply turning on/off
 - [2.1]
