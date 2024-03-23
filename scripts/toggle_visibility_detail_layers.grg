@@ -1,4 +1,4 @@
-searchWord = "_detail"
+searchWord = "detail"
 
 tv_readUserString "LayerVisibility" searchWord "1"
 DetailVisibility = result

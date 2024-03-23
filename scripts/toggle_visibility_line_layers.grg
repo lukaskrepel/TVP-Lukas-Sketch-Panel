@@ -1,4 +1,4 @@
-searchWord = "_line"
+searchWord = "line"
 
 tv_readUserString "LayerVisibility" searchWord "1"
 LineVisibility = result

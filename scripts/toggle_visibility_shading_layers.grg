@@ -1,4 +1,4 @@
-searchWord = "_shading"
+searchWord = "shading"
 
 tv_readUserString "LayerVisibility" searchWord "1"
 ShadingVisibility = result

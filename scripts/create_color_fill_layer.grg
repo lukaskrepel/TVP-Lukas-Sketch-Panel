@@ -30,7 +30,6 @@ IF PostFixPos == 0
 	tv_LayerRename OriginalLayerID LineLayerName
 ELSE
 	LayerNamePreFix = LeftString(OriginalLayerName,PostFixPos-1)
-	tv_warn (LayerNamePreFix)
 END
 colorLayerName = LayerNamePreFix"_color"	
 TotalFrames = Last - First + 1 // get total selected frames
