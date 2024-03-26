@@ -1,5 +1,5 @@
 // Menu
-tv_ListRequest "Characters/BABOO|Characters/ROCKY|Characters/KATY|Characters/LUNA|Characters/DUKE|Dinosaurs/TRICERATOPS|BG|PROPS"
+tv_ListRequest "CHARACTERS/BABOO|CHARACTERS/ROCKY|CHARACTERS/KATY|CHARACTERS/LUNA|CHARACTERS/DUKE|DINOSAURS/TRICERATOPS|DINOSAURS/T-REX|DINOSAURS/VELOCIRAPTOR|BG|PROPS|EFFECTS|OTHER"
 // Exit if no choice is made
 IF CMP(result, "-1 Cancel")
 	EXIT
@@ -8,13 +8,13 @@ END
 string = result
 firstCharacter = FindString(string,"/",1)+1
 IF firstCharacter == 1
-	firstCharacter = 3
+	firstCharacter = FindString(string," ",1)+1
 END
 label = CUT(string,firstCharacter,LEN(string))
 // Set color based on label
 // Default to no color
 color = 0
-// Character colors
+// CHARACTERS
 IF CMP(label, "BABOO")
 	color = 2
 END
@@ -30,17 +30,30 @@ END
 IF CMP(label, "DUKE")
 	color = 20
 END
-// BG/Props etc
+// DINOSAURS
+IF CMP(label, "TRICERATOPS")
+	color = 23
+END
+IF CMP(label, "T-REX")
+	color = 1
+END
+IF CMP(label, "VELOCIRAPTOR")
+	color = 21
+END
+// BG/PROPS/EFFECTS/OTHER
 IF CMP(label, "BG")
 	color = 25
 END
 IF CMP(label, "PROPS")
 	color = 17
 END
-// Extra characters
-IF CMP(label, "TRICERATOPS")
-	color = 22
+IF CMP(label, "EFFECTS")
+	color = 15
 END
+IF CMP(label, "OTHER")
+	color = 14
+END
+
 // Do the thing
 tv_layercolor "set" 0 color
 tv_layerrename 0 label

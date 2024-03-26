@@ -1,0 +1,19 @@
+tv_getModifiers
+PARSE result shift ctrl alt
+increment = 1
+max = 26
+IF CMP(shift,"1")==1
+	increment = -1
+end
+tv_GetCurrentID
+LayerID = result
+tv_LayerColor GET LayerID 0
+ColorIndex = result
+ColorIndex = ColorIndex + increment
+IF ColorIndex > max
+	ColorIndex = 0
+END
+IF ColorIndex < 0
+	ColorIndex = max
+END
+tv_LayerColor SET LayerId ColorIndex
