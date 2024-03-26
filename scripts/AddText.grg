@@ -7,9 +7,20 @@ tv_ReqString "multiline" "Dialogue|"
 IF CMP(result, "Cancel") || CMP(result, "")
 	EXIT
 END
-text_to_add = result
-text_to_add = Replace(text_to_add, "\n", " ") // Replace linebreaks with spaces
-// TODO divide linebreaks into multiple strings instead
+text_to_add = Replace("'"result"'", "\n", "' '")" 'none'"
+//text_to_add = result
+//text_to_add = "'"text_to_add"'"
+//text_to_add = Replace(text_to_add, "\n", "' '")
+//text_to_add = text_to_add" 'none'" // 'none' is always used as a terminator in the packed string
+Rest = "" // remaining string
+LineCount = 1	// Item count
+Lines(0) = 0 // Array of lines
+While CMP(Rest,"none") == 0
+	Parse text_to_add Line Rest
+	Lines(LineCount) = Line
+	text_to_add = Rest
+	LineCount = LineCount + 1
+END
 
 // ----------------------------------------------------
 // Remember settings to revert to after script finished
@@ -78,21 +89,25 @@ textColG = 150
 textColB = 255
 tv_SetAPen textColR textColG textColB
 
-//tv_TextTool "letter 0" "text 'hello world'" "smooth 1" //TODO FIX multiple words in a sentence, spaces break the string
-tv_TextTool text '"'text_to_add'"'
-
 // Clear frame of dialogue layer
 tv_layeranim
 currentFrame = tv_projectcurrentframe
 tv_exposurebreak currentFrame
 tv_Clear 0
+
 // Paste brush at center of screen
 tv_ProjectInfo
 PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
 x = projectwidth / 2
-y = projectheight / 2
-button = 0 // left mouse button
-tv_Dot x y button
+y = 120
+
+FOR i = 1 to LineCount-1 // loop to display elements which are now in an array 
+	Line = Lines(i)
+	tv_TextTool text '"'Line'"'
+	button = 0 // left mouse button
+	tv_Dot x y button
+	y = y + 60
+END
 
 // Revert to starting layer
 //tv_layerSet beginLayer
