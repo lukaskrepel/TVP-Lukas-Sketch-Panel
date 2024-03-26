@@ -2,9 +2,9 @@
 
 tv_getModifiers
 PARSE result shift ctrl alt
-useBColor = false
+useBColor = true
 IF CMP(shift,"1")==1
-	useBColor = true
+	useBColor = false
 END
 
 Param None //?
@@ -27,7 +27,7 @@ LayerNamePreFix = OriginalLayerName
 PostFixPos = FindString(OriginalLayerName, "_line", 1)
 IF PostFixPos == 0
 	LineLayerName = LayerNamePreFix"_line"
-	tv_LayerRename OriginalLayerID LineLayerName
+	tv_LayerRename OriginalLayerID '"'LineLayerName'"' // Quotes are needed so "Layer 1_color" doesn't cut off after the space.
 ELSE
 	LayerNamePreFix = LeftString(OriginalLayerName,PostFixPos-1)
 END
