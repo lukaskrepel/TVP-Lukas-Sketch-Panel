@@ -1,9 +1,12 @@
 tv_LayerCreate
+BGLayerID = result
 tv_LayerRename 0 "BG"
 tv_LayerColor "set" 0 25
 tv_LayerMove 999
 tv_LayerPostBehavior 0 hold
-
+tv_LayerGetImage // get original frame number
+parse result OriginalFrame // original frame number
+tv_layershift BGLayerID OriginalFrame
 
 // -----------------------
 // Include extra functions
