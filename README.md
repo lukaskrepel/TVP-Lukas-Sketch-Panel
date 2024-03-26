@@ -20,7 +20,7 @@ Keyboard shortcut | Panel button
 `H` | Toggle show/hide other layers
 `Shift H` | Toggle show/hide other layers
 `Cmd L` / `Ctrl L` | 1-1
-`` ` ``| Label
+`` ` ``| Select Color Group Preset
 `/`| Set In/Out to selection
 `T`| Tintlasso (Normal)
 `Y`| Eraselasso (Normal)
@@ -28,6 +28,11 @@ Keyboard shortcut | Panel button
 ## Change Log
 <img align="right" src="screenshot.png">
 
+- [2.7]
+  - Fixed bug in `Create color fill layer` where line layer name would get cut off after space character.
+  - Added `Cycle Color Group`.
+  - Renamed `Label` to `Select Color Group Preset` and changed icon.
+  - Replaced dummy button by vertical separators.
 - [2.6]
   - Added `Add/remove clip exposure`.
   - Added `Create BG layer`.
