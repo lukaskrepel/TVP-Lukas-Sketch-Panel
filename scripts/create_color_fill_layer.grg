@@ -7,7 +7,7 @@ IF CMP(shift,"1")==1
 	useBColor = false
 END
 
-Param None //?
+//Param None //?
 
 tv_UndoOpenStack
 
@@ -21,7 +21,23 @@ parse result OriginalFrameNo // original frame number
 tv_LayerCurrentID // get id for current layer
 OriginalLayerID = result // store ID for original layer
 tv_LayerInfo OriginalLayerID // get info on original layer
-parse result d Position d OriginalLayerName d First Last d // get position, first and last frames
+parse result d LinePosition d OriginalLayerName d First Last d // get position, first and last frames
+//
+
+// Loop trough layers above line layer and set opacity to 0%
+Position = LinePosition - 1 // init counter
+tv_LayerGetID Position
+LayerID = result // init LayerID
+While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+	tv_LayerGetID Position // get LayerID
+	LayerID = result
+	//tv_warn ("Position: "Position"   LayerID: "LayerID)
+	tv_LayerSet LayerID
+	tv_LayerDisplay LayerID Off
+	Position = Position - 1 // go up only (counter)
+END
+tv_LayerSet OriginalLayerID
+// All layers above have been set to 0%
 
 LayerNamePreFix = OriginalLayerName
 PostFixPos = FindString(OriginalLayerName, "_line", 1)
@@ -42,7 +58,6 @@ While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
 	LayerID = result
 	tv_LayerInfo LayerID // get LayerInfo
 	parse result d d d LayerName d // get Layer name
-	tv_warn(layerName)
 	IF CMP(LayerName, colorLayerName) // is this a corresponding '_color' layer?
 		tv_LayerKill LayerID // yes, so delete it but don't increment counter
 	ELSE
@@ -53,7 +68,7 @@ END
 tv_LayerCreate colorLayerName // create color layer
 ColorLayerID = result // store ID for color layer
 
-ColorPosition = Position + 1 // new  position of color 
+ColorPosition = LinePosition + 1 // new  position of color 
 tv_LayerMove ColorPosition // move color layer to new position
 tv_LayerSelect ColorLayerID	// select Color layer
 tv_LayerAnim // convert Color layer to anim layer
@@ -98,6 +113,20 @@ For CurrentFrame = First to Last // loop to fill frames
 		tv_LayerSet OriginalLayerID	// select line layer
 	END
 END
+
+// Loop trough layers above line layer and set opacity back to 100% - TODO instead of 100% remember opacity in first loop and reset it here
+LayerID = 0	// init LayerID
+Position = LinePosition - 1 // init counter
+While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+	tv_LayerGetID Position // get LayerID
+	LayerID = result
+	//tv_warn ("Position: "Position"   LayerID: "LayerID)
+	tv_LayerSet LayerID
+	tv_LayerDisplay LayerID On
+	Position = Position - 1 // go up only (counter)
+END
+tv_LayerSet OriginalLayerID
+// All layers above have been set to 100% - TODO instead of 100% remember opacity in first loop and reset it here
 
 // Match post/pre-behaviour of color layer to line layer
 tv_layerprebehavior OriginalLayerID
