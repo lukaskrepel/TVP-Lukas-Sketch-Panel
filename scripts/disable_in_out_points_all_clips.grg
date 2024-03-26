@@ -1,0 +1,24 @@
+tv_ClipCurrentID
+startClip = result
+tv_LayerCurrentID
+Beginlayer = result
+
+loop=1
+i=0
+WHILE loop
+	tv_clipenumid -1 i
+ 	curCID = result
+	IF CMP(curCID,"none")==1
+		loop=0
+	ELSE
+		tv_clipHidden curCID
+		IF CMP(result,"0")==1
+			tv_clipSelect curCID
+			tv_markin clear
+			tv_markout clear
+		END
+	END
+	i=i+1
+END
+
+tv_clipSelect startClip
