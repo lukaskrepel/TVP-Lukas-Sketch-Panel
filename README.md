@@ -17,17 +17,19 @@ Keyboard shortcut | Panel button
 `>` | Remove clip exposure
 `Up` | Move up a layer (skip locked layers)
 `Down` | Move down a layer (skip locked layers)
-`H` | Toggle show/hide other layers
-`Shift H` | Toggle show/hide other layers
-`Cmd L` / `Ctrl L` | 1-1
+`H`, `Shift H` | Toggle show/hide other layers
+`Cmd L`, `Ctrl L` | 1-1
 `` ` ``| Select Color Group Preset
 `/`| Set In/Out to selection
 `T`| Tintlasso (Normal)
 `Y`| Eraselasso (Normal)
+`P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
 
 ## Change Log
 <img align="right" src="screenshot.png">
 
+- [2.9]
+  - Reworked `Rotate Brush by Increments`
 - [2.8]
   - Fixed bug in `Create color fill layer` where it would color more than just the current layer if the current layer was not the top layer.
   - Removed version number from Panel Identification string.

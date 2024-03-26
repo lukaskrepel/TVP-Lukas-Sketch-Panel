@@ -36,7 +36,7 @@ IF Alt == 0 && Ctrl == 0
 	IF Shift == 1
 		RotAngle = RotAngle * -1
 	END
-	NewAngle = CurrentAngle + RotAngle
+	NewAngle = CurrentAngle - RotAngle
 END
 
 // Blur amount
@@ -48,4 +48,3 @@ END
 
 tv_BrushRestore Angle NewAngle
 tv_WriteUserString "CutBrushRotation" "CurrentAngle" NewAngle
-
