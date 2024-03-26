@@ -30,6 +30,8 @@ beginBrush = result
 // Remember starting layer
 tv_LayerCurrentID
 beginLayer = result
+tv_LayerGetImage // get original frame number
+parse result OriginalFrame // original frame number
 // TODO also remember brush stamp (origin/alpha/etc)
 
 // Loop backwards trough layers to find DIALOGUE layer:
@@ -51,14 +53,31 @@ WHILE layerRun
 	ELSE
 		// Create or go to the dialogue layer
 		tv_LayerCreate dialogueLayerName
+		DialogueLayerID = result
 		tv_layercolor "set" 0 dialogueLayerColor
 		tv_LayerMove 0 // Move the dialogue layer to top
+		tv_layershift DialogueLayerID OriginalFrame
 		layerRun = 0
 	END
 END
 
-// Create blue text brush
-tv_SetAPen 0 150 255 // Blue
+// Set text tool:
+fontName = "Consolas"
+fontSize = 50
+resetVal = 1 // * 1 = true
+letterVal = 0 // * 0 = Word
+borderSize = 5
+borderR = 255
+borderG = 255
+borderB = 255
+stepVal = 9999999 // * Super big step so word is only drawn once
+tv_textTool reset resetVal letter letterVal text text font fontName size fontSize border borderSize border_col borderR borderG borderB step stepVal
+// Set text color:
+textColR = 0
+textColG = 150
+textColB = 255
+tv_SetAPen textColR textColG textColB
+
 //tv_TextTool "letter 0" "text 'hello world'" "smooth 1" //TODO FIX multiple words in a sentence, spaces break the string
 tv_TextTool text '"'text_to_add'"'
 
@@ -76,7 +95,7 @@ button = 0 // left mouse button
 tv_Dot x y button
 
 // Revert to starting layer
-tv_layerSet beginLayer
+//tv_layerSet beginLayer
 
 // Revert to starting brush/tool
 tv_brushrestore beginBrush // Reset brush
