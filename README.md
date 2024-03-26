@@ -28,6 +28,9 @@ Keyboard shortcut | Panel button
 ## Change Log
 <img align="right" src="screenshot.png">
 
+- [2.8]
+  - Fixed bug in `Create color fill layer` where it would color more than just the current layer if the current layer was not the top layer.
+  - Removed version number from Panel Identification string.
 - [2.7]
   - Fixed bug in `Create color fill layer` where line layer name would get cut off after space character.
   - Added `Cycle Color Group`.
