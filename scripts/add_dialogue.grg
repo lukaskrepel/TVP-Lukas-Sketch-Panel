@@ -2,16 +2,22 @@
 dialogueLayerName = "DIALOGUE"
 dialogueLayerColor = 7
 
+
 // Ask user to insert the dialogue
-tv_ReqString "multiline" "Dialogue|"
+tv_ReadUserString "LukasSketchPanel" "Dialogue" ""
+text_to_add = result
+IF CMP(text_to_add, "0") // tv_ReadUserString returns 0 if it doesn't exist yet
+	text_to_add = ""
+END
+tv_ReqString "multiline" "Dialogue|"text_to_add
 IF CMP(result, "Cancel") || CMP(result, "")
 	EXIT
 END
-text_to_add = Replace("'"result"'", "\n", "' '")" 'none'"
-//text_to_add = result
-//text_to_add = "'"text_to_add"'"
-//text_to_add = Replace(text_to_add, "\n", "' '")
-//text_to_add = text_to_add" 'none'" // 'none' is always used as a terminator in the packed string
+text_to_add = result
+tv_writeUserString "LukasSketchPanel" "Dialogue" text_to_add
+text_to_add = "'"text_to_add"'"
+text_to_add = Replace(text_to_add, "\n", "' '")
+text_to_add = text_to_add" 'none'" // 'none' is always used as a terminator in the packed string
 Rest = "" // remaining string
 LineCount = 1	// Item count
 Lines(0) = 0 // Array of lines
@@ -21,6 +27,10 @@ While CMP(Rest,"none") == 0
 	text_to_add = Rest
 	LineCount = LineCount + 1
 END
+
+// Paste brush at center of screen
+tv_ProjectInfo
+PARSE result projectname ProjectWidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
 
 // ----------------------------------------------------
 // Remember settings to revert to after script finished
@@ -44,6 +54,31 @@ beginLayer = result
 tv_LayerGetImage // get original frame number
 parse result OriginalFrame // original frame number
 // TODO also remember brush stamp (origin/alpha/etc)
+
+CharacterCount = 0
+FOR i = 1 to LineCount-1
+	Line = Lines(i)
+	IF LEN(Line) > CharacterCount
+		CharacterCount = LEN(Line)
+	END
+END
+CharacterWidth = 2700
+MinFontSize = 50
+MaxFontSize = 120
+CharacterWidth = 2700  // Font size for a 1-letter wide character
+ReductionFactor = 375  // Reduction in font size for each additional character
+FontSize = CharacterWidth - (CharacterCount - 1) * ReductionFactor
+
+CharacterPx = 60
+FontSize = ProjectWidth/(CharacterCount * CharacterPx)*100
+
+
+IF FontSize < MinFontSize
+	//FontSize = MinFontSize //65 characters is te lang in dit geval op 1920w
+END
+IF FontSize > MaxFontSize
+	FontSize = MaxFontSize
+END
 
 // Loop backwards trough layers to find DIALOGUE layer:
 layerRun = 1
@@ -74,7 +109,6 @@ END
 
 // Set text tool:
 fontName = "Consolas"
-fontSize = 50
 resetVal = 1 // * 1 = true
 letterVal = 0 // * 0 = Word
 borderSize = 5
@@ -82,7 +116,7 @@ borderR = 255
 borderG = 255
 borderB = 255
 stepVal = 9999999 // * Super big step so word is only drawn once
-tv_textTool reset resetVal letter letterVal text text font fontName size fontSize border borderSize border_col borderR borderG borderB step stepVal
+tv_textTool reset resetVal letter letterVal text text font fontName size FontSize border borderSize border_col borderR borderG borderB step stepVal
 // Set text color:
 textColR = 0
 textColG = 150
@@ -95,21 +129,18 @@ currentFrame = tv_projectcurrentframe
 tv_exposurebreak currentFrame
 tv_Clear 0
 
-// Paste brush at center of screen
-tv_ProjectInfo
-PARSE result projectname projectwidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
 x = projectwidth / 2
-y = 120
+y = FontSize * 1.5
 
 FOR i = 1 to LineCount-1 // loop to display elements which are now in an array 
 	Line = Lines(i)
 	tv_TextTool text '"'Line'"'
 	button = 0 // left mouse button
 	tv_Dot x y button
-	y = y + 60
+	y = y + FontSize
 END
 
-// Revert to starting layer
+// Revert to starting layer (Disabled)
 //tv_layerSet beginLayer
 
 // Revert to starting brush/tool
