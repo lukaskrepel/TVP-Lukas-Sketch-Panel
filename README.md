@@ -28,6 +28,13 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [3.0]
+  - New panel layout
+  - Added dynamic font size to `Add Dialogue` (based on Consolas font).
+  - Updated `Create Anim Layer` to create layer at current frame above selected layer.
+  - Added option to overwrite last render with `Render Clips With XML` (Pro only).
+  - Updated `Eraser` to use improved presets.
+  - Updated `Mark Selected Instances Color` to color layer instead, if layer is static.
 - [2.9]
   - Reworked `Rotate Brush by Increments`
 - [2.8]
