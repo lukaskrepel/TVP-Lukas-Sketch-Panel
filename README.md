@@ -25,7 +25,7 @@ Keyboard shortcut | Panel button
 `Y`| Eraselasso (Normal)
 `P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
 
-## Change Log
+## Changelog
 <img align="right" src="screenshot.png">
 
 - [2.9]
