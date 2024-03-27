@@ -1,3 +1,10 @@
+tv_getModifiers
+PARSE result shift ctrl alt
+Overwrite = false
+IF CMP(shift,"1")==1
+	Overwrite = true
+END
+
 //Preparing
 message = "Rendering all clips with XML file..."
 tv_lockdisplay message
@@ -50,6 +57,13 @@ FOR i = 1 TO 1000
 	saveDir = projectDir"/"RenderFolder
 	tv_WriteTextFile "Exists" '"'saveDir'"'
 	IF CMP (result,"")==1 // Folder doesn't exist yet!
+		IF CMP(Overwrite, true)
+			IF i > 1
+				i = i - 1
+				RenderFolder = projectName"_clips"i
+				tv_warn ("WARNING: Attempting to overwrite previous export!")
+			END
+		END
 		projectName = RenderFolder
 		i = 1001
 	END
