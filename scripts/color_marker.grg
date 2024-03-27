@@ -1,0 +1,82 @@
+// Make sure to add an embedded George script action in the button before the script containing:
+// ------------------------------------------------
+// tv_WriteUserString "LukasSketchPanel" "Color" 5
+// ------------------------------------------------
+
+tv_ReadUserString "LukasSketchPanel" "Color"
+Color = result
+
+tv_LayerCurrentID
+LayerID = result
+tv_LayerInfo LayerID
+PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+IF CMP(layerType, "Image")==1
+	tv_LayerColor set LayerID COLOR
+	EXIT
+END
+
+tv_LayerSelectInfo
+PARSE RESULT firstSelectedFrame amountOfSelectedFrames
+lastSelectedFrame = firstSelectedFrame + amountOfSelectedFrames
+
+IF (amountOfSelectedFrames > 1)
+	FOR i = firstSelectedFrame TO lastSelectedFrame-1
+		IF CMP (i, firstSelectedFrame)
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			IF CMP(exposureType, Exposure)				
+				exposureType = Exposure
+				WHILE CMP(exposureType, Exposure)
+					i = i - 1
+					tv_exposureinfo i
+					PARSE RESULT exposureType d d
+					tv_layermarkset 0 i COLOR					
+				END
+			END
+		END	
+		tv_exposureinfo i
+		IF CMP(result, Head)
+			lastHead = i
+			tv_layermarkset 0 i COLOR
+			exposureType = Exposure
+			WHILE CMP(exposureType, Exposure)
+				i = i + 1
+				tv_exposureinfo i
+				PARSE RESULT exposureType d d
+				IF CMP(exposureType, Exposure)
+					tv_layermarkset 0 i COLOR
+				ELSE
+				i = i - 1
+				END
+			END
+		END
+	END
+ELSE
+	tv_layergetimage
+	i = result
+	tv_exposureinfo i
+	PARSE RESULT exposureType d d
+	IF CMP(exposureType, Exposure)			
+		exposureType = Exposure
+		WHILE CMP(exposureType, Exposure)
+			i = i - 1
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			tv_layermarkset 0 i COLOR					
+		END
+	END
+
+	tv_exposureinfo i
+	IF CMP(result, Head)
+		tv_layermarkset 0 i COLOR
+		exposureType = Exposure
+		WHILE CMP(exposureType, Exposure)
+			i = i + 1
+			tv_exposureinfo i
+			PARSE RESULT exposureType d d
+			IF CMP(exposureType, Exposure)
+				tv_layermarkset 0 i COLOR
+			END
+		END
+	END
+END
