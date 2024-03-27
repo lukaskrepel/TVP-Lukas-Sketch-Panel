@@ -47,7 +47,11 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		OffsetFrame = frame + clipOffset
 		filePathWithQuotes = '"' filePath '"'  //Enclose path-filename with (single quote double quote singlequotes)
 		//Save image file
-		tv_ProjectSaveSequence filePathWithQuotes CAMERA OffsetFrame OffsetFrame		
+		IF CMP(IsPro(), 1) == 1
+			tv_ProjectSaveSequence filePathWithQuotes CAMERA OffsetFrame OffsetFrame
+		ELSE
+			tv_SaveSequence filePathWithQuotes frame frame
+		END
 		frameStart = frame
 		tv_exposureNext //Goes to next exposure
 		curImage = result
@@ -1512,5 +1516,16 @@ FUNCTION draw_shotNumber(text)
 		tv_Line x1 y1 x2 y2 click
 		// Return to starting layer:
 		tv_layerSet Beginlayer
+	END
+END
+
+// Check for pro vers
+FUNCTION IsPro()
+	tv_Version
+	Pro = FindString(result,"Pro",1)
+	IF CMP(Pro, 0) == 1
+		RETURN 0
+	ELSE
+		RETURN 1
 	END
 END

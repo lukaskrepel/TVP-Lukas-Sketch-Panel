@@ -73,6 +73,7 @@ tv_Request "Render all clips as ."imageType" sequences in subfolders of '"saveDi
 IF result == 0
 	EXIT
 END
+tv_SaveMode imageType // Needed for Standard version because it exports with tv_SaveSequence
 tv_WriteTextFile "MkDir" '"'saveDir'"'
 TotalXMLfile = saveDir"/"projectName".xml"
 XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
