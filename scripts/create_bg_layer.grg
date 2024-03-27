@@ -1,14 +1,8 @@
 tv_LayerCreate
-BGLayerID = result
+LayerID = result
 tv_LayerRename 0 "BG"
 tv_LayerColor "set" 0 25
-tv_LayerMove 999
 tv_LayerPostBehavior 0 hold
-tv_LayerGetImage // get original frame number
-parse result OriginalFrame // original frame number
-tv_layershift BGLayerID OriginalFrame
-
-// -----------------------
-// Include extra functions
-// -----------------------
-#INCLUDE "Include.grg"
+tv_LayerGetImage
+parse result CurrentFrame
+tv_layershift LayerID CurrentFrame
