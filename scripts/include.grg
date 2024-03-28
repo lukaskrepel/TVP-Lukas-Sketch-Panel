@@ -26,10 +26,12 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 	//renderName = result
 	//
 	ClipXMLfile = saveDir"/"clipName".xml" //!!!!!!!!!!!!!!!!!!
-	sequenceIn = inpoint + 1
-	sequenceOut = outpoint + 1
+	SequenceIn = inpoint + 1
+	SequenceOut = outpoint + 1
 	// *** Write info
-	XMLbegin(ClipXMLfile, clipName, sequenceIn, sequenceOut, projectFramerate)
+	tv_ProjectInfo
+	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFramerate projectField ProjectStartframe
+	XMLbegin(ClipXMLfile, clipName, SequenceIn, SequenceOut, ProjectFramerate)
 	// *** Start saving image files
 	curImage = renderStart
 	WHILE curImage <= renderEnd
@@ -37,36 +39,36 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		offsetImage = curImage - inpoint + 1
 		frame = offsetImage + renderStart
 		prefixedFrame = addZeros("_",frame,5)
-		fileName = clipName""prefixedFrame""ext
-		filePath = saveDir"/"fileName
+		FileName = clipName""prefixedFrame""ext
+		FilePath = saveDir"/"FileName
 		//Show message
-		Message = CONCAT("Rendering all clips with XML file | ", (filePath))
+		Message = CONCAT("Rendering all clips with XML file | ", (FilePath))
 		tv_lockdisplay Message
 		//
-		frameEnd = frame + 1 //todo
+		FrameEnd = frame + 1 //todo
 		OffsetFrame = frame + clipOffset
-		filePathWithQuotes = '"' filePath '"'  //Enclose path-filename with (single quote double quote singlequotes)
+		FilePathWithQuotes = '"' FilePath '"'  //Enclose path-filename with (single quote double quote singlequotes)
 		//Save image file
 		IF CMP(IsPro(), 1) == 1
-			tv_ProjectSaveSequence filePathWithQuotes CAMERA OffsetFrame OffsetFrame
+			tv_ProjectSaveSequence FilePathWithQuotes CAMERA OffsetFrame OffsetFrame
 		ELSE
-			tv_SaveSequence filePathWithQuotes frame frame
+			tv_SaveSequence FilePathWithQuotes frame frame
 		END
-		frameStart = frame
+		FrameStart = frame
 		tv_exposureNext //Goes to next exposure
 		curImage = result
 		// *** Find next frame
 		tv_layerImage curImage
 		offsetImage = curImage - inpoint + 1
 		frame = offsetImage + renderStart
-		frameEnd = frame
+		FrameEnd = frame
 		// *** Check if we reached the last frame
 		tv_exposureinfo curImage
 		PARSE result type rest
-		XMLimage(ClipXMLfile, fileName, filePath, frameStart, frameEnd, projectWidth, projectHeight, 0) //todo moet ClipXMLfile een parameter zijn?
-		XMLimage(TotalXMLfile, fileName, filePath, frameStart, frameEnd, projectWidth, projectHeight, addsomeframes) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
-		IF CMP(type,"Head")==0 || curImage >= sequenceOut //todo OF ALS we verder zijn dan outpointje
-			addSomeFrames = addSomeFrames - inpoint - 1 + frameEnd
+		XMLimage(ClipXMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, 0) //todo moet ClipXMLfile een parameter zijn?
+		XMLimage(TotalXMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, addsomeframes) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
+		IF CMP(type,"Head")==0 || curImage >= SequenceOut //todo OF ALS we verder zijn dan outpointje
+			addSomeFrames = addSomeFrames - inpoint - 1 + FrameEnd
 			curImage = renderEnd + 1
 		END
 	END
@@ -175,117 +177,130 @@ END
 // ******************************
 // *** Write start of XML file
 // ******************************
-FUNCTION XMLbegin(XMLfile, sequenceName, sequenceIn, sequenceOut, projectFramerate)
+FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramerate)
+
+	//tv_warn ("XMLBEGIN OLD SequenceIn: "SequenceIn"   SequenceOut: "SequenceOut)
+	OldFramerate = ProjectFramerate
+	NewFramerate = 25
+	ProjectFramerate = NewFramerate
+	SequenceIn = SequenceIn * (NewFramerate/OldFramerate)
+	SequenceOut = SequenceOut * (NewFramerate/OldFramerate)
+	//tv_warn ("XMLBEGIN NEW SequenceIn: "SequenceIn"   SequenceOut: "SequenceOut)
+
 	tv_WriteTextFile "Create" '"'XMLfile'"' "<xmeml version="'"4"'">" //klopt
-	sequenceNameWithQuotes = '"'sequenceName'"'
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<sequence id="sequenceNameWithQuotes">" //SEQUENCE NAME (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<uuid>69b229de-c9e4-410e-869c-c77e560b4e18</uuid>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name>"renderName"</name>" //SEQUENCE NAME
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<duration>0</duration>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<in>"sequenceIn"</in>" //IN
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<out>"sequenceOut"</out>" //OUT
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<timecode>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<string>00:00:00:00</string>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<frame>0</frame>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<displayformat>NDF</displayformat>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "</timecode>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<media>"
- 	tv_WriteTextFile "Append" '"'XMLfile'"' "<video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<format>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<samplecharacteristics>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<width>"projectWidth"</width>" //PROJECT WIDTH
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<height>"projectHeight"</height>" //PROJECT HEIGHT
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio>square</pixelaspectratio>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic>false</anamorphic>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</format>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<track MZ.TrackName="'"video"'">"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<enabled>true</enabled>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "<locked>false</locked>"
+	SequenceNameWithQuotes = '"'SequenceName'"'
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "	<sequence id="SequenceNameWithQuotes">"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "		<uuid>69b229de-c9e4-410e-869c-c77e560b4e18</uuid>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "		<name>"SequenceName"</name>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "		<duration>0</duration>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "		<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "			<timebase>"ProjectFramerate"</timebase>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "			<ntsc>false</ntsc>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "		</rate>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<in>"SequenceIn"</in>" //IN
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<out>"SequenceOut"</out>" //OUT
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<timecode>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "			<string>00:00:00:00</string>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "			<frame>0</frame>"
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "			<displayformat>NDF</displayformat>"
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "			<rate>"
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "				<timebase>"ProjectFramerate"</timebase>" //FRAMERATE
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "				<ntsc>false</ntsc>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "			</rate>"
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "		</timecode>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<media>"
+ 	tv_WriteTextFile "Append" '"'XMLfile'"' "			<video>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "				<format>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "					<samplecharacteristics>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "						<width>"ProjectWidth"</width>" // TO DO Variable doesn't exit!?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						<height>"ProjectHeight"</height>" // TO DO Variable doesn't exit!?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<timebase>"ProjectFramerate"</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<ntsc>false</ntsc>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						</rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						<pixelaspectratio>square</pixelaspectratio>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						<anamorphic>false</anamorphic>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "					</samplecharacteristics>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "				</format>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "				<track MZ.TrackName="'"video"'">"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "					<enabled>true</enabled>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "					<locked>false</locked>"
 end
+
 
 // ****************************************************
 // *** Write middle part of XML file, for each image
 // ****************************************************
-FUNCTION XMLimage(XMLfile, fileName, filePath, frameStart, frameEnd, width, height, addsomeframes)
-	frameStart = frameStart - inpoint - 1 + addSomeFrames
-	frameEnd = frameEnd - inpoint - 1 + addSomeFrames
-	fileNameWithQuotes = '"'fileName'"'
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<clipitem id="fileNameWithQuotes">" //FILENAAM (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<masterclipid>"fileName"</masterclipid>" //FILENAAM
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name>"fileName"</name>" //FILENAAM
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<enabled>true</enabled>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<duration>25</duration>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<start>"frameStart"</start>" //STARTFRAME
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<end>"frameEnd"</end>" //EINDFRAME
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<in>0</in>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<out>25.0</out>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<alphatype/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<file id="fileNameWithQuotes">" //FILENAAM (moet tussen quotes?)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<name/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pathurl>"filePath"</pathurl>" //filePath
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timecode>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<string>00:00:00:00</string>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<frame>0</frame>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<displayformat>NDF</displayformat>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>"projectFramerate"</timebase>" //FRAMERATE
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</timecode>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<width>"projectWidth"</width>" //RESOLUTIE.X
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<height>"projectHeight"</height>" //RESOLUTIE.Y
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<timebase>25</timebase>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<ntsc>false</ntsc>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<pixelaspectratio>square</pixelaspectratio>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<anamorphic>false</anamorphic>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</samplecharacteristics>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</file>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<labels>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "<labels/>"
-	tv_WriteTextFile "Append" '"'XMLfile'"'  "<label2>"colorLabel"</label2>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</labels>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</clipitem>"
+FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ImageWidth, ImageHeigth, addsomeframes)
+	FrameStart = FrameStart - inpoint - 1 + addSomeFrames
+	FrameEnd = FrameEnd - inpoint - 1 + addSomeFrames
+	FileNameWithQuotes = '"'FileName'"'
+
+	//tv_warn ("XMLIMAGE OLD FrameStart: "FrameStart"   FrameEnd: "FrameEnd)
+	OldFramerate = ProjectFramerate
+	NewFramerate = 25
+	ProjectFramerate = NewFramerate
+	FrameStart = FrameStart * (NewFramerate/OldFramerate)
+	FrameEnd = FrameEnd * (NewFramerate/OldFramerate)
+	//tv_warn ("XMLIMAGE NEW FrameStart: "FrameStart"   FrameEnd: "FrameEnd)
+
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						<clipitem id="FileNameWithQuotes">"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<masterclipid>"FileName"</masterclipid>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<name>"FileName"</name>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<enabled>true</enabled>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<duration>1080000</duration>" // Is this it?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<ntsc>false</ntsc>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<start>"FrameStart"</start>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<end>"FrameEnd"</end>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<in>90000</in>" // Is this it?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<out>90125</out>" // Is this it?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<file id="FileNameWithQuotes">"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<pathurl>"FilePath"</pathurl>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<ntsc>false</ntsc>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<timecode>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<string>00:00:00:00</string>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<frame>0</frame>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<displayformat>NDF</displayformat>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "									<timebase>"ProjectFramerate"</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "									<ntsc>false</ntsc>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								</rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</timecode>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<media>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<video>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "									<samplecharacteristics>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										<width>"ImageWidth"</width>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										<height>"ImageHeigth"</height>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										<rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "											<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "											<ntsc>false</ntsc>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										</rate>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										<pixelaspectratio>square</pixelaspectratio>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "										<anamorphic>false</anamorphic>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "									</samplecharacteristics>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								</video>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</media>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</file>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<labels>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<label2>"ColorLabel"</label2>" // TO DO Variable doesn't exit!?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							</labels>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "						</clipitem>"
 END
 
 // ******************************
 // *** Write end of XML file
 // ******************************
 FUNCTION XMLend(XMLfile)
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</track>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</video>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</media>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</labels>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "</sequence>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "				</track>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "			</video>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "		</media>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "	</sequence>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "</xmeml>"
 END
 
@@ -1372,17 +1387,17 @@ END
 
 //{{{ file_getName(path)
 FUNCTION file_getName(path)
-	LOCAL  fileName strlen last
+	LOCAL  FileName strlen last
 	IF CMP(path,"/")==1 || CMP(path,"\")==1
-		fileName = -1
+		FileName = -1
 	ELSE
 		path = Replace(path,'\','/')
 		strlen = LEN(path)
 		last = LastPos(path,'/')
-		fileName = RightString(path,strlen-last)
+		FileName = RightString(path,strlen-last)
 		
 	END
-	result = fileName
+	result = FileName
 	RETURN result
 END
 //}}}}
