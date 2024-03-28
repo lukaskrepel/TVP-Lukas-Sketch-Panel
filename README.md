@@ -28,6 +28,8 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [2.12]
+  - Updated `Render Clips With XML` to create 25 FPS XML files. (Currently hardcoded)
 - [2.11]
   - Updated `Render Clips With XML` to support TVP Standard version.
   - Updated `Remove Clip Exposure` to actually be useful.
