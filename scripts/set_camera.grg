@@ -1,0 +1,4 @@
+tv_ProjectInfo
+PARSE result ProjectName ProjectWidth ProjectHeight ProjectPixelAspect ProjectFramerate ProjectField ProjectProjectStartFrame
+FrameRate = 25
+tv_CameraInfo ProjectWidth ProjectHeight ProjectField FrameRate 1
