@@ -63,7 +63,7 @@ Keyboard shortcut | Panel button
   - Fixed `New static/animated layer` for TVP11.
   - Renamed `Up/Down` to `Move up/down a layer (skip locked layers)`.
 - [2.2]
-  - Changed light table buttons to toggle instead of simply turning on/off.
+  - Changed light table buttons to toggle instead of just turning on.
 - [2.1]
   - Fixed XML export.
 - [2.0]
