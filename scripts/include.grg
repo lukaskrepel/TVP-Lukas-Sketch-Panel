@@ -179,13 +179,13 @@ END
 // ******************************
 FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramerate)
 
-	//tv_warn ("XMLBEGIN OLD SequenceIn: "SequenceIn"   SequenceOut: "SequenceOut)
+	// Convert values to 25 fps
 	OldFramerate = ProjectFramerate
 	NewFramerate = 25
 	ProjectFramerate = NewFramerate
 	SequenceIn = SequenceIn * (NewFramerate/OldFramerate)
 	SequenceOut = SequenceOut * (NewFramerate/OldFramerate)
-	//tv_warn ("XMLBEGIN NEW SequenceIn: "SequenceIn"   SequenceOut: "SequenceOut)
+	//
 
 	tv_WriteTextFile "Create" '"'XMLfile'"' "<xmeml version="'"4"'">" //klopt
 	SequenceNameWithQuotes = '"'SequenceName'"'
@@ -236,13 +236,13 @@ FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, Fra
 	FrameEnd = FrameEnd - inpoint - 1 + addSomeFrames
 	FileNameWithQuotes = '"'FileName'"'
 
-	//tv_warn ("XMLIMAGE OLD FrameStart: "FrameStart"   FrameEnd: "FrameEnd)
+	// Convert values to 25 fps
 	OldFramerate = ProjectFramerate
 	NewFramerate = 25
 	ProjectFramerate = NewFramerate
 	FrameStart = FrameStart * (NewFramerate/OldFramerate)
 	FrameEnd = FrameEnd * (NewFramerate/OldFramerate)
-	//tv_warn ("XMLIMAGE NEW FrameStart: "FrameStart"   FrameEnd: "FrameEnd)
+	//
 
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						<clipitem id="FileNameWithQuotes">"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<masterclipid>"FileName"</masterclipid>"
