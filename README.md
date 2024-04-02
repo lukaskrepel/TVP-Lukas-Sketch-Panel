@@ -28,6 +28,8 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [2.13]
+  - Fixed bug in `Remove Clip Exposure` when using it on clips with layers that start in the future.
 - [2.12]
   - Updated `Render Clips With XML` to create 25 FPS XML files. (Currently hardcoded)
 - [2.11]
