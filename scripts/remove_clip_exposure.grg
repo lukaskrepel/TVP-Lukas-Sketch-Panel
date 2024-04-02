@@ -5,17 +5,18 @@ StartLayerID = result
 tv_LayerGetImage
 parse result StartFrame
 NextFrame = StartFrame + 1
-Shrink = true
+Allow = true
 
 layerRun = 1
 
 tv_LastImage
 LastImage = result
 IF StartFrame == LastImage
-	Shrink = false
+	Allow = false
 	layerRun = 0
 END
 
+// First we check if we want to be able to remove a clip exposure at all, or if that would destroy a certain drawing.
 i = 0
 WHILE layerRun
 	tv_LayerGetID i
@@ -29,15 +30,26 @@ WHILE layerRun
 			tv_exposureinfo NextFrame
 			parse result exposureType FauxFixe d
 			IF CMP(exposureType, "Head") == 1 || FauxFixe > 0
-				Shrink = false // Next frame is Head or FauxFixe.
+				Allow = false // Next frame is Head or FauxFixe.
 				layerRun = 0
 			END
 			IF CMP(exposureType, "None") == 1
 				tv_layerpostbehavior LayerID
 				PostBehaviour = result
 				IF CMP(PostBehaviour, "Hold") == 0
-					Shrink = false // Next frame is empty and layer stops.
+					Allow = false // Next frame is empty and layer stops.
 					layerRun = 0
+				END
+			END
+		ELSE
+			// Check if this layer starts after the current frame AND if its pre-behaviour is not HOLD.
+			tv_LayerInfo
+			PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+			IF CMP(LayerStart, StartFrame+1)
+				tv_layerprebehavior LayerId
+				PostBehaviour = result
+				IF CMP(PostBehaviour, "hold") == 0
+					Allow = false
 				END
 			END
 		END
@@ -48,7 +60,8 @@ WHILE layerRun
 	i = i + 1
 END
 
-IF CMP(Shrink, true) == 1
+// If Allow == true, let's go and do the thing!
+IF CMP(Allow, true) == 1
 	layerRun = 1
 	i = 0
 	WHILE layerRun
@@ -76,6 +89,12 @@ IF CMP(Shrink, true) == 1
 				nextInstance = result
 				ExposureLength = nextInstance - Frame - 1
 				tv_ExposureSet Frame ExposureLength
+			ELSE
+				tv_LayerInfo
+				PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+				IF LayerStart > StartFrame
+					tv_LayerShift LayerID LayerStart-1
+				END
 			END
 			// END RUN ON LAYER
 		ELSE
@@ -84,7 +103,7 @@ IF CMP(Shrink, true) == 1
 		i = i + 1
 	END
 //ELSE
-	//print ("Sorry, can't shrink...")
+	//print ("Sorry, can't Allow...")
 END
 
 tv_LayerImage StartFrame
