@@ -2,7 +2,6 @@
 dialogueLayerName = "DIALOGUE"
 dialogueLayerColor = 7
 
-
 // Ask user to insert the dialogue
 tv_ReadUserString "LukasSketchPanel" "Dialogue" ""
 text_to_add = result
@@ -35,25 +34,27 @@ PARSE result projectname ProjectWidth projectheight projectpixelaspect projectfr
 // ----------------------------------------------------
 // Remember settings to revert to after script finished
 // ----------------------------------------------------
-// Remember starting color
+// Remember color
 tv_GetAPen
 PARSE result R G B A
-// Remember starting paper
+// Remember paper
 tv_paperinfo
-beginPaper = result
+OriginalPaper = result
 parse result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
-// Remember starting shape (line etc)
+// Remember shape (line etc)
 tv_getactiveshape
-beginActiveShape = result
-// Remember starting brush
+OriginalActiveShape = result
+// Remember brush
 tv_restorebrush backup
-beginBrush = result
-// Remember starting layer
+OriginalBrush = result
+// Remember tool (stamp mode)
+tv_GetActiveTool
+OriginalTool = result
+// Remember layer
 tv_LayerCurrentID
-beginLayer = result
-tv_LayerGetImage // get original frame number
+OriginalLayer = result
+tv_LayerGetImage // Remember frame number
 parse result OriginalFrame // original frame number
-// TODO also remember brush stamp (origin/alpha/etc)
 
 CharacterCount = 0
 FOR i = 1 to LineCount-1
@@ -65,8 +66,8 @@ END
 CharacterWidth = 2700
 MinFontSize = 50
 MaxFontSize = 120
-CharacterWidth = 2700  // Font size for a 1-letter wide character
-ReductionFactor = 375  // Reduction in font size for each additional character
+CharacterWidth = 2700 // Font size for a 1-letter wide character
+ReductionFactor = 375 // Reduction in font size for each additional character
 FontSize = CharacterWidth - (CharacterCount - 1) * ReductionFactor
 
 CharacterPx = 60
@@ -86,11 +87,11 @@ layerPos = 0
 WHILE layerRun
 	tv_LayerGetID layerPos
 	lid = result
-	IF CMP(lid,"NONE")==0
+	IF CMP(lid,"NONE") == 0
 		// Start run on layer
 		tv_LayerInfo lid
 		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-		IF CMP(layerName, dialogueLayerName)==1
+		IF CMP(layerName, dialogueLayerName) == 1
 			tv_layerSet lid
 			layerRun = 0
 		END
@@ -140,14 +141,18 @@ FOR i = 1 to LineCount-1 // loop to display elements which are now in an array
 	y = y + FontSize
 END
 
-// Revert to starting layer (Disabled)
-//tv_layerSet beginLayer
+// Revert layer (Disabled)
+//tv_layerSet OriginalLayer
 
-// Revert to starting brush/tool
-tv_brushrestore beginBrush // Reset brush
-//TODO Reset brush stamp mode (origin/alpha/etc)
-tv_SetActiveShape beginActiveShape // Reset shape mode
+// Revert brush
+tv_brushrestore OriginalBrush
+// Revert tool
+tv_cmd OriginalTool
+// Revert shape mode
+tv_SetActiveShape OriginalActiveShape
+// Revert A color
 tv_SetAPen R" "G" "B" "A // Reset A pen color to start color
+// Revert Paper
 tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
 
 // Include
