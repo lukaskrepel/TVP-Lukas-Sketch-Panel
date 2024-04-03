@@ -28,6 +28,9 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [2.14]
+  - Reworked and simplified framerate buttons, created `Set  Project Frame Duration`.
+  - Updated `Select Color Group Preset` and `Cycle Color Group` to set group for all selected layers.
 - [2.13]
   - Fixed bug in `Remove Clip Exposure` when using it on clips with layers that start in the future.
 - [2.12]
