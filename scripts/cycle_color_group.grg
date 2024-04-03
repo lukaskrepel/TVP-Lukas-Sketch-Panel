@@ -16,4 +16,23 @@ END
 IF ColorIndex < 0
 	ColorIndex = max
 END
-tv_LayerColor SET LayerId ColorIndex
+tv_LayerColor SET LayerId ColorIndex // Set colorgroup for current layer
+
+// Also color other selected layers
+i = 0
+LayerRun = 1
+WHILE LayerRun
+	tv_LayerGetID i
+	LayerID = result
+	IF CMP(LayerID, "none") == 0		
+		// START RUN ON LAYER
+		tv_layerselection LayerID
+		Selected = result
+		IF CMP(Selected, 1) == 1
+			tv_LayerColor SET LayerId ColorIndex // Set colorgroup for selected layer
+		END
+		i = i + 1
+	ELSE
+		LayerRun = 0
+	END
+END
