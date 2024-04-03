@@ -19,7 +19,7 @@ OUTPOINT = "OK"
 END
 
 IF CMP(InFrame,OutFrame)
-    INOUTSAME = "WARNING: In-point and Out-point are identical!"
+    INOUTSAME = "\n (WARNING: In-point and Out-point are identical!)"
 ELSE
     INOUTSAME = ""
 END
@@ -54,7 +54,7 @@ CAMSETTINGS = "WRONG!"
 IF CMP(CAMWIDTH, 1920)
 IF CMP(CAMHEIGTH, 1080)
 IF CMP(CAMFRAMERATE, 25)
-IF CMP(CAMZOOM, 150)
+IF CMP(CAMZOOM, 100)
 CAMSETTINGS = "OK"
 END
 END
@@ -63,5 +63,5 @@ END
 // CAMERA END
 
 // POPUP START
-tv_warn '"'CLIPNAME'"' '\n' '\n' CAMWIDTH"*"CAMHEIGTH '('CAMFRAMERATE "FPS"')' '\n' '\n' "Zoom: "CAMZOOM"%" '\n' '\n' "Camera is" CAMSETTINGS '\n' "In Point is" INPOINT '\n' "Out Point is" OUTPOINT '\n' INOUTSAME
+tv_warn "Clip: '"CLIPNAME"' \n \n Camera: "CAMWIDTH" × "CAMHEIGTH" @ "CAMFRAMERATE" fps \n Zoom: "CAMZOOM"% \n \n Camera: "CAMSETTINGS "\n In Point: "INPOINT"\n Out Point: "OUTPOINT INOUTSAME
 // POPUP END
