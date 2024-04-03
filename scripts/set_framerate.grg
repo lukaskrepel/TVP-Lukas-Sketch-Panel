@@ -1,0 +1,23 @@
+tv_frameRate 666 info
+PARSE result ProjectFramerate PreviewFramerate
+Frames = 25 / ProjectFramerate
+tv_ReqNum Frames 1 99 "Set Project Frame Duration (1 for singles, 2 for doubles, 6 for storyboarding)"
+Frames = result
+IF CMP(Frames, "Cancel") == 1
+	EXIT
+END
+NewFrameRate = 25 / Frames
+
+tv_FrameRate NewFrameRate
+
+ExtraInfo = ""
+IF CMP(NewFrameRate, 12.5) == 1
+	ExtraInfo = " (Doubles)"
+END
+IF CMP(NewFramerate, 25) == 1
+	ExtraInfo = " (Singles)"
+END
+IF CMP(NewFramerate, 4.166667) == 1
+	ExtraInfo = " (Storyboard mode!)"
+END
+tv_warn "Project framerate is set to "NewFrameRate" fps."ExtraInfo
