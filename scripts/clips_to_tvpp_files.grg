@@ -13,6 +13,7 @@ tv_lockdisplay message
 //
 tv_GetprojectName
 ProjectPath = result
+
 tv_WriteTextFile "Exists" '"'ProjectPath'"'
 TestPath = result
 // *** Check if file is saved
@@ -26,6 +27,13 @@ ProjectPath = Replace(ProjectPath, "\", "/") //Making the script work on Windows
 StrLen = LEN(ProjectPath)
 Last = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
 ProjectDir = LeftString(ProjectPath, Last-1) // Getting the directory where the TVPP file is saved
+ProjectName = RightString(projectpath,strlen-last) // Getting the name of the tvpp file without the path
+FirstUnderscore = FirstPos(ProjectName, "_")
+IF CMP(FirstUnderscore, 0) == 0
+	ProjectCode = LeftString(ProjectName, FirstUnderscore) // This will include the underscore, f.e. DF01_
+ELSE
+	ProjectCode = ""
+END
 // Go up a directory
 Last = LastPos(ProjectDir, "/") // Getting the directory where the TVPP file is saved
 AboveDir = LeftString(ProjectDir, Last-1) // Getting the directory where the TVPP file is saved
@@ -43,7 +51,7 @@ IF CMP(UnderscoreFound, 0) == 1 && CMP(PreFix, 1) == 1
 	ClipNumberPreFix = addZeroesPostfix("_", 1, 3)
 	ClipName = ClipNumberPreFix""ClipName // 001_Untitled for example
 END
-tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'? \n\nFor example:\n'"ShotsDir"/"ClipName"/"ClipName""PostFix".tvpp'?|OK|Cancel" //1|0
+tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'? \n\nFor example:\n'"ShotsDir"/"ClipName"/"ProjectCode""ClipName""PostFix".tvpp'?|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
@@ -112,7 +120,7 @@ WHILE (ClipRun)
 				END
 				ShotDir = ShotsDir"/"ClipName
 				tv_WriteTextFile "MkDir" '"'ShotDir'"'
-				renamepath = ShotDir"/"ClipName""PostFix".tvpp"
+				renamepath = ShotDir"/"ProjectCode""ClipName""PostFix".tvpp"
 				tv_SaveProject renamepath
 				tv_projectclose
 				i = i + 1
