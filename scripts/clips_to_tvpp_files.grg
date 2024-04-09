@@ -1,4 +1,5 @@
 PostFix = "_v000_X"
+Extension = ".tvpp"
 
 tv_getModifiers
 PARSE result Shift Ctrl Alt
@@ -30,7 +31,7 @@ ProjectDir = LeftString(ProjectPath, Last-1) // Getting the directory where the 
 ProjectName = RightString(projectpath,strlen-last) // Getting the name of the tvpp file without the path
 FirstUnderscore = FirstPos(ProjectName, "_")
 IF CMP(FirstUnderscore, 0) == 0
-	ProjectCode = LeftString(ProjectName, FirstUnderscore) // This will include the underscore, f.e. DF01_
+	ProjectCode = LeftString(ProjectName, FirstUnderscore - 1) // This will include the underscore, f.e. DF01_
 ELSE
 	ProjectCode = ""
 END
@@ -40,18 +41,35 @@ AboveDir = LeftString(ProjectDir, Last-1) // Getting the directory where the TVP
 // Shots directory
 ShotsDir = AboveDir"/Shots"
 
-
+// *********************************************
+// DIALOG CODE DUPLICATE MATCH ACTUAL CODE BELOW
+// *********************************************
 // Dialog warning with path example
-tv_Clipenumid -1 0
-ClipID = result 
-tv_ClipName ClipID
-ClipName = result
-UnderscoreFound = Find(ClipName, _, 1)
-IF CMP(UnderscoreFound, 0) == 1 && CMP(PreFix, 1) == 1
-	ClipNumberPreFix = addZeroesPostfix("_", 1, 3)
-	ClipName = ClipNumberPreFix""ClipName // 001_Untitled for example
-END
-tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'? \n\nFor example:\n'"ShotsDir"/"ClipName"/"ProjectCode""ClipName""PostFix".tvpp'?|OK|Cancel" //1|0
+
+//tv_Clipenumid -1 0
+//ClipID = result 
+//tv_ClipName ClipID
+//ClipName = result
+//
+//UnderscoreFound = Find(ClipName, _, 1)
+//UnderscoreFound = Find(ClipName, _, 1)
+//IF CMP(UnderscoreFound, 0) == 1 && CMP(PreFix, 1) == 1 // Only add underscores if Prefix == 1 (so no shift is held) AND no underscore is already in clipname
+//	IF CMP(ProjectCode, "")
+//		ClipNumberPreFix = addZeroesPostfix("_", i + 1, 3)
+//		ClipName = ClipNumberPreFix""ClipName
+//	ELSE
+//		ClipNumberPreFix = addZeroesPreFix(ProjectCode, i + 1, 3)
+//		IF CMP(ClipName, "Untitled") == 0
+//			ClipName = ClipNumberPreFix"_"ClipName // 001_Untitled for example
+//		ELSE
+//			ClipName = ClipNumberPreFix
+//		END
+//	END
+//END
+
+// *********************************************
+tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'?|OK|Cancel" //1|0
+//tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'? \n\nFor example:\n'"ShotsDir"/"ClipName"/"ProjectCode""ClipName""PostFix".tvpp'?|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
@@ -94,11 +112,34 @@ WHILE (ClipRun)
 		ELSE
 			tv_ClipName ClipID
 			ClipName = result
+			IF Find(ClipName, "Shot_", 1)
+				ClipName = "Untitled"
+			END
 			UnderscoreFound = Find(ClipName, _, 1)
 			UnderscoreFound = Find(ClipName, _, 1)
 			IF CMP(UnderscoreFound, 0) == 1 && CMP(PreFix, 1) == 1 // Only add underscores if Prefix == 1 (so no shift is held) AND no underscore is already in clipname
-				ClipNumberPreFix = addZeroesPostfix("_", 1, 3)
-				ClipName = ClipNumberPreFix""ClipName // 001_Untitled for example
+				IF CMP(ProjectCode, "")
+					ClipNumberPreFix = addZeroesPostfix("_", i + 1, 3)
+					DirName = ClipNumberPreFix""ClipName // For example 001_Intro
+					FileName = ClipNumberPreFix""ClipName // For example 001_Intro
+				ELSE
+					FilePreFix = addZeroesPreFix(ProjectCode"_", i + 1, 3)
+					DirPreFix = addZeroesPostFix("_", i + 1, 3)
+					IF CMP(ClipName, "Untitled") == 0
+						DirName = DirPreFix""ClipName // For example 001_Intro
+						FileName = FilePreFix"_"ClipName""PostFix""Extension // For example DF01_001_Intro_v000_X.tvpp
+					ELSE
+						// 
+						ClipName = ProjectCode // !!? Debatable!
+						//
+						DirName = DirPreFix""ClipName // For example 001_DF01 (!!?)
+						FileName = FilePreFix""PostFix""Extension // For example DF01_001_v000_X.tvpp
+					END
+				END
+			ELSE
+				// For example 003B_BBB
+				DirName = ClipName
+				FileName = ClipName""PostFix""Extension
 			END
 			IF (CMP(ClipID, "none") != 0)
 				ClipRun = 0
@@ -118,10 +159,9 @@ WHILE (ClipRun)
 						END
 					END
 				END
-				ShotDir = ShotsDir"/"ClipName
-				tv_WriteTextFile "MkDir" '"'ShotDir'"'
-				renamepath = ShotDir"/"ProjectCode""ClipName""PostFix".tvpp"
-				tv_SaveProject renamepath
+				ShotDirPath = ShotsDir"/"DirName
+				tv_WriteTextFile "MkDir" '"'ShotDirPath'"'
+				tv_SaveProject ShotsDir"/"DirName"/"FileName
 				tv_projectclose
 				i = i + 1
 			END

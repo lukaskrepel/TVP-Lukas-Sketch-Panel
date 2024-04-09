@@ -133,9 +133,23 @@ FUNCTION addZeros(prefix,number,digits)
 END
 
 // **************************************************************************************
+// *** Add a prefix and extra zeros to a number, to turn "2" into "_00002" for example (Different than Mads Juul's version, can't remember why)
+// **************************************************************************************
+FUNCTION addZeroesPreFix(prefix, number, digits)
+	LOCAL current i
+	current = LEN(number)
+	digits = digits - 1
+	FOR i = current TO digits
+		prefix = prefix"0"
+	END
+	prefix = prefix""number
+	RETURN prefix
+END
+
+// **************************************************************************************
 // *** Add zeroes to a number without prefix - don't fix this shitty code, without a prefix a "0" is not seen as a string but as an integer
 // **************************************************************************************
-FUNCTION addZeroesPostfix(postfix,number,digits)
+FUNCTION addZeroesPostfix(postfix, number, digits)
 	LOCAL current i
 	current = LEN(number)
 	number = number""postfix
