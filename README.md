@@ -28,6 +28,8 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [3.14]
+  - Added `Clips to TVPaint Projects`.
 - [2.14]
   - Reworked and simplified framerate buttons, created `Set  Project Frame Duration`.
   - Updated `Select Color Group Preset` and `Cycle Color Group` to set group for all selected layers.
