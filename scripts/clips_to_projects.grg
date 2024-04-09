@@ -1,0 +1,110 @@
+PostFix = _v000_X
+
+//Preparing
+message = "Saving all Clips as TVP files..."
+tv_lockdisplay message
+//
+tv_GetprojectName
+ProjectPath = result
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
+// *** Check if file is saved
+IF CMP(TestPath,ProjectPath)==0 || CMP(ProjectPath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
+    tv_warn "Please save project and try again!"
+    EXIT
+END
+
+// Project Path
+ProjectPath = Replace(ProjectPath, "\", "/") //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+StrLen = LEN(ProjectPath)
+Last = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath, Last-1) // Getting the directory where the TVPP file is saved
+// Go up a directory
+Last = LastPos(ProjectDir, "/") // Getting the directory where the TVPP file is saved
+AboveDir = LeftString(ProjectDir, Last-1) // Getting the directory where the TVPP file is saved
+// Shots directory
+ShotsDir = AboveDir"/Shots"
+
+
+// Dialog warning with path example
+tv_Clipenumid -1 0
+ClipID = result 
+tv_ClipName ClipID
+ClipName = result
+ClipNumberPreFix = addZeroesPostfix("_", 1, 3)
+ClipName = ClipNumberPreFix""ClipName // 001_Untitled for example
+tv_Request "Export all clips as seperate TVP files in subfolders of '"ShotsDir"'? \n\nFor example:\n'"ShotsDir"/"ClipName"/"ClipName""PostFix".tvpp'?|OK|Cancel" //1|0
+IF result == 0
+    EXIT
+END
+
+// Create Shots directory
+tv_WriteTextFile "MkDir" '"'ShotsDir'"'
+
+tv_projectcurrentid
+SourceProjectID = result
+
+ClipRun = 1
+i = 0
+WHILE (ClipRun)
+    tv_Clipenumid -1 i
+    ClipID = result
+    IF (CMP(ClipID, "none") != 0)
+ 		ClipRun = 0
+    ELSE
+        i = i + 1
+    END
+END
+
+ClipRun = 1
+i = 0
+WHILE (ClipRun)
+    tv_projectSelect SourceProjectID  
+    tv_Clipenumid -1 i
+    ClipID = result
+
+    IF (CMP(ClipID, "none") != 0)
+ 		ClipRun = 0
+    ELSE
+    
+        tv_projectduplicate
+        tv_Clipenumid -1 i
+        ClipID = result 
+        tv_ClipName ClipID
+        ClipName = result
+        ClipNumberPreFix = addZeroesPostfix("_", i + 1, 3)
+        ClipName = ClipNumberPreFix""ClipName // 001_Untitled for example
+
+        IF (CMP(ClipID, "none") != 0)
+     		ClipRun = 0
+        ELSE
+            NewClipRun = 1
+            j = 0 // New Clip Numbering
+            WHILE (NewClipRun)
+                tv_Clipenumid -1 j
+                NewClipID = result 
+
+                IF (CMP(NewClipID, "none") != 0)
+             		NewClipRun = 0
+                ELSE
+                    IF (NewClipID != ClipID)
+                        tv_Clipclose NewClipID
+                    ELSE
+                        j = j + 1
+                    END
+                END
+            END
+            ShotDir = ShotsDir"/"ClipName
+            tv_WriteTextFile "MkDir" '"'ShotDir'"'
+            renamepath = ShotDir"/"ClipName""PostFix".tvpp"
+            tv_SaveProject renamepath
+            tv_projectclose
+            i = i + 1
+        END
+    END
+END
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"
