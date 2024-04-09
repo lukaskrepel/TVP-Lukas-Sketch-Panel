@@ -28,6 +28,8 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [3.15]
+  - Added `Render to 'Renders' Folder`.
 - [3.14]
   - Added `Clips to TVPaint Projects`.
 - [2.14]
