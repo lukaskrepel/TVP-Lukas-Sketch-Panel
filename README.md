@@ -29,7 +29,7 @@ Keyboard shortcut | Panel button
 - Volume
     - Project
       - Episodes
-        - EP01_Episode
+        - EP01_Pilot
           - Dailies
           - Edit
           - Renders
