@@ -46,7 +46,7 @@ Keyboard shortcut | Panel button
             - EP01_EpisodeSTB_v001_L.tvpp
 > [!IMPORTANT]
 > - Running `Clips to TVPaint Projects` on `STB/EP01_EpisodeSTB_v001_L.tvpp` creates the `Shots` folder structure with TVP files.
-> - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg`
+> - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image sequence `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg` etc.
 
 ## Changelog
 <img align="right" src="screenshot.png">
