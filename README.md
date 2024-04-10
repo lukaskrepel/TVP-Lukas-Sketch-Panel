@@ -33,7 +33,7 @@ Keyboard shortcut | Panel button
           - Dailies
           - Edit
           - Renders
-            - EP01_001_Intro_v001_L
+            - EP01_001_Intro
               - EP01_001_Intro_00001.jpg
               - EP01_001_Intro_00002.jpg
               - EP01_001_Intro_00003.jpg
