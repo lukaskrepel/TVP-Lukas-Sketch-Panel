@@ -25,6 +25,29 @@ Keyboard shortcut | Panel button
 `Y`| Eraselasso (Normal)
 `P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
 
+## Suggested folder structure for projects
+- Volume
+    - Project
+      - Episodes
+        - EP01_Episode
+          - Dailies
+          - Edit
+          - Renders
+            - EP01_001_Intro_v001_L
+              - EP01_001_Intro_00001.jpg
+              - EP01_001_Intro_00002.jpg
+              - EP01_001_Intro_00003.jpg
+          - Shots
+            - 001_Intro
+              - EP01_001_Intro_v001_L.tvpp
+            - 002_SomethingHappens
+            - 003_Etcetera
+          - STB
+            - EP01_EpisodeSTB_v001_L.tvpp
+> [!IMPORTANT]
+> - Running `Clips to TVPaint Projects` on `STB/EP01_EpisodeSTB_v001_L.tvpp` creates the `Shots` folder structure with TVP files.
+> - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg`
+
 ## Changelog
 <img align="right" src="screenshot.png">
 
