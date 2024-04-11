@@ -1,0 +1,207 @@
+// Variables
+ScriptName = "render_shot_to_renders_folder"
+WhiteSpace = "    "
+
+// Load settings
+tv_ReadUserString ScriptName "Extension" "none"
+Extension = result
+tv_ReadUserString ScriptName "Compositing" "none"
+Compositing = result
+tv_ReadUserString ScriptName "Camera" "none"
+Camera = result
+IF CMP(IsPro(), 1) == 0
+	Camera = 0
+END
+
+// New settings
+tv_GetModifiers
+PARSE result Shift Ctrl Alt
+IF CMP(Shift, "1") == 1 || CMP(Compositing, "none") || CMP(Extension, "none") || CMP(Camera, "none")
+	// Compositing
+	tv_Request "Render Color Groups as Individual Sequences?|Yes|No" //1|0
+	Compositing = result
+	tv_WriteUserString ScriptName "Compositing" Compositing
+	IF CMP(Compositing, 1)
+		Extension = "png"
+	ELSE
+		// Extenstion
+		tv_Request "Image Type?|.JPG|.PNG" //1|0
+		IF CMP(result, 1)
+			Extension = "jpg"
+		ELSE
+			Extension = "png"
+		END
+	END
+	tv_WriteUserString ScriptName "Extension" Extension
+	// Camera
+	IF CMP(IsPro(), 1) == 1
+		tv_Request "Export View?|Camera (Only if you know what you are doing)|Project (Default)" //1|0
+		Camera = result
+		tv_WriteUserString ScriptName "Camera" Camera
+	END
+	tv_warn ("New settings saved.\n Click button again to render.")
+	EXIT
+END
+tv_SaveMode Extension
+
+//
+tv_GetprojectName
+ProjectPath = result
+
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
+// *** Check if file is saved
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath,"/") == 1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_warn "Please save project and try again!"
+	EXIT
+END
+
+// Project Path
+ProjectPath = Replace(ProjectPath, "\", "/") //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+StrLen = LEN(ProjectPath)
+LastSlashPos = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+
+ProjectName = RightString(ProjectPath,StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
+
+//
+LastPeriod = LastPos(ProjectName,".")
+IF CMP(LastPeriod, "0") == 1
+	ProjectBase = ProjectName
+ELSE
+	Projectbase = LeftString(ProjectName, LastPeriod - 1)
+END
+Last_v = FindString(Projectbase, "_v", 1) //  File should be name _v001_L or something
+IF CMP(Last_v, "0") == 1
+	ShotName = projectbase
+ELSE
+	ShotName = LeftString(projectbase, Last_v - 1)
+END
+
+// Go up a directory
+LastSlashPos = LastPos(ProjectDir, "/") // Getting the directory where the TVPP file is saved
+ShotsDir = LeftString(ProjectDir, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+// Go up a directory
+LastSlashPos = LastPos(ShotsDir, "/") // Getting the directory where the TVPP file is saved
+EpisodeDir = LeftString(ShotsDir, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+// Renders directory
+RendersDir = EpisodeDir"/Renders"
+
+tv_markIn
+PARSE result Frame State
+IF CMP(State,"set ")==1
+	InPoint = Frame
+ELSE
+	tv_firstImage
+	InPoint = result
+END
+//Get Clip Out
+tv_markOut
+PARSE result Frame State
+IF CMP(State,"set ")==1
+	OutPoint = Frame
+ELSE
+	tv_LastImage
+	OutPoint = result
+END
+
+PreFixedFrame = AddZeroesPreFix("_", InPoint + 1, 5)
+
+// *********************************************
+ExtraS = ""
+IF CMP(Compositing, 1)
+	ExtraS = "(s)"
+END
+tv_Request "Render "Extension" sequence"ExtraS" to...\n"RendersDir"/"ShotName"/|OK|Cancel" //1|0
+IF result == 0
+	EXIT
+END
+
+Message = ("Rendering...")
+tv_LockDisplay Message
+tv_LockUser
+
+// Set Background
+IF CMP(Extension, "png") == 1
+	tv_AlphaSaveMode nopremultiply
+	tv_Background none
+	OriginalBackground = result
+ELSE
+	tv_AlphaSaveMode noalpha
+END
+
+// Create Renders directory if it doesn't exist yet
+tv_WriteTextFile "MkDir" '"'RendersDir'"'
+// Create directory for image sequence of current file
+tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName'"'
+
+// *** Duplicate project so we don't have to undo any layer deleting/merging
+tv_ProjectDuplicate
+
+
+IF CMP(Compositing, 1)
+	FOR ColorIndex = 0 TO 26
+		// Turn all layers OFF
+		LayerRun = 1
+		LayerPos = 0
+		WHILE LayerRun
+			tv_LayerGetID LayerPos
+			LayerID = result
+			IF CMP(LayerID, "none") == 0		
+				// START RUN ON LAYER
+				tv_LayerDisplay LayerID "off"
+				LayerPos = LayerPos + 1
+			ELSE
+				LayerRun = 0
+			END
+		END
+		// Turn layers for color group ON
+		tv_layercolor "show" "display" ColorIndex
+		LayerCount = result
+		if CMP(LayerCount, 0) == 0
+			tv_clipcolor 0 ColorIndex
+			PARSE result a b c d
+			tv_layercolor "getcolor" 0 ColorIndex
+			PARSE result d d R G B LayerGroupName
+			ImageSequenceName = ShotName"_"LayerGroupName
+			tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName"/"ImageSequenceName'"'
+			ExportPath = RendersDir"/"ShotName"/"ImageSequenceName"/"ImageSequenceName""PreFixedFrame"."extension
+			IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
+				tv_warn ("EXPORTING CAMERA!")
+				tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
+				tv_LockDisplay "Rendering...\n"WhiteSpace""ExportPath""WhiteSpace
+			ELSE
+				// Save image sequence (TVP Standard! No camera)
+				tv_SaveSequence '"'ExportPath'"' InPoint OutPoint
+				tv_LockDisplay "Rendering...\n"WhiteSpace""ExportPath""WhiteSpace
+			END
+		END
+	END
+ELSE
+	// Create Renders directory if it doesn't exist yet
+	tv_WriteTextFile "MkDir" '"'RendersDir'"'
+	// Create directory for image sequence of current file
+	tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName'"'
+	ExportPath = RendersDir"/"ShotName"/"ShotName""PreFixedFrame"."extension
+	IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
+		tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
+		tv_LockDisplay "Rendering...\n"WhiteSpace""ExportPath""WhiteSpace
+	ELSE
+		// Save image sequence (TVP Standard! No camera)
+		tv_SaveSequence '"'ExportPath'"' InPoint OutPoint
+		tv_LockDisplay "Rendering...\n"WhiteSpace""ExportPath""WhiteSpace
+	END
+	//
+END
+//Finishing
+tv_ProjectClose
+
+tv_Background OriginalBackground
+
+tv_UnlockDisplay
+tv_UnlockUser
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"
