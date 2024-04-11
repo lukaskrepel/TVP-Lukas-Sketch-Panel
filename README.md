@@ -29,11 +29,11 @@ Keyboard shortcut | Panel button
 - Volume
     - Project
       - Episodes
-        - EP01_Episode
+        - EP01_Pilot
           - Dailies
           - Edit
           - Renders
-            - EP01_001_Intro_v001_L
+            - EP01_001_Intro
               - EP01_001_Intro_00001.jpg
               - EP01_001_Intro_00002.jpg
               - EP01_001_Intro_00003.jpg
