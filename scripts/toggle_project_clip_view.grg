@@ -1,0 +1,10 @@
+ScriptName = "toggle_project_clip_view"
+tv_ReadUserString ScriptName "State" "clip"
+State = result
+IF CMP(State, "clip")
+	State = "project"
+ELSE
+	State = "clip"
+END
+tv_menushow State
+tv_WriteUserString ScriptName "State" State
