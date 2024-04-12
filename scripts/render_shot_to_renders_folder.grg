@@ -164,8 +164,8 @@ IF CMP(Compositing, 1)
 			tv_layercolor "getcolor" 0 ColorIndex
 			PARSE result d d R G B LayerGroupName
 			ImageSequenceName = ShotName"_"LayerGroupName
-			tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName"/"ImageSequenceName'"'
-			ExportPath = RendersDir"/"ShotName"/"ImageSequenceName"/"ImageSequenceName""PreFixedFrame"."extension
+			tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName"/"LayerGroupName'"'
+			ExportPath = RendersDir"/"ShotName"/"LayerGroupName"/"ImageSequenceName""PreFixedFrame"."extension
 			IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
 				tv_warn ("EXPORTING CAMERA!")
 				tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
