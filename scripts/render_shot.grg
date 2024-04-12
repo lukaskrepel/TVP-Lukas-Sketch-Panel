@@ -1,0 +1,100 @@
+// Render shot
+tv_getModifiers
+PARSE result Shift Ctrl Alt
+Camera = 0
+IF CMP(Shift, "1") == 1
+	Camera = 1
+END
+
+Extension = jpg
+tv_savemode Extension
+
+//Preparing
+message = "Rendering shot..."
+tv_lockdisplay message
+//
+tv_GetprojectName
+ProjectPath = result
+
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
+// *** Check if file is saved
+IF CMP(TestPath,ProjectPath)==0 || CMP(ProjectPath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_warn "Please save project and try again!"
+	EXIT
+END
+
+// Project Path
+ProjectPath = Replace(ProjectPath, "\", "/") //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+StrLen = LEN(ProjectPath)
+LastSlashPos = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+
+ProjectName = RightString(ProjectPath,StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
+
+//
+LastPeriod = LastPos(ProjectName,".")
+IF CMP(LastPeriod, "0") == 1
+	ProjectBase = ProjectName
+ELSE
+	Projectbase = LeftString(ProjectName, LastPeriod - 1)
+END
+Last_v = FindString(Projectbase, "_v", 1) //  File should be name _v001_L or something
+IF CMP(Last_v, "0") == 1
+	ShotName = projectbase
+ELSE
+	ShotName = LeftString(projectbase, Last_v - 1)
+END
+
+// Go up a directory
+LastSlashPos = LastPos(ProjectDir, "/") // Getting the directory where the TVPP file is saved
+ShotsDir = LeftString(ProjectDir, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+// Go up a directory
+LastSlashPos = LastPos(ShotsDir, "/") // Getting the directory where the TVPP file is saved
+EpisodeDir = LeftString(ShotsDir, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+// Renders directory
+RendersDir = EpisodeDir"/Renders"
+
+tv_markIn
+PARSE result Frame State
+IF CMP(State,"set ")==1
+	InPoint = Frame
+ELSE
+	tv_firstImage
+	InPoint = result
+END
+//Get Clip Out
+tv_markOut
+PARSE result Frame State
+IF CMP(State,"set ")==1
+	OutPoint = Frame
+ELSE
+	tv_LastImage
+	OutPoint = result
+END
+
+PreFixedFrame = AddZeroesPreFix("_", InPoint + 1, 5)
+
+// *********************************************
+ExportPath = RendersDir"/"ShotName"/"ShotName""PreFixedFrame"."Extension
+tv_Request "Render...\n"ExportPath"|OK|Cancel" //1|0
+IF result == 0
+	EXIT
+END
+
+// Create Renders directory if it doesn't exist yet
+tv_WriteTextFile "MkDir" '"'RendersDir'"'
+// Create directory for image sequence of current file
+tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName'"'
+IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
+	tv_warn ("CAM!")
+	tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
+ELSE
+	// Save image sequence (TVP Standard! No camera)
+	tv_SaveSequence '"'ExportPath'"' InPoint OutPoint
+END
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"
