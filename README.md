@@ -54,6 +54,7 @@ Keyboard shortcut | Panel button
 > - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image sequence `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg` etc. If you choose the option to render color groups individually it will create a subfolder for each sequence.
 ## Changelog
 <img align="right" src="screenshot.png">
+
 - [3.15]
   - Added `Render to 'Renders' Folder`.
 - [3.14]
