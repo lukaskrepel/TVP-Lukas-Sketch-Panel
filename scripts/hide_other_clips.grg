@@ -1,0 +1,42 @@
+// First loop, and just in case none selected, UNHIDE them.
+Loop = 1
+i = 0
+SelectedLayerCount = 0
+WHILE loop
+	tv_clipenumid -1 i
+ 	ClipID = result
+	IF CMP(ClipID, "none") == 1
+		Loop = 0
+	ELSE
+		tv_ClipInfo	ClipID
+		PARSE result name nameVAL IsCurrent IsCurrentVAL IsHidden IsHiddenVAL IsSelected IsSelectedVAL StoryboardStartFrame StoryboardStartFrameVAL FirstFrame firstFrameVAL LastFrame LastFrameVAL FrameCount frameCountVAL MarlIn MarkInVAL MarkOut MarkOutVAL ColorIdx ColorIdxVAL
+		IF CMP(IsSelectedVAL, 1)
+			SelectedLayerCount = SelectedLayerCount + 1
+		END
+		tv_ClipHidden ClipID 0
+	END
+	i = i + 1
+END
+// Second loop, UNHIDE selected
+IF CMP(SelectedLayerCount, 0) == 1
+	EXIT // We don't want to hide any clips if none are selected.
+END
+Loop = 1
+i = 0
+WHILE loop
+	tv_clipenumid -1 i
+ 	ClipID = result
+	IF CMP(ClipID, "none") == 1
+		Loop = 0
+	ELSE
+		// Do a thing!
+		tv_ClipInfo	ClipID
+		PARSE result name nameVAL IsCurrent IsCurrentVAL IsHidden IsHiddenVAL IsSelected IsSelectedVAL StoryboardStartFrame StoryboardStartFrameVAL FirstFrame firstFrameVAL LastFrame LastFrameVAL FrameCount frameCountVAL MarlIn MarkInVAL MarkOut MarkOutVAL ColorIdx ColorIdxVAL
+		IF CMP(IsSelectedVAL, 1)
+			tv_ClipHidden ClipID 0
+		ELSE
+			tv_ClipHidden ClipID 1
+		END
+	END
+	i = i + 1
+END
