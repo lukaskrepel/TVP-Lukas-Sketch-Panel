@@ -55,6 +55,11 @@ Keyboard shortcut | Panel button
 ## Changelog
 <img align="right" src="screenshot.png">
 
+- [3.16]
+  - Updated `Render Shot to 'Renders' Folder` with option to render color groups as separate sequences.
+  - Greatly optimised `Render Clips With XML`.
+  - Added `Toggle Project/Clip View`.
+  - Added `Hide All Clips, Except Selection`.
 - [3.15]
   - Added `Render to 'Renders' Folder`.
 - [3.14]
