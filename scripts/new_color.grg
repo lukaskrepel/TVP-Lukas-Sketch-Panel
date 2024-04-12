@@ -1,0 +1,30 @@
+// ----------------------------------------------------------------
+// Command list for TVP Button should be:
+//
+// 0: Command: tv_WriteUserString "new_color" "NewRGB" 0 150 255
+// 1: Script: new_color.grg
+// 2: End
+//
+// In the first command you can put the R G B values you want to use.
+// ----------------------------------------------------------------
+
+// Script start
+tv_ReadUserString "new_color" "NewRGB" "0 150 255"
+PARSE result R G B
+
+// Get old pen colors
+tv_GetAPen
+PARSE result Ra Ga Ba Aa
+tv_GetBPen
+PARSE result Rb Gb Bb Ab
+
+// Set new A color, and backup old A color to B color.
+IF CMP(R" "G" "B, Ra" "Ga" "Ba) == 0
+	IF CMP(Rb" "Gb" "Bb, R" "G" "B)
+		tv_SetAPen Rb" "Gb" "Bb
+		tv_SetBPen Ra" "Ga" "Ba
+	ELSE
+		tv_SetAPen R" "G" "B
+		tv_SetBPen Ra" "Ga" "Ba
+	END
+END
