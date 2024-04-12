@@ -1,13 +1,49 @@
-tv_getModifiers
-PARSE result shift ctrl alt
-Overwrite = false
-IF CMP(shift,"1")==1
-	Overwrite = true
+// Variables
+ScriptName = "render_clips_with_xml"
+
+// Load settings
+tv_ReadUserString ScriptName "Extension" "none"
+Extension = result
+tv_ReadUserString ScriptName "Camera" "none"
+Camera = result
+IF CMP(IsPro(), 1) == 0
+	Camera = 0
 END
+Overwrite = result
+tv_ReadUserString ScriptName "Overwrite" "none"
+
+// New settings
+tv_GetModifiers
+PARSE result Shift Ctrl Alt
+IF CMP(Shift, "1") == 1 || CMP(Compositing, "none") || CMP(Extension, "none") || CMP(Camera, "none") || CMP(Overwrite, "none")
+	// Extenstion
+	tv_Request "Image Type?|.JPG|.PNG" //1|0
+	IF CMP(result, 1)
+		Extension = "jpg"
+	ELSE
+		Extension = "png"
+	END
+	tv_WriteUserString ScriptName "Extension" Extension
+	// Camera
+	IF CMP(IsPro(), 1) == 1
+		tv_Request "Export View?|Camera (Only if you know what you are doing)|Project (Default)" //1|0
+		Camera = result
+		tv_WriteUserString ScriptName "Camera" Camera
+	END
+	// Overwrite
+	tv_Request "Try to overwrite?|Yes (Only if you know what you are doing)|No (Default)" //1|0
+	Overwrite = result
+	tv_WriteUserString ScriptName "Overwrite" Overwrite
+	// Warn
+	tv_warn ("New settings saved.\n Click button again to render.")
+	EXIT
+END
+tv_SaveMode Extension
 
 //Preparing
 message = "Rendering all clips with XML file..."
-tv_lockdisplay message
+tv_LockDisplay message
+tv_LockUser
 //
 tv_GetprojectName
 projectpath = result
@@ -18,13 +54,7 @@ IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor wi
 	tv_warn "Please save project and try again!"
 	EXIT
 END
-//
-tv_Request "Image type?|JPG|PNG" //1|0
-IF CMP(result, 1)
-	imageType = jpg
-ELSE
-	imageType = png
-END
+
 // Get project info
 tv_ProjectInfo
 PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
@@ -69,11 +99,15 @@ FOR i = 1 TO 1000
 	END
 END
 saveDir = projectDir"/"projectName
-tv_Request "Render all clips as ."imageType" sequences in subfolders of '"saveDir"'?|OK|Cancel" //1|0
+tv_Request "Render all clips as ."Extension" sequences in subfolders of '"saveDir"'?|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
-tv_SaveMode imageType // Needed for Standard version because it exports with tv_SaveSequence
+message = "Rendering all clips with XML file..."
+tv_LockDisplay message
+tv_LockUser
+//
+tv_SaveMode Extension // Needed for Standard version because it exports with tv_SaveSequence
 tv_WriteTextFile "MkDir" '"'saveDir'"'
 TotalXMLfile = saveDir"/"projectName".xml"
 XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
@@ -88,24 +122,28 @@ tv_ProjectDuplicate
 // **********************************
 // *** ALLE CLIPS DOORLOPEN START ***
 // **********************************
-loop=1
-i=0
+loop = 1
+i = 0
 addSomeFrames = 0
-clipOffset = -1 // Start
+clipOffset = 0//-1 // Start
 colorLabel = "Blue"
 WHILE loop
 	tv_clipenumid -1 i
  	clipID = result
-	IF CMP(clipID,"none")==1
-		loop=0
+	IF CMP(clipID, "none") == 1
+		loop = 0
 	ELSE
-		tv_clipHidden clipID
-		IF CMP(result,"0")==1
+		tv_ClipHidden clipID
+		IF CMP(result, "0") == 1
+			// This clip is not hidden!
 			tv_clipSelect clipID
+		ELSE
+			// This clip is hidden!
+			clipID = "none" // Ugly ugly code, this is a bit confusing, we want to skip this clip though, this works...
 		END
 	END
-	i=i+1
-	IF CMP(clipID,"none")==0
+	i = i + 1
+	IF CMP(clipID, "none") == 0
 		IF CMP(colorLabel, "Blue")
 			colorLabel = "Rose"
 		ELSE
@@ -113,15 +151,18 @@ WHILE loop
 		END
 		tv_clipname
 		clipName = result
-		clipNumber = addZeroesPostfix("_",i,3)
-		clipName = clipNumber""clipName // 001_Untitled for example
+		UnderscorePos = FindString(clipName, "_", 1)
+		IF UnderscorePos < 1
+			clipNumber = addZeroesPostfix("_",i,3)
+			clipName = clipNumber""clipName // 001_Untitled for example
+		END
 		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
 		DeleteInvisibleLayers() //Function is in Include file
 		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
 		FixMultiply()
 		PARAM none
 		// * EINDE TEST
-		IF CMP(imageType, "png")
+		IF CMP(Extension, "png")
 			tv_saveMode "PNG"
 			ext = ".png"
 			tv_AlphaSaveMode "PreMultiply" // Of moet dit NoPreMultiply zijn?
@@ -131,20 +172,13 @@ WHILE loop
 			ext = ".jpg"
 			tv_Background "COLOR" 255 255 255
 		END
-		//
-		// Save Current Frame So I can set the timelinecursor back at the end of the script
-		tv_layerGetImage
-		startImage = result
-		//WAARSCHUWING: shot 001 moet "/001" heten. Ik denk dat de clip gewoon "Walk_R" mag heten			
 		renderDir = projectDir"/"RenderFolder
-		clipDir = projectDir"/"RenderFolder"/"clipName
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
-		tv_WriteTextFile "MkDir" '"'clipDir'"'
-		
+		clipDir = projectDir"/"RenderFolder"/"clipName
+		tv_WriteTextFile "MkDir" '"'clipDir'"'		
 		//Clear in/out marks of clip (hack)
 		tv_markin clear
 		tv_markout clear
-
 		//Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 		//get clip in
 		tv_markIn clip
@@ -164,17 +198,16 @@ WHILE loop
 			tv_LastImage
 			outpoint = result
 		END
-
-		//Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
-		//For this I use tv_projectcurrentframe
-		tv_layerImage inpoint
-		tv_projectcurrentframe
+		//Because I have to use tv_Projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+		//For this I use tv_ProjectCurrentFrame
+		tv_LayerImage inpoint
+		tv_ProjectCurrentFrame
 		projIN = result
-		tv_projectcurrentframe projIN
-		tv_layerImage outpoint
-		tv_projectcurrentframe
+		tv_ProjectCurrentFrame projIN
+		tv_LayerImage outpoint
+		tv_ProjectCurrentFrame
 		projOUT = result
-		tv_projectcurrentframe projOUT
+		tv_ProjectCurrentFrame projOUT
 		//Getting the name of the current clip to file prefix
 		tv_startFrame
 		startFrame = inpoint+result
@@ -193,9 +226,13 @@ WHILE loop
 		tv_LayerAnim
 		tv_LayerShift tempLayerID outpoint
 		tv_LayerPreBehavior tempLayerID "hold"
-		tv_layerMergeAll
+		tv_LayerMergeAll
+		Whitespace = "    "
+		FrameRange = OutPoint - InPoint + 1
+		Message = "Rendering...\n"Whitespace""renderDir"/"Whitespace"\n"clipName"\n("FrameRange" frames)"
+		tv_LockDisplay Message
 		ExportImagesAndXML(clipDir, clipName, inpoint, outpoint, clipOffset)
-		//Adding clip offset so next clip can calculate starting frame
+		// Adding clip offset so next clip can calculate starting frame
 		clipOffset = clipOffset + curImage
 	END
 	tv_Background "COLOR" 255 255 255 //Turn color background back on.
@@ -204,10 +241,11 @@ END
 // *** End overall XML
 XMLend(TotalXMLfile)
 //Finishing
-tv_projectClose
+tv_ProjectClose
 //tv_undoclosestack
-//tv_unlockdisplay
-tv_warn "ALL CLIPS RENDERED."
+tv_UnlockDisplay
+tv_UnlockUser
+tv_Warn "ALL CLIPS RENDERED."
 
 // *****************************
 // *** Include extra functions

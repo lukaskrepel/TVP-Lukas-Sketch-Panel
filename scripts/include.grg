@@ -20,19 +20,32 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 	renderEnd = outpoint
 	offsetSTART= renderStart - inpoint + 1
 	offsetEND = renderEnd - inpoint + 1
-	// *** Get info
-	//todo
-	//tv_clipname ClipID
-	//renderName = result
-	//
 	ClipXMLfile = saveDir"/"clipName".xml" //!!!!!!!!!!!!!!!!!!
 	SequenceIn = inpoint + 1
 	SequenceOut = outpoint + 1
-	// *** Write info
 	tv_ProjectInfo
 	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFramerate projectField ProjectStartframe
 	XMLbegin(ClipXMLfile, clipName, SequenceIn, SequenceOut, ProjectFramerate)
-	// *** Start saving image files
+	ClipIn = InPoint
+	ClipOut = OutPoint
+	FileFrameNumber = ClipIn + 1
+	PrefixedFrame = addZeros("_", FileFrameNumber, 5)
+	ClipSeqPath = saveDir"/"clipName""prefixedFrame""ext
+	WhiteSpace = "    "
+	//Message = "Rendering...\n"WhiteSpace""ClipSeqPath""WhiteSpace
+	//tv_lockdisplay Message
+	// -----------------------------------------------------------------------------------------------
+	// TODO make camera optional for Pro version. Currently disabled
+	//IF CMP(IsPro(), 1) == 1
+	//	ClipIn = InPoint + ClipOffset
+	//	ClipOut = ClipOut + ClipOffset
+	//	tv_warn ClipSeqPath" "ClipIn" "ClipOut
+	//	tv_ProjectSaveSequence '"'ClipSeqPath'"' "camera" ClipIn ClipOut
+	//ELSE
+		tv_SaveSequence '"'ClipSeqPath'"' ClipIn ClipOut // Default for TVP Standard, and non-camera too.
+	//END
+	// -----------------------------------------------------------------------------------------------
+	// *** Start writing XML data per frame
 	curImage = renderStart
 	WHILE curImage <= renderEnd
 		tv_layerImage curImage
@@ -41,19 +54,7 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		prefixedFrame = addZeros("_",frame,5)
 		FileName = clipName""prefixedFrame""ext
 		FilePath = saveDir"/"FileName
-		//Show message
-		Message = CONCAT("Rendering all clips with XML file | ", (FilePath))
-		tv_lockdisplay Message
-		//
-		FrameEnd = frame + 1 //todo
 		OffsetFrame = frame + clipOffset
-		FilePathWithQuotes = '"' FilePath '"'  //Enclose path-filename with (single quote double quote singlequotes)
-		//Save image file
-		IF CMP(IsPro(), 1) == 1
-			tv_ProjectSaveSequence FilePathWithQuotes CAMERA OffsetFrame OffsetFrame
-		ELSE
-			tv_SaveSequence FilePathWithQuotes frame frame
-		END
 		FrameStart = frame
 		tv_exposureNext //Goes to next exposure
 		curImage = result
