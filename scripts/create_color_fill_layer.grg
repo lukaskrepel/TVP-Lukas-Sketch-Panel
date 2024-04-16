@@ -2,9 +2,30 @@
 
 tv_getModifiers
 PARSE result shift ctrl alt
-useBColor = true
-IF CMP(shift,"1")==1
-	useBColor = false
+
+
+// Variables
+ScriptName = "create_color_fill_layer"
+WhiteSpace = "    "
+
+// Load settings
+tv_ReadUserString ScriptName "ABColor" "none"
+ABColor = result
+tv_ReadUserString ScriptName "Overwrite" "none"
+Overwrite = result
+
+IF CMP(Shift, "1") == 1 || CMP(ABColor, "none") || CMP(Overwrite, "none")
+	// Extenstion
+	tv_Request "Use which Pen color?|A|B" //1|0
+	ABColor = result
+	tv_WriteUserString ScriptName "ABColor" ABColor
+	// Overwrite
+	tv_Request "Overwrite old color layer?|Overwrite (Needs unique layer names)|No (Safe mode)" //1|0
+	Overwrite = result
+	tv_WriteUserString ScriptName "Overwrite" Overwrite
+	//
+	tv_warn ("New settings saved.\n Click button again to create color fill layer.")
+	EXIT
 END
 
 //Param None //?
@@ -14,15 +35,21 @@ tv_UndoOpenStack
 // Remember starting paper
 tv_paperinfo
 beginPaper = result
-parse result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
+PARSE result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
 
 tv_LayerGetImage // get original frame number
-parse result OriginalFrameNo // original frame number
+PARSE result OriginalFrameNo // original frame number
 tv_LayerCurrentID // get id for current layer
 OriginalLayerID = result // store ID for original layer
 tv_LayerInfo OriginalLayerID // get info on original layer
-parse result d LinePosition d OriginalLayerName d First Last d // get position, first and last frames
-//
+PARSE result d LinePosition d OriginalLayerName d First Last d // get position, first and last frames
+IF CMP(Overwrite, 1) == 1
+	IF CMP(OriginalLayerName, "Untitled") == 1
+		tv_ReqString "Name layer:|"OriginalLayerName
+		OriginalLayerName = result
+		tv_LayerRename OriginalLayerID OriginalLayerName
+	END
+END
 
 // Loop trough layers above line layer and set opacity to 0%
 Position = LinePosition - 1 // init counter
@@ -45,23 +72,26 @@ IF PostFixPos == 0
 	LineLayerName = LayerNamePreFix"_line"
 	tv_LayerRename OriginalLayerID '"'LineLayerName'"' // Quotes are needed so "Layer 1_color" doesn't cut off after the space.
 ELSE
-	LayerNamePreFix = LeftString(OriginalLayerName,PostFixPos-1)
+	LayerNamePreFix = LeftString(OriginalLayerName, PostFixPos-1)
 END
 colorLayerName = LayerNamePreFix"_color"	
 TotalFrames = Last - First + 1 // get total selected frames
 tv_LayerSelect First TotalFrames // select all frames
 
-LayerID = 0	// init LayerID
-Counter = 0 // init counter
-While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
-	tv_LayerGetID Counter // get LayerID
-	LayerID = result
-	tv_LayerInfo LayerID // get LayerInfo
-	parse result d d d LayerName d // get Layer name
-	IF CMP(LayerName, colorLayerName) // is this a corresponding '_color' layer?
-		tv_LayerKill LayerID // yes, so delete it but don't increment counter
-	ELSE
-		Counter = Counter + 1 // increment counter
+// Find and delete old _color layer
+IF CMP(Overwrite, 1) == 1
+	LayerID = 0	// init LayerID
+	Counter = 0 // init counter
+	While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+		tv_LayerGetID Counter // get LayerID
+		LayerID = result
+		tv_LayerInfo LayerID // get LayerInfo
+		PARSE result d d d LayerName d // get Layer name
+		IF CMP(LayerName, colorLayerName) // is this a corresponding '_color' layer?
+			tv_LayerKill LayerID // yes, so delete it but don't increment counter
+		ELSE
+			Counter = Counter + 1 // increment counter
+		END
 	END
 END
 
@@ -80,18 +110,19 @@ Y1 = 0
 
 tv_GetActiveTool // save tool
 Tool = result
-parse result ToolType d	// get type of tool
+PARSE result ToolType d	// get type of tool
 tv_cmd ToolType Mode 0 // set mode to color
 tv_GetActiveShape // save shape setting
 Shape = result // store activeshape
 
 // Get fill color
-tv_GetAPen
-APenColor = result
-parse result Fr Fg Fb Fa
-IF CMP(useBColor, true) == 1
+
+IF CMP(ABColor, 1) == 1
+	tv_GetAPen
+	PARSE result Fr Fg Fb Fa
+ELSE
 	tv_GetBPen
-	parse result Fr Fg Fb Fa
+	PARSE result Fr Fg Fb Fa
 END
 
 tv_LayerStencil OriginalLayerID OFF // confirm stencil for line layer is off
@@ -102,14 +133,17 @@ tv_AreaInit MODE 1 MAP_GRADIENT 0 OPACITY 100 GAP 0 EXPAND 2 RANGE 10 SRC 1 SMOO
 For CurrentFrame = First to Last // loop to fill frames
 	tv_LayerImage CurrentFrame // move to current frame on Line layer
 	tv_ExposureInfo CurrentFrame // test this frame type" head(instance) or exposure?
-	parse result FrameType d // store type of frame
+	PARSE result FrameType d // store type of frame
 	IF CMP(FrameType, "Head") // if frame type is head(instance) then create filled figures for this frame on the Fill Layer 
 		tv_LayerSet ColorLayerID // select Color layer
 		tv_ExposureBreak CurrentFrame // convert exposure frame to instant if necessary
 		tv_clear // clear Fill Layer
-		tv_SetAPen 0 0 0 // set mask color to black
+		tv_GetAPen
+		APenColor = result // backup A color
+		tv_SetAPen 0 0 0 // set A color to black to use as mask
+		tv_SetAPen APenColor // restore A color
 		tv_Fill X1 Y1 0	 // mask contiguous BACKGROUND around figures
-		tv_pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// ZigOtto innovation for reversing the fill and background to BPen color
+		tv_pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// change black mask into fill color
 		tv_LayerSet OriginalLayerID	// select line layer
 	END
 END
@@ -142,7 +176,6 @@ tv_LayerImage OriginalFrameNo // return to original frame
 
 tv_UndoCloseStack
 
-tv_SetAPen APenColor // restore APen to original color
 tv_SetActiveShape Shape	// restore shape parameters
 tv_AreaInit SavedFillingShape // restore FillingShape's original parameters
 tv_cmd Tool	// restore tool and parameters
