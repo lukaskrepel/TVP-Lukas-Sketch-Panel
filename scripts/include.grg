@@ -24,8 +24,8 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 	SequenceIn = inpoint + 1
 	SequenceOut = outpoint + 1
 	tv_ProjectInfo
-	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFramerate projectField ProjectStartframe
-	XMLbegin(ClipXMLfile, clipName, SequenceIn, SequenceOut, ProjectFramerate)
+	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFrameRate projectField ProjectStartframe
+	XMLbegin(ClipXMLfile, clipName, SequenceIn, SequenceOut, ProjectFrameRate)
 	ClipIn = InPoint
 	ClipOut = OutPoint
 	FileFrameNumber = ClipIn + 1
@@ -54,6 +54,11 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		prefixedFrame = addZeros("_",frame,5)
 		FileName = clipName""prefixedFrame""ext
 		FilePath = saveDir"/"FileName
+		// Make filepath relative
+		SecondLastSlashPos = SecondLastPos(FilePath, "/")
+		RelativeFilePath = RightString(FilePath, LEN(FilePath) - SecondLastSlashPos)
+		FilePath = RelativeFilePath // TODO, Clean this up.
+		//
 		OffsetFrame = frame + clipOffset
 		FrameStart = frame
 		tv_exposureNext //Goes to next exposure
@@ -66,8 +71,8 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		// *** Check if we reached the last frame
 		tv_exposureinfo curImage
 		PARSE result type rest
-		XMLimage(ClipXMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, 0) //todo moet ClipXMLfile een parameter zijn?
-		XMLimage(TotalXMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, addsomeframes) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
+		XMLimage(ClipXMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, 0) //todo moet ClipXMLfile een parameter zijn?
+		XMLimage(TotalXMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, addsomeframes) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
 		IF CMP(type,"Head")==0 || curImage >= SequenceOut //todo OF ALS we verder zijn dan outpointje
 			addSomeFrames = addSomeFrames - inpoint - 1 + FrameEnd
 			curImage = renderEnd + 1
@@ -109,7 +114,7 @@ FUNCTION FixMultiply()
                 tv_LayerRename layerID Multiplylayername
 	        END
 			// END RUN ON LAYER
-			layerPos = layerPos+1	
+			layerPos = layerPos + 1	
 		ELSE		
 			layerRun = 0
 		END
@@ -192,24 +197,24 @@ END
 // ******************************
 // *** Write start of XML file
 // ******************************
-FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramerate)
+FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFrameRate)
 
 	// Convert values to 25 fps
-	OldFramerate = ProjectFramerate
-	NewFramerate = 25
-	ProjectFramerate = NewFramerate
-	SequenceIn = SequenceIn * (NewFramerate/OldFramerate)
-	SequenceOut = SequenceOut * (NewFramerate/OldFramerate)
+	NewFrameRate = 25
+	SequenceIn = SequenceIn * (NewFrameRate / ProjectFrameRate)
+	SequenceOut = SequenceOut * (NewFrameRate / ProjectFrameRate)
 	//
+	Duration = SequenceOut - SequenceIn // Nodig? // Klopt??? // TODO waarom is In vaak 8?
+	//tv_warn ("IN OUT DUR "SequenceIn" "SequenceOut" "Duration)
 
 	tv_WriteTextFile "Create" '"'XMLfile'"' "<xmeml version="'"4"'">" //klopt
 	SequenceNameWithQuotes = '"'SequenceName'"'
   	tv_WriteTextFile "Append" '"'XMLfile'"' "	<sequence id="SequenceNameWithQuotes">"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<uuid>69b229de-c9e4-410e-869c-c77e560b4e18</uuid>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<name>"SequenceName"</name>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "		<duration>0</duration>"
+   	tv_WriteTextFile "Append" '"'XMLfile'"' "		<duration>"Duration"</duration>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "		<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "			<timebase>"ProjectFramerate"</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "			<timebase>"NewFrameRate"</timebase>"
  	tv_WriteTextFile "Append" '"'XMLfile'"' "			<ntsc>false</ntsc>"
  	tv_WriteTextFile "Append" '"'XMLfile'"' "		</rate>"
  	tv_WriteTextFile "Append" '"'XMLfile'"' "		<in>"SequenceIn"</in>" //IN
@@ -219,7 +224,7 @@ FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramera
  	tv_WriteTextFile "Append" '"'XMLfile'"' "			<frame>0</frame>"
   	tv_WriteTextFile "Append" '"'XMLfile'"' "			<displayformat>NDF</displayformat>"
   	tv_WriteTextFile "Append" '"'XMLfile'"' "			<rate>"
-  	tv_WriteTextFile "Append" '"'XMLfile'"' "				<timebase>"ProjectFramerate"</timebase>" //FRAMERATE
+  	tv_WriteTextFile "Append" '"'XMLfile'"' "				<timebase>"NewFrameRate"</timebase>" //FrameRate
  	tv_WriteTextFile "Append" '"'XMLfile'"' "				<ntsc>false</ntsc>"
  	tv_WriteTextFile "Append" '"'XMLfile'"' "			</rate>"
   	tv_WriteTextFile "Append" '"'XMLfile'"' "		</timecode>"
@@ -230,7 +235,7 @@ FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramera
    	tv_WriteTextFile "Append" '"'XMLfile'"' "						<width>"ProjectWidth"</width>" // TO DO Variable doesn't exit!?
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						<height>"ProjectHeight"</height>" // TO DO Variable doesn't exit!?
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "							<timebase>"ProjectFramerate"</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<timebase>"NewFrameRate"</timebase>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<ntsc>false</ntsc>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						</rate>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						<pixelaspectratio>square</pixelaspectratio>"
@@ -238,26 +243,25 @@ FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFramera
 	tv_WriteTextFile "Append" '"'XMLfile'"' "					</samplecharacteristics>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "				</format>"
    	tv_WriteTextFile "Append" '"'XMLfile'"' "				<track MZ.TrackName="'"video"'">"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "					<enabled>true</enabled>"
-   	tv_WriteTextFile "Append" '"'XMLfile'"' "					<locked>false</locked>"
+   	//tv_WriteTextFile "Append" '"'XMLfile'"' "					<enabled>true</enabled>"
+   	//tv_WriteTextFile "Append" '"'XMLfile'"' "					<locked>false</locked>"
 end
 
 
 // ****************************************************
 // *** Write middle part of XML file, for each image
 // ****************************************************
-FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, FrameEnd, ImageWidth, ImageHeigth, addsomeframes)
+FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ImageWidth, ImageHeigth, addsomeframes)
 	FrameStart = FrameStart - inpoint - 1 + addSomeFrames
 	FrameEnd = FrameEnd - inpoint - 1 + addSomeFrames
 	FileNameWithQuotes = '"'FileName'"'
 
 	// Convert values to 25 fps
-	OldFramerate = ProjectFramerate
-	NewFramerate = 25
-	ProjectFramerate = NewFramerate
-	FrameStart = FrameStart * (NewFramerate/OldFramerate)
-	FrameEnd = FrameEnd * (NewFramerate/OldFramerate)
-	//
+	OldFrameRate = ProjectFrameRate
+	NewFrameRate = 25
+	ProjectFrameRate = NewFrameRate
+	FrameStart = FrameStart * (NewFrameRate/OldFrameRate)
+	FrameEnd = FrameEnd * (NewFrameRate/OldFrameRate)
 
 	tv_WriteTextFile "Append" '"'XMLfile'"' "						<clipitem id="FileNameWithQuotes">"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<masterclipid>"FileName"</masterclipid>"
@@ -265,17 +269,17 @@ FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, Fra
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<enabled>true</enabled>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<duration>1080000</duration>" // Is this it?
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>"NewFrameRate"</timebase>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								<ntsc>false</ntsc>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							</rate>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<start>"FrameStart"</start>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<end>"FrameEnd"</end>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "							<in>90000</in>" // Is this it?
-	tv_WriteTextFile "Append" '"'XMLfile'"' "							<out>90125</out>" // Is this it?
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<in>90000</in>" // Of FrameStart? Was 90000
+	tv_WriteTextFile "Append" '"'XMLfile'"' "							<out>90125</out>" // Of FrameEnd? Was 90125
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<file id="FileNameWithQuotes">"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<pathurl>"FilePath"</pathurl>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "								<timebase>"NewFrameRate"</timebase>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								<ntsc>false</ntsc>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							</rate>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							<timecode>"
@@ -283,7 +287,7 @@ FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, Fra
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								<frame>0</frame>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								<displayformat>NDF</displayformat>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "									<timebase>"ProjectFramerate"</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "									<timebase>"NewFrameRate"</timebase>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "									<ntsc>false</ntsc>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "								</rate>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "							</timecode>"
@@ -293,7 +297,7 @@ FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFramerate, FrameStart, Fra
 	tv_WriteTextFile "Append" '"'XMLfile'"' "										<width>"ImageWidth"</width>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "										<height>"ImageHeigth"</height>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "										<rate>"
-	tv_WriteTextFile "Append" '"'XMLfile'"' "											<timebase>25</timebase>"
+	tv_WriteTextFile "Append" '"'XMLfile'"' "											<timebase>"NewFrameRate"</timebase>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "											<ntsc>false</ntsc>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "										</rate>"
 	tv_WriteTextFile "Append" '"'XMLfile'"' "										<pixelaspectratio>square</pixelaspectratio>"
@@ -330,7 +334,7 @@ FUNCTION DeleteInvisibleLayers()
 	WHILE layerRun
 		tv_LayerGetID layerPos
 		layerID = result
-		IF CMP(layerID,"NONE")==0
+		IF CMP(layerID, "none") == 0
 			// START RUN ON LAYER
 			tv_LayerInfo layerID
 			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
@@ -468,6 +472,31 @@ FUNCTION LastPos(string,car)
 	RETURN pos
 END
 //}}}
+
+// Very ugly function, butchered lastpos to find secondlastpos instead
+FUNCTION SecondLastPos(string, char)
+	LOCAL loop myChar 
+	pos = LEN(string)
+	loop = 1
+	FoundFirst = 0
+	WHILE loop
+		myChar = CHAR(string, pos)
+		IF CMP(myChar, char) == 1
+			IF CMP(FoundFirst, 0) == 1
+				FoundFirst = 1 // Found occurance of char, but we'll skip...
+				pos = pos - 1 // ...and continue
+			ELSE
+				loop = 0
+			END
+		ELSE
+			pos = pos - 1
+		END
+		IF pos < 1
+			loop = 0
+		END
+	END
+	RETURN pos
+END
 
 //{{{ FindString(string,search,start)
 //------------------------------------------
