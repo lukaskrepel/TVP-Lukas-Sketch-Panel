@@ -12,7 +12,7 @@ END
 tv_ReadUserString ScriptName "Overwrite" "none"
 Overwrite = result
 
-
+ClipsToRender = "_"
 ClipRun = 1
 i = 0
 ExportClipCount = 0
@@ -23,16 +23,16 @@ WHILE ClipRun
 		ClipRun = 0
 	ELSE
 		tv_ClipInfo	ClipID
-		PARSE result d Name d IsCurrentVAL d IsHiddenVAL d IsSelectedVAL d StoryboardStartFrameVAL d firstFrameVAL d LastFrameVAL d frameCountVAL d MarkInVAL d MarkOutVAL d ColorIdxVAL
-		// IsCurrentVAL
-		// IsSelectedVAL
-		IF CMP(IsSelectedVAL, 1) || CMP(IsCurrentVAL, 1)
+		PARSE result d Name d IsCurrent d IsHidden d IsSelected d StoryboardStartFrame d firstFrame d LastFrame d frameCount d MarkIn d MarkOut d ColorIdx
+		IF CMP(IsSelected, 1) || CMP(IsCurrent, 1)
 			ExportClipCount = ExportClipCount + 1
+			ClipsToRender = ClipsToRender"1"
+		ELSE
+			ClipsToRender = ClipsToRender"0"
 		END
 	END
 	i = i + 1
 END
-//tv_warn ("ExportClipCount "ExportClipCount)
 
 
 // New settings
@@ -147,7 +147,6 @@ XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
 
 // *** Duplicate project so we don't have to undo any layer deleting/merging
 tv_ProjectDuplicate
-
 // **********************************
 // *** ALLE CLIPS DOORLOPEN START ***
 // **********************************
@@ -156,33 +155,17 @@ i = 0
 addSomeFrames = 0
 clipOffset = 0//-1 // Start
 colorLabel = "Blue"
+//tv_warn ("before loop")
 WHILE loop
 	tv_clipenumid -1 i
- 	clipID = result
-	IF CMP(clipID, "none") == 1
+ 	ClipID = result
+	IF CMP(ClipID, "none") == 1
 		loop = 0
 	ELSE
-		SkipClip = 0
-		tv_ClipHidden clipID
-		IF CMP(result, "1") == 1
-			// Clip is hidden!
-			SkipClip = 1
-		ELSE
-			tv_ClipInfo	ClipID
-			PARSE result d Name d IsCurrentVAL d IsHiddenVAL d IsSelectedVAL d StoryboardStartFrameVAL d firstFrameVAL d LastFrameVAL d frameCountVAL d MarkInVAL d MarkOutVAL d ColorIdxVAL
-			IF CMP(IsSelectedVAL, 0) == 1
-				IF CMP(IsCurrentVAL, 0) == 1
-					SkipClip = 1
-				END
-			END
-		END
-
-		IF CMP(SkipClip, "0") == 1
+		RenderClip = CHAR(ClipsToRender, (i + 2)) // String starts with an "_" because a 0 needs a prefix.
+		IF CMP(RenderClip, "1") == 1
 			// This clip should not be skipped!
 			tv_clipSelect clipID
-//		IF CMP(result, "0") == 1
-//			// This clip is not hidden!
-//			tv_clipSelect clipID
 		ELSE
 			// This clip should be skipped!
 			clipID = "none" // Ugly ugly code, this is a bit confusing, we want to skip this clip though, this works...
@@ -288,9 +271,9 @@ END
 XMLend(TotalXMLfile)
 //Finishing
 tv_ProjectClose
-//tv_undoclosestack
 tv_UnlockDisplay
 tv_UnlockUser
+
 tv_Warn (ExportClipCount" CLIPS RENDERED.")
 
 // *****************************
