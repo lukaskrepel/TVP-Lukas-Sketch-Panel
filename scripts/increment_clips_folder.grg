@@ -1,0 +1,45 @@
+// Get project info
+tv_ProjectInfo
+PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
+tv_GetprojectName
+ProjectPath = result
+ProjectPath = Replace(ProjectPath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+strlen = LEN(ProjectPath)
+LastSlashPos = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
+projectDir = LeftString(projectpath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+projectName = RightString(projectpath,strlen - LastSlashPos) // Getting the name of the tvpp file without the path
+strlen = LEN(projectName) // Getting the name of the tvpp file without ".tvpp"
+//
+LastPeriodPos = LastPos(projectName,".")
+IF CMP(LastPeriodPos, "0") == 1
+	projectbase = projectName
+ELSE
+	projectbase = LeftString(projectName, LastPeriodPos - 1)
+END
+last_v = FindString(projectbase, "_v", 1) //  File should be name _v001_L or something
+IF CMP(last_v,"0") == 1
+	projectName = projectbase
+ELSE
+	projectName = LeftString(projectbase,last_v - 1)
+END
+// *** Create folder
+FOR i = 1 TO 1000
+	RenderFolder = projectName"_clips"i
+	saveDir = projectDir"/"RenderFolder
+	tv_WriteTextFile "Exists" '"'saveDir'"'
+	IF CMP (result, "" ) == 1 // Folder doesn't exist yet!
+		i = i - 1
+		RenderFolder = projectName"_clips"i
+		tv_Request "Create empty folder?\n\n"saveDir"|OK|Cancel" //1|0
+		IF CMP(result, 1) == 1
+			tv_WriteTextFile "MkDir" '"'saveDir'"'
+		END
+		i = 1001
+	END
+END
+
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"

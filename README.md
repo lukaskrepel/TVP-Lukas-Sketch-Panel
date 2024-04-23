@@ -24,6 +24,12 @@ Keyboard shortcut | Panel button
 `T`| Tintlasso (Normal)
 `Y`| Eraselasso (Normal)
 `P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
+`0` | Toggle Project/Clip View
+`Cmd A` | Select All Layers/Clips
+`Cmd J` | Duplicate Layer/Clip
+`Cmd N` | New Layer/Clip
+> [!IMPORTANT]
+> You need to use the `Toggle Project/Clip View` button instead of the default `Project`/`Clip: Timeline` tabs on the timeline panel! Otherwise certain actions like `New Layer/Clip` won't work.
 ## Suggested folder structure for projects
 - EP01_Pilot
   - Dailies

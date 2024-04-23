@@ -1,0 +1,9 @@
+tv_clipcurrentid
+SourceClipID = result
+tv_ClipInfo SourceClipID
+tv_warn result
+
+//tv_ClipDuplicate CurrentClipID
+//tv_ReqString "New Clip Name|"
+//tv_ClipName 0 result
+//tv_clipmove 0 1 1

@@ -1,0 +1,25 @@
+ScriptName = "toggle_project_clip_view" // Access state from other script
+tv_ReadUserString ScriptName "State" "clip"
+State = result
+IF CMP(State, "clip") == 1
+	State = "project"
+ELSE
+	State = "clip"
+END
+tv_UndoOpenStack
+IF CMP(State, "clip") == 1
+	// Add Clip
+	tv_ClipNew "Untitled"
+ELSE
+	// Add Layer
+	tv_LayerCreate
+	LayerID = result
+	tv_LayerGetImage
+	parse result CurrentFrame
+	tv_layershift LayerID CurrentFrame
+	tv_LayerInfo LayerID
+	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+	LayerPosition = LayerPosition - 1
+	tv_LayerMove LayerPosition
+END
+tv_UndoCloseStack

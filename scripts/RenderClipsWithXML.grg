@@ -9,8 +9,31 @@ Camera = result
 IF CMP(IsPro(), 1) == 0
 	Camera = 0
 END
-Overwrite = result
 tv_ReadUserString ScriptName "Overwrite" "none"
+Overwrite = result
+
+
+ClipRun = 1
+i = 0
+ExportClipCount = 0
+WHILE ClipRun
+	tv_ClipEnumID -1 i
+ 	ClipID = result
+	IF CMP(ClipID, "none") == 1
+		ClipRun = 0
+	ELSE
+		tv_ClipInfo	ClipID
+		PARSE result d Name d IsCurrentVAL d IsHiddenVAL d IsSelectedVAL d StoryboardStartFrameVAL d firstFrameVAL d LastFrameVAL d frameCountVAL d MarkInVAL d MarkOutVAL d ColorIdxVAL
+		// IsCurrentVAL
+		// IsSelectedVAL
+		IF CMP(IsSelectedVAL, 1) || CMP(IsCurrentVAL, 1)
+			ExportClipCount = ExportClipCount + 1
+		END
+	END
+	i = i + 1
+END
+//tv_warn ("ExportClipCount "ExportClipCount)
+
 
 // New settings
 tv_GetModifiers
@@ -31,7 +54,7 @@ IF CMP(Shift, "1") == 1 || CMP(Compositing, "none") || CMP(Extension, "none") ||
 		tv_WriteUserString ScriptName "Camera" Camera
 	END
 	// Overwrite
-	tv_Request "Try to overwrite?|Yes (Only if you know what you are doing)|No (Default)" //1|0
+	tv_Request "Use existing (highest numbered) clips folder?|Yes (Only if you know what you are doing)|No (Default)" //1|0
 	Overwrite = result
 	tv_WriteUserString ScriptName "Overwrite" Overwrite
 	// Warn
@@ -50,7 +73,7 @@ projectpath = result
 tv_WriteTextFile "Exists" '"'projectpath'"'
 testPath = result
 // *** Check if file is saved
-IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
+IF CMP(testPath,projectpath) == 0 || CMP(projectpath,"/") == 1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
 	tv_warn "Please save project and try again!"
 	EXIT
 END
@@ -87,11 +110,11 @@ FOR i = 1 TO 1000
 	saveDir = projectDir"/"RenderFolder
 	tv_WriteTextFile "Exists" '"'saveDir'"'
 	IF CMP (result,"")==1 // Folder doesn't exist yet!
-		IF CMP(Overwrite, true)
+		IF CMP(Overwrite, 1)
 			IF i > 1
 				i = i - 1
 				RenderFolder = projectName"_clips"i
-				tv_warn ("WARNING: Attempting to overwrite previous export!")
+				//tv_warn ("WARNING: Re-using existing clips folder!")
 			END
 		END
 		projectName = RenderFolder
@@ -99,11 +122,17 @@ FOR i = 1 TO 1000
 	END
 END
 saveDir = projectDir"/"projectName
-tv_Request "Render all clips as ."Extension" sequences in subfolders of '"saveDir"'?|OK|Cancel" //1|0
+ClipString = "current clip"
+ExtraS = ""
+IF ExportClipCount > 1
+	ExtraS = "s"
+	ClipString = ExportClipCount" clips"
+END
+tv_Request "Render "ClipString" as ."Extension" sequence"ExtraS" in subfolder"ExtraS" of this location?\n\n"projectDir"/\n"RenderFolder"|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
-message = "Rendering all clips with XML file..."
+message = "Rendering "ExportClipCount" clip"ExtraS" with XML file..."
 tv_LockDisplay message
 tv_LockUser
 //
@@ -133,12 +162,29 @@ WHILE loop
 	IF CMP(clipID, "none") == 1
 		loop = 0
 	ELSE
+		SkipClip = 0
 		tv_ClipHidden clipID
-		IF CMP(result, "0") == 1
-			// This clip is not hidden!
-			tv_clipSelect clipID
+		IF CMP(result, "1") == 1
+			// Clip is hidden!
+			SkipClip = 1
 		ELSE
-			// This clip is hidden!
+			tv_ClipInfo	ClipID
+			PARSE result d Name d IsCurrentVAL d IsHiddenVAL d IsSelectedVAL d StoryboardStartFrameVAL d firstFrameVAL d LastFrameVAL d frameCountVAL d MarkInVAL d MarkOutVAL d ColorIdxVAL
+			IF CMP(IsSelectedVAL, 0) == 1
+				IF CMP(IsCurrentVAL, 0) == 1
+					SkipClip = 1
+				END
+			END
+		END
+
+		IF CMP(SkipClip, "0") == 1
+			// This clip should not be skipped!
+			tv_clipSelect clipID
+//		IF CMP(result, "0") == 1
+//			// This clip is not hidden!
+//			tv_clipSelect clipID
+		ELSE
+			// This clip should be skipped!
 			clipID = "none" // Ugly ugly code, this is a bit confusing, we want to skip this clip though, this works...
 		END
 	END
@@ -245,7 +291,7 @@ tv_ProjectClose
 //tv_undoclosestack
 tv_UnlockDisplay
 tv_UnlockUser
-tv_Warn "ALL CLIPS RENDERED."
+tv_Warn (ExportClipCount" CLIPS RENDERED.")
 
 // *****************************
 // *** Include extra functions

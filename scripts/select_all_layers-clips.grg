@@ -1,0 +1,39 @@
+ScriptName = "toggle_project_clip_view" // Access state from other script
+tv_ReadUserString ScriptName "State" "clip"
+State = result
+IF CMP(State, "clip") == 1
+	State = "project"
+ELSE
+	State = "clip"
+END
+IF CMP(State, "clip") == 1
+	ClipRun = 1
+	i = 0
+	WHILE ClipRun
+		tv_ClipEnumID -1 i
+	 	ClipID = result
+		IF CMP(ClipID, "none") == 1
+			ClipRun = 0
+		ELSE
+			tv_ClipSelection ClipID 1
+		END
+		i = i + 1
+	END
+ELSE
+	tv_LayerCurrentID
+	layerRun = 1
+	layerPos = 0
+	WHILE layerRun	
+		tv_LayerGetID layerPos	
+		LayerID = result	
+		IF CMP(LayerID,"NONE")==0		
+			// START RUN ON LAYER 
+			//tv_layerselection LayerID [0|1|"on"|"off"|"true"|"false"|"toggle"]
+			tv_layerselection LayerID 1
+			// END RUN ON LAYER
+			layerPos = layerPos + 1	
+		ELSE		
+			layerRun = 0
+		END
+	END
+END
