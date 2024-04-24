@@ -2,17 +2,27 @@
 A Custom Panel with a collection of tools and scripts for TVPaint.
 > [!NOTE]
 > There's a bunch of very useful buttons that will need explanation, but don't have any. Good luck!
-## How to install
-Download [Lukas_Sketch_Panel.tvpx](panels/Lukas_Sketch_Panel.tvpx?raw=1) and drag it into TVPaint.
+
 > [!CAUTION]
 > Some buttons might not work in older versions of TVPaint or non-Pro versions.
+## How to install
+Download [Lukas_Sketch_Panel.tvpx](panels/Lukas_Sketch_Panel.tvpx?raw=1) and drag it into TVPaint.
+> [!TIP]
+> It gets updated pretty regulary, the link above will always be the newest version. See [Updates](https://github.com/lukaskrepel/TVP-Lukas-Sketch-Panel/commits/master/panels/Lukas_Sketch_Panel.tvpx).
 ## Recommended shortcuts
+<img align="right" src="screenshot.png">
+
 Keyboard shortcut | Panel button
 --- | ---
 `E` | Eraser (Normal)
 `T`| Tintlasso (Normal)
 `Y`| Eraselasso (Normal)
+`G` | Fill (Layer)
+`Shift G` | Fill (Above)
+`Ctrl G` | Fill (Display)
+`Cmd G` | Create Color Fill Layer
 `P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
+`:` | Magic Color Picker
 `H`, `Shift H` | Toggle show/hide other layers
 `<` | Add clip exposure
 `>` | Remove clip exposure
@@ -31,6 +41,10 @@ Keyboard shortcut | Panel button
 > [!IMPORTANT]
 > You need to use the `Toggle Project/Clip View` button instead of the default `Project`/`Clip: Timeline` tabs on the timeline panel! Otherwise certain actions like `New Layer/Clip` won't work.
 ## Suggested folder structure for projects
+> [!IMPORTANT]
+> - Running `Render Selected Clips With XML` will prefix exported file and folder names like this: `001_Clipname` (unless there's an `_` in the Clipname).
+> - Running `Clips to TVPaint Projects` on `STB/EP01_EpisodeSTB_v001_L.tvpp` creates the `Shots` folder structure with TVP files.
+> - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image sequence `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg` etc. If you choose the option to render color groups individually it will create a subfolder for each sequence.
 - EP01_Pilot
   - Dailies
   - Edit
@@ -55,64 +69,3 @@ Keyboard shortcut | Panel button
     - 003_Etcetera
   - STB
     - EP01_EpisodeSTB_v001_L.tvpp
-> [!IMPORTANT]
-> - Running `Render Selected Clips With XML` will prefix exported file and folder names like this: `001_Clipname` (unless there's an `_` in the Clipname).
-> - Running `Clips to TVPaint Projects` on `STB/EP01_EpisodeSTB_v001_L.tvpp` creates the `Shots` folder structure with TVP files.
-> - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image sequence `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg` etc. If you choose the option to render color groups individually it will create a subfolder for each sequence.
-## Changelog
-<img align="right" src="screenshot.png">
-
-- [3.16]
-  - Updated `Render Shot to 'Renders' Folder` with option to render color groups as separate sequences.
-  - Greatly optimised `Render Clips With XML`.
-  - Added `Toggle Project/Clip View`.
-  - Added `Hide All Clips, Except Selection`.
-- [3.15]
-  - Added `Render to 'Renders' Folder`.
-- [3.14]
-  - Added `Clips to TVPaint Projects`.
-- [2.14]
-  - Reworked and simplified framerate buttons, created `Set  Project Frame Duration`.
-  - Updated `Select Color Group Preset` and `Cycle Color Group` to set group for all selected layers.
-- [2.13]
-  - Fixed bug in `Remove Clip Exposure` when using it on clips with layers that start in the future.
-- [2.12]
-  - Updated `Render Clips With XML` to create 25 FPS XML files. (Currently hardcoded)
-- [2.11]
-  - Updated `Render Clips With XML` to support TVP Standard version.
-  - Updated `Remove Clip Exposure` to actually be useful.
-- [2.10]
-  - New panel layout
-  - Added dynamic font size to `Add Dialogue` (based on Consolas font).
-  - Updated `Create Anim Layer` to create layer at current frame above selected layer.
-  - Added option to overwrite last render with `Render Clips With XML`.
-  - Updated `Eraser` to use improved presets.
-  - Updated `Mark Selected Instances Color` to color layer instead, if layer is static.
-- [2.9]
-  - Reworked `Rotate Brush by Increments`
-- [2.8]
-  - Fixed bug in `Create color fill layer` where it would color more than just the current layer if the current layer was not the top layer.
-  - Removed version number from Panel Identification string.
-- [2.7]
-  - Fixed bug in `Create color fill layer` where line layer name would get cut off after space character.
-  - Added `Cycle Color Group`.
-  - Renamed `Label` to `Select Color Group Preset` and changed icon.
-  - Replaced dummy button by vertical separators.
-- [2.6]
-  - Added `Add/remove clip exposure`.
-  - Added `Create BG layer`.
-- [2.5]
-  - `Create color fill layer` adds appropriate `_line` and `_color` postfixes to layers it uses.
-  - Updated and translated `Toggle visibilty for line/color/detail/shading layers` to use English layer naming conventions.
-- [2.4]
-  - Fixed `Create color fill layer` for TVP11.
-  - Changed `Toggle color layers` to use English layer naming conventions.
-- [2.3]
-  - Fixed `New static/animated layer` for TVP11.
-  - Renamed `Up/Down` to `Move up/down a layer (skip locked layers)`.
-- [2.2]
-  - Changed light table buttons to toggle instead of just turning on.
-- [2.1]
-  - Fixed XML export.
-- [2.0]
-  - Release.
