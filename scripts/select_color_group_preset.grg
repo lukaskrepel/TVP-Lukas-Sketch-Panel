@@ -54,27 +54,55 @@ IF CMP(Label, "OTHER")
 	ColorIndex = 14
 END
 
-// Do the thing
-tv_LayerColor SET 0 ColorIndex // Set ColorIndexgroup for current layer
-tv_LayerRename 0 Label // Rename current layer
-
-// Also do the thing for other selected layers
-i = 0
-LayerRun = 1
-WHILE LayerRun
-	tv_LayerGetID i
-	LayerID = result
-	IF CMP(LayerID, "none") == 0		
-		// START RUN ON LAYER
-		tv_layerselection LayerID
-		Selected = result
-		IF CMP(Selected, 1) == 1
-			tv_LayerColor SET LayerID ColorIndex // Set ColorIndexgroup for selected layer
-			tv_layerrename LayerID Label // Rename selected layer
+ScriptName = "toggle_project_clip_view" // Access state from other script
+tv_ReadUserString ScriptName "State" "clip"
+State = result
+IF CMP(State, "clip") == 1
+	State = "project"
+ELSE
+	State = "clip"
+END
+IF CMP(State, "clip") == 1
+	// Clip
+	tv_ClipColor 0 ColorIndex // Set ColorIndexgroup for current clip
+	ClipRun = 1
+	i = 0
+	WHILE ClipRun
+		tv_ClipEnumID -1 i
+	 	ClipID = result
+		IF CMP(ClipID, "none") == 1
+			ClipRun = 0
+		ELSE
+			tv_ClipSelection ClipID
+			Selected = result
+			IF CMP(Selected, 1) == 1
+				tv_ClipColor ClipID ColorIndex // Set ColorIndexgroup for selected clip
+			END
 		END
 		i = i + 1
-	ELSE
-		LayerRun = 0
+	END
+ELSE
+	// Layer
+	tv_LayerColor "set" 0 ColorIndex // Set ColorIndexgroup for current layer
+	tv_LayerRename 0 Label // Rename current layer
+	// Also do the thing for other selected layers
+	LayerPos = 0
+	LayerRun = 1
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
+		LayerID = result
+		IF CMP(LayerID, "none") == 0		
+			// START RUN ON LAYER
+			tv_layerselection LayerID
+			Selected = result
+			IF CMP(Selected, 1) == 1
+				tv_LayerColor "set" LayerID ColorIndex // Set ColorIndexgroup for selected layer
+				tv_layerrename LayerID Label // Rename selected layer
+			END
+			LayerPos = LayerPos + 1
+		ELSE
+			LayerRun = 0
+		END
 	END
 END
 
