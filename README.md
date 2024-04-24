@@ -12,32 +12,33 @@ Download [Lukas_Sketch_Panel.tvpx](panels/Lukas_Sketch_Panel.tvpx?raw=1) and dra
 ## Recommended shortcuts
 <img align="right" src="screenshot.png">
 
-Keyboard shortcut | Panel button
---- | ---
-`E` | Eraser (Normal)
-`T`| Tintlasso (Normal)
-`Y`| Eraselasso (Normal)
-`G` | Fill (Layer)
-`Shift G` | Fill (Above)
-`Ctrl G` | Fill (Display)
-`Cmd G` | Create Color Fill Layer
-`P`, `Shift P`, `Ctrl P` | Rotate Brush by Increments
-`:` | Magic Color Picker
-`H`, `Shift H` | Toggle show/hide other layers
-`<` | Add clip exposure
-`>` | Remove clip exposure
-`/`| Set In/Out to selection
-`Cmd L` | 1-1
-`Left` | Previous Frame (and Clip)
-`Right` | Next Frame (and Clip)
-`,` | Previous Instance (and Clip)
-`.` | Next Instance (and Clip)
-`Numpad 0`, `Tab` | Toggle Project/Clip View
-`Cmd A` | Select All Layers/Clips
-`Cmd J` | Duplicate Layer/Clip
-`Cmd N` | New Layer/Clip
-`` ` ``| Select Color Group for Selected Layers/Clips
-`Z`, `Shift Z`| Cycle Color Group Preset for Selected Layers/Clips
+Keyboard shortcut|Panel button
+---|---
+`E`|Eraser (Normal)
+`T`|Tintlasso (Normal)
+`Y`|Eraselasso (Normal)
+`G`|Fill (Layer)
+`Shift G`|Fill (Above)
+`Ctrl G`|Fill (Display)
+`Cmd G`|Create Color Fill Layer
+`P`, `Shift P`, `Ctrl P`|Rotate Brush by Increments
+`:`|Magic Color Picker
+`H`, `Shift H`|Toggle show/hide other layers
+`<`|Add clip exposure
+`>`|Remove clip exposure
+`/`|Set In/Out to selection
+`Cmd L`|1-1
+`Left`|Previous Frame (and Clip)
+`Right`|Next Frame (and Clip)
+`,`|Previous Instance (and Clip)
+`.`|Next Instance (and Clip)
+`Numpad 0`, `Tab`|Toggle Project/Clip View
+`Cmd A`|Select All Layers/Clips
+`Cmd J`|Duplicate Layer/Clip
+`Cmd N`|New Layer/Clip
+`Cmd R`|Rename Selected Layers/Clips
+`` ` ``|Select Color Group for Selected Layers/Clips
+`Z`, `Shift Z`|Cycle Color Group Preset for Selected Layers/Clips
 > [!IMPORTANT]
 > You need to use the `Toggle Project/Clip View` button instead of the default `Project`/`Clip: Timeline` tabs on the timeline panel! Otherwise certain actions like `New Layer/Clip` won't work.
 ## Suggested folder structure for projects
