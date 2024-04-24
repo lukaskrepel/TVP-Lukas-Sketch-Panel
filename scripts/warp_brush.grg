@@ -1,0 +1,136 @@
+tv_Warn ("TODO FIX")
+
+// WarpCutBrush.grg
+//  Svengali© 2010 - All Rights Reserved
+
+// version .03 - Jan 5 2011
+
+// a tool to warp a single cutbrush
+
+//		First-click: drop cutbrush on new layer and WARP
+//		Second-click: pickup newly warped cutbrush
+
+
+Param none
+ScriptName = 'WarpCutBrush.grg'
+
+ToolID = "ModBrush"									// GroupName under which all ToolSave tool parameters are stored in the .INI file
+
+tv_GetWidth											// get dimensions of frame
+parse result FrWidth								// frame width
+tv_GetHeight
+parse result FrHeight								// frame height
+
+tv_GetActiveShape									// query active shape (if in effect) for later restoration
+parse result Shape									// read shape
+
+IF CMP(Shape, "wrap")								// already in warping mode, so capture modified cutbrush
+	tv_Reapply										// works like ENTER key
+	tv_BrushCut 0 0 FrWidth FrHeight 0 				// grab cutbrush
+	tv_BrushRestore OptimizeSource 1 				// close crop bounding box
+
+	tv_BrushRestore ORIGINE							// determine the X,Y origin for the newly warped cutbrush
+	parse result d NewX NewY
+
+	tv_BrushInfo									// get new cutbrush info
+	parse result BrWidth BrHeight offX offY			// read the dimensions of the new cutbrush
+	Xcenter = BrWidth/2								// calculate center of new Cutbrush
+	Ycenter = BrHeight/2
+
+	tv_SetActiveShape "freehandline"				// restore active shape to drawing mode	
+	tv_ReadUserString "WarpBrush" "Shape"			// retrieve shape mode
+	parse result Shape
+	tv_ReadUserString "WarpBrush" "ToolInfo"		// retrieve tool info
+	parse result Tool
+
+	tv_LayerCurrentID								// get LayerID
+	parse result LayerID
+	tv_LayerInfo LayerID
+	parse result d d d LayerName d
+	WHILE CMP(LayerName, "DeleteMe")				// loop to UNDO warping steps
+		tv_UNDO
+		tv_LayerCurrentID							// get LayerID again
+		parse result LayerID
+		tv_LayerInfo LayerID
+		parse result d d d LayerName d
+	END
+	tv_UNDO											// One more UNDO to kill temp layer (Untitled)
+
+	tv_ImagePush									// blocks "redos" of stacked undos
+	tv_ImagePop
+
+	tv_cmd Tool										// restore tool info
+	
+	BrAngle = 0										// brush angle set to zero so brush doesn't re-orient itself
+
+													// modify cutbrush to full opacity, new dimension, new center cursor and reapply rotate ANGLE, new frame location, reset flip X&Y
+	tv_BrushRestore OPACITY 100 WIDTH BrWidth HEIGHT BrHeight ANGLE BrAngle HANDLE Xcenter Ycenter ORIGINE NewX NewY FLIP_X 0 FLIP_Y 0 SUBPIXEL 2
+
+	tv_SetActiveShape Shape							// restore shape info
+	tv_SetDrawMode 0								// drawmode set to color
+
+
+ELSE
+	tv_GetActiveTool								// query active tool for later restoration 
+	parse result Tool								// get complete tool type AND parameters
+	parse result ToolType d							// get current tool type
+	tv_cmd ToolType mode							// query draw mode for current tool
+	parse result d ToolMode d						// get current tool mode (color, behind, erase, etc.)
+
+	IF CMP(ToolType, "tv_restorebrush") == 0			// trap if not a cutbrush, warn user and exit
+		tv_warn "WarpCutBrush only works on CutBrushes... Duh!"
+		EXIT
+	END
+
+
+	tv_SetDrawMode 0								// guarantee draw mode is Color during warping
+	tv_cmd ToolType Opacity 100						// guarantee cutbrush is at maximum opacity during warping
+	tv_WriteUserString "WarpBrush" "ToolInfo" Tool	// store existing tool info
+	tv_WriteUserString "WarpBrush" "Shape" Shape	// store existing shape info
+
+	tv_GetMouse
+	parse result MouseX MouseY			// mouse cursor position where cutbrush should be dropped
+
+	IF MouseX < 0 || MouseX > FrWidth || MouseY < 0 || MouseY > FrHeight // did user click inside the frame or use a shortcut key?
+		MouseX = FrWidth/2							// no - which means that the warp cutbrush button was pushed...
+		MouseY = FrHeight/2							//      so the cutbrush is dropped in the center of the frame
+	END
+
+	Newlayer()										// create new layer (call function)
+
+	tv_ZDot MouseX MouseY 0 100						// drop cutbrush on new temporary layer
+
+	tv_Display "ALL"								// make all layers visible so user can edit cutbrush in context
+	tv_SetActiveShape "wrap"						// put in layer warp mode - note warp is mispelled as wrap
+
+END
+
+//------------------------------------------
+//
+//	NewLayer
+//
+//	Function: creates temporary, single frame Anim layerfor on which to warp cutbrush
+//
+//	Call: NewLayer()
+//
+//	No Arguments
+//
+//------------------------------------------
+
+FUNCTION NewLayer()
+
+	tv_LayerGetImage							// get current frame number (on GLOBAL timeline)
+	parse result FrameNo	
+	tv_LayerCreate								// create new layer with single frame		
+	tv_LayerCurrentID							// get new layer ID number
+	parse result LayerID			
+	tv_LayerRename LayerID "DeleteMe"			// name temp layer "delete..."
+	tv_Layercolor set LayerID 11				// set temp layer color to hot pink
+	tv_LayerShift LayerID FrameNo				// shift new layer frame 1 to current frame
+	tv_LayerImage FrameNo						// reset layer cursor to current frame	
+	tv_LayerGetPos LayerID						// get layer position of new layer
+	parse result LayerLevel				
+	tv_LayerMove LayerLevel-1					// move new frame layer above original layer frame
+	tv_LayerAnim								// convert new layer to anim
+	tv_LayerDensity 100							// set density of new layer to 100%
+END
