@@ -1,0 +1,95 @@
+tv_getModifiers
+PARSE result shift ctrl alt
+increment = 1
+max = 26
+IF CMP(shift,"1")==1
+	increment = -1
+end
+
+ScriptName = "toggle_project_clip_view" // Access state from other script
+tv_ReadUserString ScriptName "State" "clip"
+State = result
+IF CMP(State, "clip") == 1
+	State = "project"
+ELSE
+	State = "clip"
+END
+IF CMP(State, "clip") == 1
+	// Clip
+	// Count Clips
+	ClipRun = 1
+	i = 0
+	SelectedClipCount = 0
+	WHILE ClipRun
+		tv_ClipEnumID -1 i
+	 	ClipID = result
+		IF CMP(ClipID, "none") == 1
+			ClipRun = 0
+		ELSE
+			tv_ClipInfo	ClipID
+			PARSE result d Name d IsCurrent d IsHidden d IsSelected d StoryboardStartFrame d firstFrame d LastFrame d frameCount d MarkIn d MarkOut d ColorIdx
+			IF CMP(IsSelected, 1) || CMP(IsCurrent, 1)
+				SelectedClipCount = SelectedClipCount + 1
+			END
+		END
+		i = i + 1
+	END
+	// Get Name
+	ClipString = "Current Clip"
+	ExtraS = ""
+	IF SelectedClipCount > 1
+		ExtraS = "s"
+		ClipString = SelectedClipCount" Clips"
+	END
+	tv_GetCurrentID
+	LayerID = result
+	tv_ClipInfo 0
+	PARSE result d Name d IsCurrent d IsHidden d IsSelected d StoryboardStartFrame d FirstFrame d LastFrame d FrameCount d MarkIn d MarkOut d ColorIndex
+	tv_ReqString "Rename "ClipString":|"Name
+	NewName = result
+	// Set Name
+	tv_ClipName 0 NewName // Set name for current clip
+	ClipRun = 1
+	i = 0
+	WHILE ClipRun
+		tv_ClipEnumID -1 i
+	 	ClipID = result
+		IF CMP(ClipID, "none") == 1
+			ClipRun = 0
+		ELSE
+			tv_ClipSelection ClipID
+			Selected = result
+			IF CMP(Selected, 1) == 1
+				tv_ClipName ClipID NewName // Set name for selected clip
+			END
+		END
+		i = i + 1
+	END
+ELSE
+	// Layer
+	// Get name
+	tv_LayerInfo 0
+	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+	tv_ReqString "Rename SELECTED Layers:|"LayerName
+	NewName = result
+	// Set name
+	tv_LayerRename 0 NewName // Rename current layer
+	// Also do the thing for other selected layers
+	LayerPos = 0
+	LayerRun = 1
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
+		LayerID = result
+		IF CMP(LayerID, "none") == 0		
+			// START RUN ON LAYER
+			tv_layerselection LayerID
+			Selected = result
+			IF CMP(Selected, 1) == 1
+				tv_LayerRename LayerID NewName // Rename selected layer
+			END
+			LayerPos = LayerPos + 1
+		ELSE
+			LayerRun = 0
+		END
+	END
+END
