@@ -1,21 +1,21 @@
 // MARK IN OUT START
-tv_markIn
+tv_MarkIn
 PARSE result InFrame InType
-IF CMP(InType,"set ") // Moet met spatie na set voor TVP9
-INPOINT = "OK"
+IF CMP(InType, "set ") // Moet met spatie na set voor TVP9
+InPoint = "OK"
 ELSE
-INPOINT = "NOT SET!"
-tv_markIn InFrame set
-INPOINT = "OK"
+InPoint = "NOT SET!"
+tv_MarkIn InFrame set
+InPoint = "OK"
 END
-tv_markOut
+tv_MarkOut
 PARSE result OutFrame OutType
-IF CMP(type,"set ") // Moet met spatie na set voor TVP9
-OUTPOINT = "OK"
+IF CMP(type, "set ") // Moet met spatie na set voor TVP9
+OutPoint = "OK"
 ELSE
-OUTPOINT = "NOT SET!"
-tv_markOut OutFrame set
-OUTPOINT = "OK"
+OutPoint = "NOT SET!"
+tv_MarkOut OutFrame set
+OutPoint = "OK"
 END
 
 IF CMP(InFrame,OutFrame)
@@ -26,22 +26,22 @@ END
 // MARK IN OUT END
 
 // NAME START
-tv_clipname
-oldclipname = result
-IF CMP(oldclipname, Untitled)
+tv_ClipName
+oldClipName = result
+IF CMP(oldClipName, Untitled)
 tv_ReqString "Please rename clip|001_Shotname"
-newclipname = result
-IF CMP (newclipname, Cancel)
-newclipname = oldclipname
+newClipName = result
+IF CMP (newClipName, Cancel)
+newClipName = oldClipName
 END
-tv_clipname ClipID newclipname
+tv_ClipName ClipID newClipName
 END
-tv_clipname
-CLIPNAME = result
+tv_ClipName
+ClipName = result
 // NAME END
 
 tv_ProjectInfo
-PARSE result projectname projectwidth projectheight projectpixelaspect PROJECTFRAMERATE projectfield projectprojectstartframe
+PARSE result ProjectName projectwidth ProjectHeight projectpixelaspect PROJECTFRAMERATE projectfield projectprojectStartFrame
 
 // CAMERA START
 tv_CameraEnumPoints 0
@@ -63,5 +63,5 @@ END
 // CAMERA END
 
 // POPUP START
-tv_warn "Clip: '"CLIPNAME"' \n \n Camera: "CAMWIDTH" × "CAMHEIGTH" @ "CAMFRAMERATE" fps \n Zoom: "CAMZOOM"% \n \n Camera: "CAMSETTINGS "\n In Point: "INPOINT"\n Out Point: "OUTPOINT INOUTSAME
+tv_Warn "Clip: '"ClipName"' \n \n Camera: "CAMWIDTH" × "CAMHEIGTH" @ "CAMFRAMERATE" fps \n Zoom: "CAMZOOM"% \n \n Camera: "CAMSETTINGS "\n In Point: "InPoint"\n Out Point: "OutPoint INOUTSAME
 // POPUP END

@@ -16,9 +16,9 @@ ELSE
 	LayerID = result
 	tv_LayerGetImage
 	parse result CurrentFrame
-	tv_layershift LayerID CurrentFrame
+	tv_Layershift LayerID CurrentFrame
 	tv_LayerInfo LayerID
-	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
 	LayerPosition = LayerPosition - 1
 	tv_LayerMove LayerPosition
 END

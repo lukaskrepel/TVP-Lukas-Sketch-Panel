@@ -1,26 +1,26 @@
 //{ TVP projectmap zoeken
 tv_GetProjectName
-projectpath = result
-projectpath = Replace(projectpath,'\','/') // MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
-last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
-projectdir = LeftString(projectpath,last-1)
+ProjectPath = result
+ProjectPath = Replace(ProjectPath,'\','/') // MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+last = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath,Last - 1)
 //}
 //{ Moho file aanwijzen en info eruit halen
-FileRequester("Show me the Moho file!",projectdir,Shot.anme,anme)
+FileRequester("Show me the Moho file!",ProjectDir,Shot.anme,anme)
 IF CMP(Result,Cancel)
     EXIT
 END
 AnmeFilePath = result
 AnmeFilePath = Replace(AnmeFilePath,'\','/')
-strlen = LEN(AnmeFilePath)
-last = LastPos(AnmeFilePath,"/")
-AnmeFileFolder = LeftString(AnmeFilePath,last-1)
-AnmeFileName = RightString(AnmeFilepath,strlen-last)
-strlen = LEN(AnmeFileName)
-last = LastPos(AnmeFileName,".")
-FileExtension = RightString(AnmeFilename,strlen-last)
-AnmeFileName = LeftString(AnmeFileName,last-1)
-IF (CMP(FileExtension,"anme")==0)
+StrLen = LEN(AnmeFilePath)
+last = LastPos(AnmeFilePath, "/")
+AnmeFileFolder = LeftString(AnmeFilePath,Last - 1)
+AnmeFileName = RightString(AnmeFilepath, StrLen - Last)
+StrLen = LEN(AnmeFileName)
+last = LastPos(AnmeFileName, ".")
+FileExtension = RightString(AnmeFilename, StrLen - Last)
+AnmeFileName = LeftString(AnmeFileName,Last - 1)
+IF (CMP(FileExtension, "anme") == 0)
     Print AnmeFileName
     Print FileExtension
     tv_Warn "Dit is geen .anme file hoor! Ik kap ermee."
@@ -45,10 +45,10 @@ ProjectName = AnmeFileName
 //}
 //}
 //{ Nieuw project maken op basis van info uit .anme
-tv_ProjectNew ProjectName ProjectWidth ProjectHeight ProjectPixelaspect ProjectFramerate ProjectField ProjectStartframe
+tv_ProjectNew ProjectName ProjectWidth ProjectHeight ProjectPixelaspect ProjectFramerate ProjectField ProjectStartFrame
 tv_Background Color BgRed BgGreen BgBlue BgRed BgGreen BgBlue
-tv_markIn ProjectStartFrame set
-tv_markOut ProjectEndFrame set
+tv_MarkIn ProjectStartFrame set
+tv_MarkOut ProjectEndFrame set
 //}
 //{ Mapjes van sequentiemap doorlopen
 SequenceFolder = AnmeFileFolder
@@ -57,27 +57,27 @@ foldernumber = 0
 WHILE (loop == 1)
     tv_readtextfile Foldernumber Sequencefolder
     parse result eof foldername
-    IF (CMP(eof, "EOF")==1)
+    IF (CMP(eof, "EOF") == 1)
         loop = 0
     ELSE
 	//{ Zorgen dat hij de .anme file overslaat en niet als folder behandelt
-        last = LastPos(foldername,".")
-        strlen = LEN(foldername)
-        Extensioncheck = RightString(foldername,strlen-last)
-        IF (CMP(Extensioncheck,"anme")==0) //}
+        last = LastPos(foldername, ".")
+        StrLen = LEN(foldername)
+        Extensioncheck = RightString(foldername, StrLen - Last)
+        IF (CMP(Extensioncheck, "anme") == 0) //}
             //{ Eerste file van sequentie zoeken}
             loopinloop = 1
             filenumber = 0
             WHILE (loopinloop == 1)
                 tv_readtextfile filenumber Sequencefolder"/"foldername
                 PARSE result eof1 filename
-                INVISIBLEFILEALSIE1IS = FirstPos(filename,".") // Invisible system files usually start with ._
-                IF (CMP(eof1, "EOF")==0) && (CMP(INVISIBLEFILEALSIE1IS, 1)==0)
+                INVISIBLEFILEALSIE1IS = FirstPos(filename, ".") // Invisible system files usually start with ._
+                IF (CMP(eof1, "EOF") == 0) && (CMP(INVISIBLEFILEALSIE1IS, 1) == 0)
                     //#PRINT SequenceFolder"/"Foldername"/"Filename"  Filenumber:"filenumber // IMPORT
                     tv_LayerInfo
-                    PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                    IF (CMP(LayerName,Foldername)==0) // Als de layer nog niet bestaat.
-                        IF CMP(LayerName,"Untitled 1")
+                    PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+                    IF (CMP(LayerName,Foldername) == 0) // Als de layer nog niet bestaat.
+                        IF CMP(LayerName, "Untitled 1")
                             tv_LayerCurrentID
                             StartLayerID = result
                         END
@@ -87,11 +87,11 @@ WHILE (loop == 1)
                         NextFilenumber = Filenumber + 1
                         tv_readtextfile NextFilenumber Sequencefolder"/"foldername
                         PARSE result eof2 NextFilename
-                        IF (CMP(eof2, "EOF")==0) // Tweede plaatje bestaat!
+                        IF (CMP(eof2, "EOF") == 0) // Tweede plaatje bestaat!
                             tv_LayerAnim
                             tv_LayerStretch LayerID end ProjectEndFrame clear
                         ELSE
-                            tv_layerpostbehavior LayerID Hold
+                            tv_LayerPostbehavior LayerID Hold
                         END
                         tv_LayerImage 0
                     END
@@ -101,22 +101,22 @@ WHILE (loop == 1)
                     CurentImage = CurrentImage + 1
                     tv_LayerImage CurentImage
                 ELSE
-                    IF (CMP(eof1, "EOF")==1)
+                    IF (CMP(eof1, "EOF") == 1)
                         loopinloop = 0
                     END
                 END
                 filenumber = filenumber + 1
             END
             //}
-            tv_layerRecomputeExposure
-            last = LastPos(foldername,"_")
-            strlen = LEN(foldername)
+            tv_LayerRecomputeExposure
+            last = LastPos(foldername, "_")
+            StrLen = LEN(foldername)
             IF CMP(last,0)
-                firstWord = foldername
+                FirstWord = foldername
             ELSE
-            firstWord = LeftString(foldername,last-1)
+            FirstWord = LeftString(foldername,Last - 1)
             END
-            secondWord = RightString(foldername,strlen-last)
+            SecondWord = RightString(foldername, StrLen - Last)
             tv_LayerCurrentID
             LayerID = result
             //{ ARRAY
@@ -134,17 +134,17 @@ WHILE (loop == 1)
             Colorgroup[12] = "Storyboard"
             For i = 1 TO 12
                 // PRINT Colorgroup[i]
-                IF CMP(firstWord,Colorgroup[i])
-                    tv_layercolor set LayerID i
+                IF CMP(FirstWord,Colorgroup[i])
+                    tv_LayerColor set LayerID i
                 END
             END
             //}
-            IF CMP(secondWord,"line")
+            IF CMP(SecondWord, "line")
                 tv_LayerImage 0
                 tv_LayerSelect ProjectStartFrame ProjectEndFrame+1
                 tv_StackLoadBin ScanCleaner
                 tv_StackApply // SCANCLEANER EROP!
-                tv_layerRecomputeExposure
+                tv_LayerRecomputeExposure
                 //{ Lijnlayer 1 naar boven zetten zodat ie altijd boven color komt (EIGENLIJK EERST CHECKEN OF KLEUR BESTAAT)
                 tv_LayerGetPos
                 LayerPos = result
@@ -152,16 +152,16 @@ WHILE (loop == 1)
                 //{ Controleren of layer boven deze linelayer wel een colorlayer is van zelfde ding
                 tv_LayerGetID LayerUp
                 tv_LayerInfo result
-                PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                last = LastPos(LayerName,"_")
-                strlen = LEN(LayerName)
+                PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+                last = LastPos(LayerName, "_")
+                StrLen = LEN(LayerName)
                 IF CMP(last,0)
-                    firstWord = LayerName
+                    FirstWord = LayerName
                 ELSE
-                LayerUpfirstWord = LeftString(LayerName,last-1)
+                LayerUpFirstWord = LeftString(LayerName,Last - 1)
                 END
-                LayerUpsecondWord = RightString(LayerName,strlen-last)
-                IF CMP(LayerUpfirstWord,firstWord) && CMP(LayerUpsecondWord,color)
+                LayerUpSecondWord = RightString(LayerName, StrLen - Last)
+                IF CMP(LayerUpFirstWord,FirstWord) && CMP(LayerUpSecondWord,color)
                     //}
                     tv_LayerMove LayerUp
                     tv_LayerGetID LayerPos
@@ -170,18 +170,18 @@ WHILE (loop == 1)
                 END
                 //}                        
             ELSE
-                IF CMP(secondWord,"color")
+                IF CMP(SecondWord, "color")
                     // Dingen met colorlayer doen?
                 END
             END
             //{ BG zonderaan zetten!
-            IF CMP(firstWord,"BG")
+            IF CMP(FirstWord, "BG")
                 BottomLayerSearchLoop = 1
                 i= 0
                 WHILE BottomLayerSearchLoop
                     tv_LayerGetID i
                     curLID= result	
-                    IF CMP(curLID,"NONE")==0
+                    IF CMP(curLID, "NONE") == 0
                         i = i + 1	
                     ELSE		
                         BottomLayerSearchLoop=0
@@ -192,7 +192,7 @@ WHILE (loop == 1)
                 tv_LayerSet StartLayerID
             END //}
             //{ FG bovenaan zetten
-            IF CMP(firstWord,"FG") && (CMP(secondWord,"line")==0)
+            IF CMP(FirstWord, "FG") && (CMP(SecondWord, "line") == 0)
                 tv_LayerMove 0
                 tv_LayerSet LayerID // ipv startlayerid
             END //}
@@ -241,7 +241,7 @@ FUNCTION Find(string,car,start)
 	i = start
 	size = LEN(string)
 	
-	IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+	IF ((start <= 0) || (start > size) || (CMP(car, "") == 1))
 		RETURN -1
 	END
 	DO
@@ -350,7 +350,7 @@ FUNCTION FindString(string,search,start)
 	lstr = LEN(string)
 	lsrch = LEN(search)
 	
-	IF (CMP(search,"") == 1)
+	IF (CMP(search, "") == 1)
 		RETURN -1
 	END
 	WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
@@ -588,15 +588,15 @@ FUNCTION FileRequester(title,path,file,pattern)
 	fullname = Result
 	size = LEN(fullname)
 	
-	IF (CMP(fullname,"Cancel") == 1)
+	IF (CMP(fullname, "Cancel") == 1)
 		RETURN 0
 	ELSE
-		IF ((point = LastPos(fullname,".")) != 0)
+		IF ((point = LastPos(fullname, ".")) != 0)
 			extension = CUT(fullname,point+1,size)
 			size = point-1
 			fullname = CUT(fullname,1,size)
 		END
-		IF ((slash = LastPos(fullname,"\")) != 0)
+		IF ((slash = LastPos(fullname, "\")) != 0)
 			filename = CUT(fullname,slash+1,size)
 			size = slash-1
 			pathname = CUT(fullname,1,size)

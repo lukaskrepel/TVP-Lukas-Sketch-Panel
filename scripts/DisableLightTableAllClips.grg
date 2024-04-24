@@ -4,32 +4,32 @@ startClip = result
 loop=1
 i=0
 WHILE loop
-	tv_clipenumid -1 i
+	tv_ClipEnumID -1 i
  	curCID = result
-	IF CMP(curCID,"none")==1
+	IF CMP(curCID, "none") == 1
 		loop=0
 	ELSE
-		tv_clipHidden curCID
-		IF CMP(result,"0")==1
-			tv_clipSelect curCID
+		tv_ClipHidden curCID
+		IF CMP(result, "0") == 1
+			tv_ClipSelect curCID
 			//
 			tv_LayerCurrentID
-			Beginlayer = result
-			layerRun = 1
-			layerPos = 0
-			WHILE layerRun	
-				tv_LayerGetID layerPos	
+			BeginLayer = result
+			LayerRun = 1
+			LayerPos = 0
+			WHILE LayerRun	
+				tv_LayerGetID LayerPos	
 				lid = result	
-				IF CMP(lid,"NONE")==0		
+				IF CMP(lid, "NONE") == 0		
 					// START RUN ON LAYER 
 			        tv_LayerDisplay lid LightTable Off
 					// END RUN ON LAYER
-					layerPos = layerPos+1	
+					LayerPos = LayerPos+1	
 				ELSE		
-					layerRun = 0
+					LayerRun = 0
 				END
 			END
-			tv_layerSet Beginlayer // Zet alle lagen LT uit
+			tv_LayerSet BeginLayer // Zet alle lagen LT uit
 			tv_LayerDensity 100 // Zet layer op 100% zichtbaar
 			tv_LightTableMode Interval Color ModePrev Color ModeNext Range Density 0 BlendMode Back Value -1 1 Value 1 1  Value -2 1 Value 2 1 Value -3 1 Value 3 1 Value -4 1 Value 4 1 Value -5 1 Value 5 1 Value -6 1 Value 6 1 Value -7 1 Value 7 1 Value -8 1 Value 8 1 Value -9 1 Value 9 1 Value -10 1 Value 10 1 // reset LT
 			tv_LightTableMode Interval Color ModePrev Color ModeNext Color Density 100 BlendMode Back Value -1 50 Value 1 50  Value -2 0 Value 2 0 Value -3 0 Value 3 0 Value -4 0 Value 4 0 Value -5 0 Value 5 0 Value -6 0 Value 6 0 Value -7 0 Value 7 0 Value -8 0 Value 8 0 Value -9 0 Value 9 0 Value -10 0 Value 10 0 // LT 1-1 zodat je wel nog LT toggle kan
@@ -39,5 +39,5 @@ WHILE loop
 	i=i+1
 END
 
-tv_clipSelect startClip
+tv_ClipSelect startClip
 

@@ -1,4 +1,4 @@
-tv_frameRate 666 info
+tv_FrameRate 666 info
 PARSE result ProjectFramerate PreviewFramerate
 Frames = 25 / ProjectFramerate
 tv_ReqNum Frames 1 99 "Set Project Frame Duration (1 for singles, 2 for doubles, 6 for storyboarding)"
@@ -20,4 +20,4 @@ END
 IF CMP(NewFramerate, 4.166667) == 1
 	ExtraInfo = " (Storyboard mode!)"
 END
-tv_warn "Project framerate is set to "NewFrameRate" fps."ExtraInfo
+tv_Warn "Project framerate is set to "NewFrameRate" fps."ExtraInfo

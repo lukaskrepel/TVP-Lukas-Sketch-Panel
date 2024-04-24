@@ -1,6 +1,6 @@
-tv_clipcurrentid
+tv_Clipcurrentid
 selCID = result
-tv_lastImage
+tv_LastImage
 lastFrame = result
 
 tv_LayerGetImage
@@ -16,25 +16,25 @@ END
 // *** Set layers named "*_Multiply" to multiply. And name all multiplied layers "*_Multiply"
 // *********************************************************************************************
 FUNCTION SelectNextClip()
-	tv_clipcurrentid
+	tv_Clipcurrentid
 	selCID = result
 	loop=1
 	i=0
 	WHILE loop
-		tv_clipenumid -1 i
+		tv_ClipEnumID -1 i
 	 	curCID = result
-		IF CMP(curCID,"none")==1
+		IF CMP(curCID, "none") == 1
 			SelectNextFrame()
 			loop = 0
 		ELSE
-			tv_clipHidden curCID
-			IF CMP(result,"0")==1
+			tv_ClipHidden curCID
+			IF CMP(result, "0") == 1
 				IF CMP (curCID, selCID)
-					tv_clipenumid -1 i+1
+					tv_ClipEnumID -1 i+1
 					nextCID = result
-					IF CMP(nextCID,"none")==0
-						tv_clipSelect nextCID
-						tv_firstImage
+					IF CMP(nextCID, "none") == 0
+						tv_ClipSelect nextCID
+						tv_FirstImage
 						tv_LayerImage result
 						loop = 0
 					END
@@ -52,7 +52,7 @@ FUNCTION SelectNextFrame()
 	tv_LayerGetImage
 	parse result ThisFrame //BEFORE advancing cursor to next Head-frame test cursor-frame status
 	NextFrame = ThisFrame + 1
-	tv_lastImage
+	tv_LastImage
 	lastFrame = result
 	IF NextFrame > lastFrame
 		NextFrame = lastFrame

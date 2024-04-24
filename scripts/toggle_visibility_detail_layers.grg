@@ -1,52 +1,52 @@
-searchWord = "detail"
+SearchWord = "detail"
 
-tv_readUserString "LayerVisibility" searchWord "1"
+tv_ReadUserString "LayerVisibility" SearchWord "1"
 DetailVisibility = result
 IF CMP(DetailVisibility, 1)
     VISIBLESCHAKELAAR = On
     LOCKSCHAKELAAR = Off
-    tv_WriteUserString "LayerVisibility" searchWord 0
+    tv_WriteUserString "LayerVisibility" SearchWord 0
 ELSE
     VISIBLESCHAKELAAR = Off
     LOCKSCHAKELAAR = On
-    tv_WriteUserString "LayerVisibility" searchWord 1
+    tv_WriteUserString "LayerVisibility" SearchWord 1
 END
 
 tv_LayerCurrentID
-Beginlayer = result
+BeginLayer = result
 
-layerRun = 1
-layerPos = 0
-WHILE layerRun	
+LayerRun = 1
+LayerPos = 0
+WHILE LayerRun	
 
-	tv_LayerGetID layerPos	
+	tv_LayerGetID LayerPos	
 	lid = result	
 	
-	IF CMP(lid,"NONE")==0		
+	IF CMP(lid, "NONE") == 0		
 		// START RUN ON LAYER 
 		tv_LayerInfo lid
-		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                last = LastPos(layerName,"_")
-                strlen = LEN(layerName)
+		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+                last = LastPos(LayerName, "_")
+                StrLen = LEN(LayerName)
                 IF CMP(last,0)
-                    firstWord = layerName
+                    FirstWord = LayerName
                 ELSE
-                firstWord = LeftString(layerName,last-1)
+                FirstWord = LeftString(LayerName,Last - 1)
                 END
-                secondWord = RightString(layerName,strlen-last)
-		IF CMP(secondWord, searchWord)
+                SecondWord = RightString(LayerName, StrLen - Last)
+		IF CMP(SecondWord, SearchWord)
 			tv_LayerDisplay lid VISIBLESCHAKELAAR
 			tv_LayerLock lid LOCKSCHAKELAAR
 		END
 		// END RUN ON LAYER
-		layerPos = layerPos+1	
+		LayerPos = LayerPos+1	
 	ELSE		
-		layerRun = 0
+		LayerRun = 0
 	END
 
 END
 
-tv_layerSet Beginlayer
+tv_LayerSet BeginLayer
 
 // Include
 #INCLUDE "Include.grg"

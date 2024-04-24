@@ -7,10 +7,10 @@ PARSE RESULT firstSelectedFrame amountOfSelectedFrames
 lastSelectedFrame = firstSelectedFrame + amountOfSelectedFrames - 1
 IF (amountOfSelectedFrames > 1)
 FOR i = firstSelectedFrame TO lastSelectedFrame
-	tv_layermarkset 0 i COLOR
+	tv_Layermarkset 0 i COLOR
 END
 ELSE
-tv_layergetimage
-curImage = result
-	tv_layermarkset 0 curImage COLOR
+tv_LayerGetImage
+CurImage = result
+	tv_Layermarkset 0 CurImage COLOR
 END

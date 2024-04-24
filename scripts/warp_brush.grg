@@ -59,7 +59,7 @@ IF CMP(Shape, "wrap")								// already in warping mode, so capture modified cut
 	tv_ImagePush									// blocks "redos" of stacked undos
 	tv_ImagePop
 
-	tv_cmd Tool										// restore tool info
+	tv_Cmd Tool										// restore tool info
 	
 	BrAngle = 0										// brush angle set to zero so brush doesn't re-orient itself
 
@@ -74,17 +74,17 @@ ELSE
 	tv_GetActiveTool								// query active tool for later restoration 
 	parse result Tool								// get complete tool type AND parameters
 	parse result ToolType d							// get current tool type
-	tv_cmd ToolType mode							// query draw mode for current tool
+	tv_Cmd ToolType mode							// query draw mode for current tool
 	parse result d ToolMode d						// get current tool mode (color, behind, erase, etc.)
 
 	IF CMP(ToolType, "tv_restorebrush") == 0			// trap if not a cutbrush, warn user and exit
-		tv_warn "WarpCutBrush only works on CutBrushes... Duh!"
+		tv_Warn "WarpCutBrush only works on CutBrushes... Duh!"
 		EXIT
 	END
 
 
 	tv_SetDrawMode 0								// guarantee draw mode is Color during warping
-	tv_cmd ToolType Opacity 100						// guarantee cutbrush is at maximum opacity during warping
+	tv_Cmd ToolType Opacity 100						// guarantee cutbrush is at maximum opacity during warping
 	tv_WriteUserString "WarpBrush" "ToolInfo" Tool	// store existing tool info
 	tv_WriteUserString "WarpBrush" "Shape" Shape	// store existing shape info
 
@@ -125,7 +125,7 @@ FUNCTION NewLayer()
 	tv_LayerCurrentID							// get new layer ID number
 	parse result LayerID			
 	tv_LayerRename LayerID "DeleteMe"			// name temp layer "delete..."
-	tv_Layercolor set LayerID 11				// set temp layer color to hot pink
+	tv_LayerColor set LayerID 11				// set temp layer color to hot pink
 	tv_LayerShift LayerID FrameNo				// shift new layer frame 1 to current frame
 	tv_LayerImage FrameNo						// reset layer cursor to current frame	
 	tv_LayerGetPos LayerID						// get layer position of new layer

@@ -43,7 +43,7 @@ Keyboard shortcut|Panel button
 > You need to use the `Toggle Project/Clip View` button instead of the default `Project`/`Clip: Timeline` tabs on the timeline panel! Otherwise certain actions like `New Layer/Clip` won't work.
 ## Suggested folder structure for projects
 > [!IMPORTANT]
-> - Running `Render Selected Clips With XML` will prefix exported file and folder names like this: `001_Clipname` (unless there's an `_` in the Clipname).
+> - Running `Render Selected Clips With XML` will prefix exported file and folder names like this: `001_ClipName` (unless there's an `_` in the ClipName).
 > - Running `Clips to TVPaint Projects` on `STB/EP01_EpisodeSTB_v001_L.tvpp` creates the `Shots` folder structure with TVP files.
 > - Running `Render to 'Renders' Folder` on `Shots/EP001_Intro/EP01_001_Intro_v001_L.tvpp` will create folders and image sequence `Renders/EP01_001_Intro_v001_L/EP01_001_Intro_00001.jpg` etc. If you choose the option to render color groups individually it will create a subfolder for each sequence.
 - EP01_Pilot

@@ -1,24 +1,24 @@
 //{ Voor het geval er een nieuw project is gestart, werkt niet helemaal 1e keer is buggy
-tv_readUserString "LayerAttenuation" "State" "30"
+tv_ReadUserString "LayerAttenuation" "State" "30"
 NewLayerAttenuationValue = result
-tv_display "layerattenuation" "value" NewLayerAttenuationValue
+tv_Display "layerattenuation" "value" NewLayerAttenuationValue
 //}
 
 //{ SHIFT past NewLayerAttenuation aan en stopt script daarna
 tv_getModifiers
 PARSE result shift ctrl alt
-IF CMP(shift,"1")==1
+IF CMP(shift, "1") == 1
     tv_ReqNum NewLayerAttenuationValue 0 100 "Layer Attenuation %"
     NewLayerAttenuationValue = result
-    IF CMP(NewLayerAttenuationValue,"Cancel")
+    IF CMP(NewLayerAttenuationValue, "Cancel")
         EXIT
     ELSE
-        tv_writeUserString "LayerAttenuation" "State" NewLayerAttenuationValue
-        tv_display "layerattenuation" "value" NewLayerAttenuationValue
+        tv_WriteUserString "LayerAttenuation" "State" NewLayerAttenuationValue
+        tv_Display "layerattenuation" "value" NewLayerAttenuationValue
         EXIT
     END
 ELSE
-    tv_readUserString "LayerAttenuation" "State" "NewLayerAttenuationValue"
+    tv_ReadUserString "LayerAttenuation" "State" "NewLayerAttenuationValue"
     NewLayerAttenuationValue = result
 END
 //}

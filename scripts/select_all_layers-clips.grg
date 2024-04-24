@@ -20,19 +20,19 @@ IF CMP(State, "clip") == 1
 		i = i + 1
 	END
 ELSE
-	layerRun = 1
-	layerPos = 0
-	WHILE layerRun	
-		tv_LayerGetID layerPos	
+	LayerRun = 1
+	LayerPos = 0
+	WHILE LayerRun	
+		tv_LayerGetID LayerPos	
 		LayerID = result	
-		IF CMP(LayerID,"NONE")==0		
+		IF CMP(LayerID, "NONE") == 0		
 			// START RUN ON LAYER 
-			//tv_layerselection LayerID [0|1|"on"|"off"|"true"|"false"|"toggle"]
-			tv_layerselection LayerID 1
+			//tv_LayerSelection LayerID [0|1|"on"|"off"|"true"|"false"|"toggle"]
+			tv_LayerSelection LayerID 1
 			// END RUN ON LAYER
-			layerPos = layerPos + 1	
+			LayerPos = LayerPos + 1	
 		ELSE		
-			layerRun = 0
+			LayerRun = 0
 		END
 	END
 END

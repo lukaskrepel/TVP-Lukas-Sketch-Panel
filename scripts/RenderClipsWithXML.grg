@@ -58,7 +58,7 @@ IF CMP(Shift, "1") == 1 || CMP(Compositing, "none") || CMP(Extension, "none") ||
 	Overwrite = result
 	tv_WriteUserString ScriptName "Overwrite" Overwrite
 	// Warn
-	tv_warn ("New settings saved.\n Click button again to render.")
+	tv_Warn ("New settings saved.\n Click button again to render.")
 	EXIT
 END
 tv_SaveMode Extension
@@ -68,67 +68,67 @@ message = "Rendering all clips with XML file..."
 tv_LockDisplay message
 tv_LockUser
 //
-tv_GetprojectName
-projectpath = result
-tv_WriteTextFile "Exists" '"'projectpath'"'
-testPath = result
+tv_GetProjectName
+ProjectPath = result
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
 // *** Check if file is saved
-IF CMP(testPath,projectpath) == 0 || CMP(projectpath,"/") == 1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
-	tv_warn "Please save project and try again!"
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath, "/") == 1 //TestPath is voor windows, slash-check is voor mac? Misschien is TestPath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_Warn "Please save project and try again!"
 	EXIT
 END
 
 // Get project info
 tv_ProjectInfo
-PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
-tv_firstImage
-projectIn = result
+PARSE result ProjectName projectWidth ProjectHeight projectPixelAspect projectFramerate projectField projectProjectStartFrame
+tv_FirstImage
+ProjectIn = result
 tv_LastImage
-projectOut = result
-projectpath = Replace(projectpath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
-strlen = LEN(projectpath)
-last = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
-projectDir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
-projectName = RightString(projectpath,strlen-last) // Getting the name of the tvpp file without the path
-strlen = LEN(projectName) // Getting the name of the tvpp file without ".tvpp"
+ProjectOut = result
+ProjectPath = Replace(ProjectPath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
+StrLen = LEN(ProjectPath)
+last = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath,Last - 1) // Getting the directory where the TVPP file is saved
+ProjectName = RightString(ProjectPath, StrLen - Last) // Getting the name of the tvpp file without the path
+StrLen = LEN(ProjectName) // Getting the name of the tvpp file without ".tvpp"
 //
-last = LastPos(projectName,".")
-IF CMP(last,"0")==1
-	projectbase = projectName
+last = LastPos(ProjectName, ".")
+IF CMP(last, "0") == 1
+	ProjectBase = ProjectName
 ELSE
-	projectbase = LeftString(projectName,last-1)
+	ProjectBase = LeftString(ProjectName,Last - 1)
 END
-last_v = FindString(projectbase, "_v", 1) //  File should be name _v001_L or something
-IF CMP(last_v,"0")==1
-	projectName = projectbase
+last_v = FindString(ProjectBase, "_v", 1) //  File should be name _v001_L or something
+IF CMP(last_v, "0") == 1
+	ProjectName = ProjectBase
 ELSE
-	projectName = LeftString(projectbase,last_v-1)
+	ProjectName = LeftString(ProjectBase,last_v-1)
 END
 // *** Create folder
 FOR i = 1 TO 1000
-	RenderFolder = projectName"_clips"i
-	saveDir = projectDir"/"RenderFolder
-	tv_WriteTextFile "Exists" '"'saveDir'"'
-	IF CMP (result,"")==1 // Folder doesn't exist yet!
+	RenderFolder = ProjectName"_clips"i
+	SaveDir = ProjectDir"/"RenderFolder
+	tv_WriteTextFile "Exists" '"'SaveDir'"'
+	IF CMP (result, "") == 1 // Folder doesn't exist yet!
 		IF CMP(Overwrite, 1)
 			IF i > 1
 				i = i - 1
-				RenderFolder = projectName"_clips"i
-				//tv_warn ("WARNING: Re-using existing clips folder!")
+				RenderFolder = ProjectName"_clips"i
+				//tv_Warn ("WARNING: Re-using existing clips folder!")
 			END
 		END
-		projectName = RenderFolder
+		ProjectName = RenderFolder
 		i = 1001
 	END
 END
-saveDir = projectDir"/"projectName
+SaveDir = ProjectDir"/"ProjectName
 ClipString = "current clip"
 ExtraS = ""
 IF ExportClipCount > 1
 	ExtraS = "s"
 	ClipString = ExportClipCount" clips"
 END
-tv_Request "Render "ClipString" as ."Extension" sequence"ExtraS" in subfolder"ExtraS" of this location?\n\n"projectDir"/\n"RenderFolder"|OK|Cancel" //1|0
+tv_Request "Render "ClipString" as ."Extension" sequence"ExtraS" in subfolder"ExtraS" of this location?\n\n"ProjectDir"/\n"RenderFolder"|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
@@ -137,12 +137,12 @@ tv_LockDisplay message
 tv_LockUser
 //
 tv_SaveMode Extension // Needed for Standard version because it exports with tv_SaveSequence
-tv_WriteTextFile "MkDir" '"'saveDir'"'
-TotalXMLfile = saveDir"/"projectName".xml"
-XMLbegin(TotalXMLfile, projectName, projectIn, projectOut, projectFramerate)
+tv_WriteTextFile "MkDir" '"'SaveDir'"'
+TotalXMLfile = SaveDir"/"ProjectName".xml"
+XMLbegin(TotalXMLfile, ProjectName, ProjectIn, ProjectOut, projectFramerate)
 
 //MohoTemplate = "/Users/lukas/Nextcloud/meggamma/Club\ Baboo/SHOTS/Construction/CS21_Elasmosaurus/EMPTY\ TEXT\ MOHO\ DOC.mohoproj"
-//NewMohoFile = saveDir"/"projectName".moho"
+//NewMohoFile = SaveDir"/"ProjectName".moho"
 //CreateMohoFile(MohoTemplate, NewMohoFile)
 
 // *** Duplicate project so we don't have to undo any layer deleting/merging
@@ -152,12 +152,12 @@ tv_ProjectDuplicate
 // **********************************
 loop = 1
 i = 0
-addSomeFrames = 0
+AddSomeFrames = 0
 clipOffset = 0//-1 // Start
 colorLabel = "Blue"
-//tv_warn ("before loop")
+//tv_Warn ("before loop")
 WHILE loop
-	tv_clipenumid -1 i
+	tv_ClipEnumID -1 i
  	ClipID = result
 	IF CMP(ClipID, "none") == 1
 		loop = 0
@@ -165,7 +165,7 @@ WHILE loop
 		RenderClip = CHAR(ClipsToRender, (i + 2)) // String starts with an "_" because a 0 needs a prefix.
 		IF CMP(RenderClip, "1") == 1
 			// This clip should not be skipped!
-			tv_clipSelect clipID
+			tv_ClipSelect clipID
 		ELSE
 			// This clip should be skipped!
 			clipID = "none" // Ugly ugly code, this is a bit confusing, we want to skip this clip though, this works...
@@ -178,12 +178,12 @@ WHILE loop
 		ELSE
 			colorLabel = "Blue"
 		END
-		tv_clipname
-		clipName = result
-		UnderscorePos = FindString(clipName, "_", 1)
+		tv_ClipName
+		ClipName = result
+		UnderscorePos = FindString(ClipName, "_", 1)
 		IF UnderscorePos < 1
 			clipNumber = addZeroesPostfix("_",i,3)
-			clipName = clipNumber""clipName // 001_Untitled for example
+			ClipName = clipNumber""ClipName // 001_Untitled for example
 		END
 		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
 		DeleteInvisibleLayers() //Function is in Include file
@@ -192,77 +192,77 @@ WHILE loop
 		PARAM none
 		// * EINDE TEST
 		IF CMP(Extension, "png")
-			tv_saveMode "PNG"
+			tv_SaveMode "PNG"
 			ext = ".png"
 			tv_AlphaSaveMode "PreMultiply" // Of moet dit NoPreMultiply zijn?
 			tv_Background "NONE"
 		ELSE
-			tv_saveMode "JPG"
+			tv_SaveMode "JPG"
 			ext = ".jpg"
 			tv_Background "COLOR" 255 255 255
 		END
-		renderDir = projectDir"/"RenderFolder
+		renderDir = ProjectDir"/"RenderFolder
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
-		clipDir = projectDir"/"RenderFolder"/"clipName
+		clipDir = ProjectDir"/"RenderFolder"/"ClipName
 		tv_WriteTextFile "MkDir" '"'clipDir'"'		
 		//Clear in/out marks of clip (hack)
-		tv_markin clear
-		tv_markout clear
+		tv_MarkIn clear
+		tv_MarkOut clear
 		//Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 		//get clip in
-		tv_markIn clip
+		tv_MarkIn clip
 		PARSE result frame state
-		IF CMP(state,"set ")==1
-			inpoint = frame
+		IF CMP(state, "set ") == 1
+			InPoint = frame
 		ELSE
-			tv_firstImage
-			inpoint = result
+			tv_FirstImage
+			InPoint = result
 		END
 		//Get Clip Out
-		tv_markOut clip
+		tv_MarkOut clip
 		PARSE result frame state
-		IF CMP(state,"set ")==1
-			outpoint = frame
+		IF CMP(state, "set ") == 1
+			OutPoint = frame
 		ELSE
 			tv_LastImage
-			outpoint = result
+			OutPoint = result
 		END
 		//Because I have to use tv_Projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
 		//For this I use tv_ProjectCurrentFrame
-		tv_LayerImage inpoint
+		tv_LayerImage InPoint
 		tv_ProjectCurrentFrame
-		projIN = result
-		tv_ProjectCurrentFrame projIN
-		tv_LayerImage outpoint
+		ProjIn = result
+		tv_ProjectCurrentFrame ProjIn
+		tv_LayerImage OutPoint
 		tv_ProjectCurrentFrame
-		projOUT = result
-		tv_ProjectCurrentFrame projOUT
+		ProjOut = result
+		tv_ProjectCurrentFrame ProjOut
 		//Getting the name of the current clip to file prefix
-		tv_startFrame
-		startFrame = inpoint+result
+		tv_StartFrame
+		StartFrame = InPoint + result
 		//Setting the name of the first file
-		frame = addZeros("",startFrame,5)
-		renderFile = clipDir"/"clipName""frame""ext
+		frame = addZeros("",StartFrame,5)
+		RenderFile = clipDir"/"ClipName""frame""ext
 		//Saving the sequence
 		//Create a layer at the in and out point in case we need to render an empty alpha frame to reach in/out of the clip
 		tv_LayerCreate tempLayer
 		tempLayerID = result
 		tv_LayerAnim
-		tv_LayerShift tempLayerID inpoint
+		tv_LayerShift tempLayerID InPoint
 		tv_LayerPostBehavior layerID "hold"
 		tv_LayerCreate tempLayer
 		tempLayerID = result
 		tv_LayerAnim
-		tv_LayerShift tempLayerID outpoint
+		tv_LayerShift tempLayerID OutPoint
 		tv_LayerPreBehavior tempLayerID "hold"
 		tv_LayerMergeAll
 		Whitespace = "    "
 		FrameRange = OutPoint - InPoint + 1
-		Message = "Rendering...\n"Whitespace""renderDir"/"Whitespace"\n"clipName"\n("FrameRange" frames)"
+		Message = "Rendering...\n"Whitespace""renderDir"/"Whitespace"\n"ClipName"\n("FrameRange" frames)"
 		tv_LockDisplay Message
-		ExportImagesAndXML(clipDir, clipName, inpoint, outpoint, clipOffset)
+		ExportImagesAndXML(clipDir, ClipName, InPoint, OutPoint, clipOffset)
 		// Adding clip offset so next clip can calculate starting frame
-		clipOffset = clipOffset + curImage
+		clipOffset = clipOffset + CurImage
 	END
 	tv_Background "COLOR" 255 255 255 //Turn color background back on.
 END

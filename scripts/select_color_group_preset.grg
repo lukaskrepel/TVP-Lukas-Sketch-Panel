@@ -6,9 +6,9 @@ IF CMP(result, "-1 Cancel")
 END
 // Get Label from menu result
 string = result
-firstCharacter = FindString(string,"/",1)+1
+firstCharacter = FindString(string, "/",1)+1
 IF firstCharacter == 1
-	firstCharacter = FindString(string," ",1)+1
+	firstCharacter = FindString(string, " ",1)+1
 END
 Label = CUT(string,firstCharacter,LEN(string))
 // Set ColorIndex based on Label
@@ -93,11 +93,11 @@ ELSE
 		LayerID = result
 		IF CMP(LayerID, "none") == 0		
 			// START RUN ON LAYER
-			tv_layerselection LayerID
+			tv_LayerSelection LayerID
 			Selected = result
 			IF CMP(Selected, 1) == 1
 				tv_LayerColor "set" LayerID ColorIndex // Set ColorIndexgroup for selected layer
-				tv_layerrename LayerID Label // Rename selected layer
+				tv_Layerrename LayerID Label // Rename selected layer
 			END
 			LayerPos = LayerPos + 1
 		ELSE

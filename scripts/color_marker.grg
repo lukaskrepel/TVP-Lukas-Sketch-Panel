@@ -9,8 +9,8 @@ Color = result
 tv_LayerCurrentID
 LayerID = result
 tv_LayerInfo LayerID
-PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-IF CMP(layerType, "Image")==1
+PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+IF CMP(LayerType, "Image") == 1
 	tv_LayerColor set LayerID COLOR
 	EXIT
 END
@@ -30,21 +30,21 @@ IF (amountOfSelectedFrames > 1)
 					i = i - 1
 					tv_exposureinfo i
 					PARSE RESULT exposureType d d
-					tv_layermarkset 0 i COLOR					
+					tv_Layermarkset 0 i COLOR					
 				END
 			END
 		END	
 		tv_exposureinfo i
 		IF CMP(result, Head)
 			lastHead = i
-			tv_layermarkset 0 i COLOR
+			tv_Layermarkset 0 i COLOR
 			exposureType = Exposure
 			WHILE CMP(exposureType, Exposure)
 				i = i + 1
 				tv_exposureinfo i
 				PARSE RESULT exposureType d d
 				IF CMP(exposureType, Exposure)
-					tv_layermarkset 0 i COLOR
+					tv_Layermarkset 0 i COLOR
 				ELSE
 				i = i - 1
 				END
@@ -52,7 +52,7 @@ IF (amountOfSelectedFrames > 1)
 		END
 	END
 ELSE
-	tv_layergetimage
+	tv_LayerGetImage
 	i = result
 	tv_exposureinfo i
 	PARSE RESULT exposureType d d
@@ -62,20 +62,20 @@ ELSE
 			i = i - 1
 			tv_exposureinfo i
 			PARSE RESULT exposureType d d
-			tv_layermarkset 0 i COLOR					
+			tv_Layermarkset 0 i COLOR					
 		END
 	END
 
 	tv_exposureinfo i
 	IF CMP(result, Head)
-		tv_layermarkset 0 i COLOR
+		tv_Layermarkset 0 i COLOR
 		exposureType = Exposure
 		WHILE CMP(exposureType, Exposure)
 			i = i + 1
 			tv_exposureinfo i
 			PARSE RESULT exposureType d d
 			IF CMP(exposureType, Exposure)
-				tv_layermarkset 0 i COLOR
+				tv_Layermarkset 0 i COLOR
 			END
 		END
 	END

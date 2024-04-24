@@ -6,10 +6,10 @@ LayerLT = result
 
 LayerRun = 1
 LayerPos = 0
-WHILE layerRun	
-	tv_LayerGetID layerPos	
+WHILE LayerRun	
+	tv_LayerGetID LayerPos	
 	LayerID = result	
-	IF CMP(LayerID,"NONE")==0		
+	IF CMP(LayerID, "NONE") == 0		
 		// START RUN ON LAYER 
         tv_LayerDisplay LayerID LightTable Off
 		// END RUN ON LAYER
@@ -19,7 +19,7 @@ WHILE layerRun
 	END
 END
 
-tv_layerSet CurrentLayerID // Return to starting layer
+tv_LayerSet CurrentLayerID // Return to starting layer
 
 tv_LayerDensity 100 // Set layer opacity 100%
 
@@ -30,10 +30,10 @@ END
 New_LT = "Value -1 50 Value 1 50 Value -2 20 Value 2 20 Value -3 10 Value 3 10 Value -4 0 Value 4 0 Value -5 0 Value 5 0 Value -6 0 Value 6 0 Value -7 0 Value 7 0 Value -8 0 Value 8 0 Value -9 0 Value 9 0 Value -10 0 Value 10 0" // LT 3-3
 tv_LightTableMode
 Old_LT = result
-firstCharacter = FindString(Old_LT,"Value",1)
+firstCharacter = FindString(Old_LT, "Value",1)
 Old_LT = CUT(Old_LT,firstCharacter,LEN(New_LT)+firstCharacter-1)
 
-IF CMP(Old_LT, New_LT)==0
+IF CMP(Old_LT, New_LT) == 0
 	tv_LightTableMode New_LT
 	tv_LayerDisplay CurrentLayerID LightTable On
 END

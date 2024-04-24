@@ -21,7 +21,7 @@ IF (amountOfSelectedFrames > 1)
 					tv_LayerMarkGet 0 i
 					COLORID = result
 					IF COLORID==OLDCOLOR
-						tv_layermarkset 0 i NEWCOLOR
+						tv_Layermarkset 0 i NEWCOLOR
 					END
 				END
 			END
@@ -32,7 +32,7 @@ IF (amountOfSelectedFrames > 1)
 			tv_LayerMarkGet 0 i
 			COLORID = result
 			IF COLORID==OLDCOLOR
-				tv_layermarkset 0 i NEWCOLOR
+				tv_Layermarkset 0 i NEWCOLOR
 			END
 			exposureType = Exposure
 			WHILE CMP(exposureType, Exposure)
@@ -43,7 +43,7 @@ IF (amountOfSelectedFrames > 1)
 					tv_LayerMarkGet 0 i
 					COLORID = result
 					IF COLORID==OLDCOLOR
-						tv_layermarkset 0 i NEWCOLOR
+						tv_Layermarkset 0 i NEWCOLOR
 					END
 				ELSE
 				i = i - 1
@@ -52,7 +52,7 @@ IF (amountOfSelectedFrames > 1)
 		END
 	END
 ELSE
-	tv_layergetimage
+	tv_LayerGetImage
 	i = result
 	tv_exposureinfo i
 	PARSE RESULT exposureType d d
@@ -65,7 +65,7 @@ ELSE
 			tv_LayerMarkGet 0 i
 			COLORID = result
 			IF COLORID==OLDCOLOR
-				tv_layermarkset 0 i NEWCOLOR
+				tv_Layermarkset 0 i NEWCOLOR
 			END				
 		END
 	END
@@ -75,7 +75,7 @@ ELSE
 		tv_LayerMarkGet 0 i
 		COLORID = result
 		IF COLORID==OLDCOLOR
-			tv_layermarkset 0 i NEWCOLOR
+			tv_Layermarkset 0 i NEWCOLOR
 		END
 		exposureType = Exposure
 		WHILE CMP(exposureType, Exposure)
@@ -86,7 +86,7 @@ ELSE
 				tv_LayerMarkGet 0 i
 				COLORID = result
 				IF COLORID==OLDCOLOR
-					tv_layermarkset 0 i NEWCOLOR
+					tv_Layermarkset 0 i NEWCOLOR
 				END
 			END
 		END

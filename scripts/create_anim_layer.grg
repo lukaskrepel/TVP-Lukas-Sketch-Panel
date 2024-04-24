@@ -1,5 +1,5 @@
 tv_LayerInfo 0
-PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
 tv_LayerCreate
 LayerID = result
 tv_LayerRename 0 "layer"
@@ -8,4 +8,4 @@ tv_LayerMove LayerPosition-1
 tv_LayerPostBehavior 0 none
 tv_LayerGetImage
 parse result CurrentFrame
-tv_layershift LayerID CurrentFrame
+tv_Layershift LayerID CurrentFrame

@@ -16,11 +16,11 @@ ELSE
 	tv_LayerCurrentID
 	LayerID = result
 	tv_LayerInfo LayerID
-	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection	
+	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection	
 	tv_LayerDuplicate LayerName" Copy"
 	LayerID = result
 	tv_LayerInfo LayerID
-	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
+	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
 	LayerPosition = LayerPosition - 1
 	tv_LayerMove LayerPosition
 END

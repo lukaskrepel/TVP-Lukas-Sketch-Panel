@@ -1,34 +1,34 @@
 //Preparing
 message = "Setting SHOTNUMBERS for all clips..."
-tv_lockdisplay message
+tv_LockDisplay message
 // **********************************
 // *** ALLE CLIPS DOORLOPEN START ***
 // **********************************
 loop = 1
 i = 0
-addSomeFrames = 0
+AddSomeFrames = 0
 clipOffset = -1 // Start
 colorLabel = "Blue"
 WHILE loop
-	tv_clipenumid -1 i
+	tv_ClipEnumID -1 i
 	clipID = result
-	IF CMP(clipID,"none") == 1
+	IF CMP(clipID, "none") == 1
 		loop = 0
 	ELSE
-		tv_clipHidden clipID
-		IF CMP(result,"0") == 1
-			tv_clipSelect clipID
-			tv_clipname
-			clipName = result
-			IF CMP(clipName, "Untitled") == 1
+		tv_ClipHidden clipID
+		IF CMP(result, "0") == 1
+			tv_ClipSelect clipID
+			tv_ClipName
+			ClipName = result
+			IF CMP(ClipName, "Untitled") == 1
 				tv_ReqString "Shotname:|Untitled"
 				newName = result
-				tv_clipname clipID newName
+				tv_ClipName clipID newName
 			END
 			clipNumber = addZeroesPostfix("_", i + 1, 3)
-			clipName = clipNumber""clipName // 001_Untitled for example
+			ClipName = clipNumber""ClipName // 001_Untitled for example
 			// * DRAW CLIPNUMBERS PART:
-			draw_shotNumber(clipName)
+			draw_shotNumber(ClipName)
 			// * END CLIPNUMBERS PART.
 		END
 	END
@@ -38,9 +38,9 @@ END
 tv_getmodifiers
 PARSE result shift ctrl alt
 IF CMP(alt, 1) == 0
-	tv_warn "ADDED SHOTNUMBERS"
+	tv_Warn "ADDED SHOTNUMBERS"
 ELSE
-	tv_warn "REMOVED SHOTNUMBERS"
+	tv_Warn "REMOVED SHOTNUMBERS"
 END
 
 // *****************************

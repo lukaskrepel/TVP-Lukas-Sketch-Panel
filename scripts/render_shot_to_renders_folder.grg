@@ -39,20 +39,20 @@ IF CMP(Shift, "1") == 1 || CMP(Compositing, "none") || CMP(Extension, "none") ||
 		Camera = result
 		tv_WriteUserString ScriptName "Camera" Camera
 	END
-	tv_warn ("New settings saved.\n Click button again to render.")
+	tv_Warn ("New settings saved.\n Click button again to render.")
 	EXIT
 END
 tv_SaveMode Extension
 
 //
-tv_GetprojectName
+tv_GetProjectName
 ProjectPath = result
 
 tv_WriteTextFile "Exists" '"'ProjectPath'"'
 TestPath = result
 // *** Check if file is saved
-IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath,"/") == 1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
-	tv_warn "Please save project and try again!"
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath, "/") == 1 //TestPath is voor windows, slash-check is voor mac? Misschien is TestPath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_Warn "Please save project and try again!"
 	EXIT
 END
 
@@ -62,20 +62,20 @@ StrLen = LEN(ProjectPath)
 LastSlashPos = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
 ProjectDir = LeftString(ProjectPath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
 
-ProjectName = RightString(ProjectPath,StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
+ProjectName = RightString(ProjectPath, StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
 
 //
-LastPeriod = LastPos(ProjectName,".")
+LastPeriod = LastPos(ProjectName, ".")
 IF CMP(LastPeriod, "0") == 1
 	ProjectBase = ProjectName
 ELSE
-	Projectbase = LeftString(ProjectName, LastPeriod - 1)
+	ProjectBase = LeftString(ProjectName, LastPeriod - 1)
 END
-Last_v = FindString(Projectbase, "_v", 1) //  File should be name _v001_L or something
+Last_v = FindString(ProjectBase, "_v", 1) //  File should be name _v001_L or something
 IF CMP(Last_v, "0") == 1
-	ShotName = projectbase
+	ShotName = ProjectBase
 ELSE
-	ShotName = LeftString(projectbase, Last_v - 1)
+	ShotName = LeftString(ProjectBase, Last_v - 1)
 END
 
 // Go up a directory
@@ -87,18 +87,18 @@ EpisodeDir = LeftString(ShotsDir, LastSlashPos - 1) // Getting the directory whe
 // Renders directory
 RendersDir = EpisodeDir"/Renders"
 
-tv_markIn
+tv_MarkIn
 PARSE result Frame State
-IF CMP(State,"set ")==1
+IF CMP(State, "set ") == 1
 	InPoint = Frame
 ELSE
-	tv_firstImage
+	tv_FirstImage
 	InPoint = result
 END
 //Get Clip Out
-tv_markOut
+tv_MarkOut
 PARSE result Frame State
-IF CMP(State,"set ")==1
+IF CMP(State, "set ") == 1
 	OutPoint = Frame
 ELSE
 	tv_LastImage
@@ -156,18 +156,18 @@ IF CMP(Compositing, 1)
 			END
 		END
 		// Turn layers for color group ON
-		tv_layercolor "show" "display" ColorIndex
+		tv_LayerColor "show" "display" ColorIndex
 		LayerCount = result
 		if CMP(LayerCount, 0) == 0
-			tv_clipcolor 0 ColorIndex
+			tv_Clipcolor 0 ColorIndex
 			PARSE result a b c d
-			tv_layercolor "getcolor" 0 ColorIndex
+			tv_LayerColor "getcolor" 0 ColorIndex
 			PARSE result d d R G B LayerGroupName
 			ImageSequenceName = ShotName"_"LayerGroupName
 			tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName"/"LayerGroupName'"'
 			ExportPath = RendersDir"/"ShotName"/"LayerGroupName"/"ImageSequenceName""PreFixedFrame"."extension
 			IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
-				tv_warn ("EXPORTING CAMERA!")
+				tv_Warn ("EXPORTING CAMERA!")
 				tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
 				tv_LockDisplay "Rendering...\n"WhiteSpace""ExportPath""WhiteSpace
 			ELSE

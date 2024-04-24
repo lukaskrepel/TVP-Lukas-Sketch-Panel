@@ -1,6 +1,6 @@
-tv_clipcurrentid
+tv_Clipcurrentid
 selCID = result
-tv_firstImage
+tv_FirstImage
 firstFrame = result
 tv_LayerGetImage
 parse result ThisFrame //BEFORE advancing cursor to next Head-frame test cursor-frame status
@@ -15,24 +15,24 @@ END
 // *** --
 // *********************************************************************************************
 FUNCTION SelectPrevClip()
-	tv_clipcurrentid
+	tv_Clipcurrentid
 	selCID = result
 	loop=1
 	i=0
 	WHILE loop
-		tv_clipenumid -1 i
+		tv_ClipEnumID -1 i
 	 	curCID = result
-		IF CMP(curCID,"none")==1
+		IF CMP(curCID, "none") == 1
 			SelectPrevFrame()
 			loop = 0
 		ELSE
-			tv_clipHidden curCID
-			IF CMP(result,"0")==1
+			tv_ClipHidden curCID
+			IF CMP(result, "0") == 1
 				IF CMP (curCID, selCID)
-					tv_clipenumid -1 i-1
+					tv_ClipEnumID -1 i-1
 					prevCID = result
-					IF CMP(prevCID,"none")==0
-						tv_clipSelect prevCID
+					IF CMP(prevCID, "none") == 0
+						tv_ClipSelect prevCID
 						tv_LastImage
 						tv_LayerImage result
 						loop = 0

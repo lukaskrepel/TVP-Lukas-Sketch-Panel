@@ -2,7 +2,7 @@ tv_getModifiers
 PARSE result shift ctrl alt
 increment = 1
 max = 26
-IF CMP(shift,"1")==1
+IF CMP(shift, "1") == 1
 	increment = -1
 end
 
@@ -71,11 +71,11 @@ ELSE
 		LayerID = result
 		IF CMP(LayerID, "none") == 0		
 			// START RUN ON LAYER
-			tv_layerselection LayerID
+			tv_LayerSelection LayerID
 			Selected = result
 			IF CMP(Selected, 1) == 1
 				tv_LayerColor "set" LayerID ColorIndex // Set ColorIndexgroup for selected layer
-				tv_layerrename LayerID Label // Rename selected layer
+				tv_Layerrename LayerID Label // Rename selected layer
 			END
 			LayerPos = LayerPos + 1
 		ELSE

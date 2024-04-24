@@ -1,161 +1,161 @@
-tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
-tv_layercolor hide Display 11 // Hide Overlay layer before rendering
+tv_LayerColor hide Display 12 // Hide Storyboard layer before rendering
+tv_LayerColor hide Display 11 // Hide Overlay layer before rendering
 
 // **************************************************************************************
 // *** SET LAYERS NAMED "*_Multiply" TO MULTIPLY, NAME ALL MULTIPLY LAYERS "*_Multiply"
 // **************************************************************************************
-searchWord = Multiply
+SearchWord = Multiply
 tv_LayerCurrentID
-Beginlayer = result
-layerRun = 1
-layerPos = 0
-WHILE layerRun
-	tv_LayerGetID layerPos	
+BeginLayer = result
+LayerRun = 1
+LayerPos = 0
+WHILE LayerRun
+	tv_LayerGetID LayerPos	
 	lid = result
-	IF CMP(lid,"NONE")==0
+	IF CMP(lid, "NONE") == 0
 		// START RUN ON LAYER
 		tv_LayerInfo lid
-		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-                last = LastPos(layerName,"_")
-                strlen = LEN(layerName)
+		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+                last = LastPos(LayerName, "_")
+                StrLen = LEN(LayerName)
                 IF CMP(last,0)
-                    firstWord = layerName
+                    FirstWord = LayerName
                 ELSE
-                firstWord = LeftString(layerName,last-1)
+                FirstWord = LeftString(LayerName,Last - 1)
                 END
-                secondWord = RightString(layerName,strlen-last)
-		IF CMP(secondWord, searchWord)
-			tv_layerblendingmode lid Multiply
+                SecondWord = RightString(LayerName, StrLen - Last)
+		IF CMP(SecondWord, SearchWord)
+			tv_Layerblendingmode lid Multiply
 		END
-                tv_layerblendingmode lid
-                IF CMP(result,Multiply)
-                        Multiplylayername = firstWord"_Multiply"
-                        tv_LayerRename lid Multiplylayername
+                tv_Layerblendingmode lid
+                IF CMP(result, Multiply)
+                        MultiplyLayerName = FirstWord"_Multiply"
+                        tv_LayerRename lid MultiplyLayerName
                 END
 		// END RUN ON LAYER
-		layerPos = layerPos+1	
+		LayerPos = LayerPos+1	
 	ELSE		
-		layerRun = 0
+		LayerRun = 0
 	END
 END
-tv_layerSet Beginlayer
+tv_LayerSet BeginLayer
 
 // ******************************************************************************
 // *** RENDER IN/OUT FRAMES AS .PNG SEQUENCE WITH ALPHA CHANNEL IN A SUBFOLDER
 // ******************************************************************************
 PARAM none
-tv_saveMode "JPG"
+tv_SaveMode "JPG"
 ext = ".jpg"
 //tv_AlphaSaveMode "NoPreMultiply"
 tv_Background "COLOR"
 tv_GetProjectName
-projectpath = result
-tv_WriteTextFile "Exists" '"'projectpath'"'
-testPath = result
-renderName = "FilenameBro"
+ProjectPath = result
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
+RenderName = "FilenameBro"
 
 // *** Check if file is saved ***
-IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
-	tv_warn "Please save project and try again!"
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath, "/") == 1 //TestPath is voor windows, slash-check is voor mac? Misschien is TestPath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_Warn "Please save project and try again!"
 	EXIT
 END
 
-tv_layerGetImage //Save Current Frame So I CAN SET IT AT THE END OF SCRIPT
-startImage = result
-projectpath = Replace(projectpath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
-strlen = LEN(projectpath)
-last = LastPos(projectpath,"/") //Getting the directory where the TVPP file is saved
-projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
-projectname = RightString(projectpath,strlen-last) //Getting the name of the tvpp file without the path
+tv_LayerGetImage //Save Current Frame So I CAN SET IT AT THE END OF SCRIPT
+StartImage = result
+ProjectPath = Replace(ProjectPath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+StrLen = LEN(ProjectPath)
+last = LastPos(ProjectPath, "/") //Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath,Last - 1) // Getting the directory where the TVPP file is saved
+ProjectName = RightString(ProjectPath, StrLen - Last) //Getting the name of the tvpp file without the path
 //Getting the name of the tvpp file without ".tvpp"
-last = LastPos(projectname,".")
-IF CMP(last,"0")==1
-	projectbase = projectname
+last = LastPos(ProjectName, ".")
+IF CMP(last, "0") == 1
+	ProjectBase = ProjectName
 ELSE
-	projectbase = LeftString(projectname,last-1)
+	ProjectBase = LeftString(ProjectName,Last - 1)
 END
-last_v = FindString(projectbase, "_v", 1) //File should be name _v001_L or something
-IF CMP(last_v,"0")==1
-	renderName = projectbase
+last_v = FindString(ProjectBase, "_v", 1) //File should be name _v001_L or something
+IF CMP(last_v, "0") == 1
+	RenderName = ProjectBase
 ELSE
-	renderName = LeftString(projectbase,last_v-1)
+	RenderName = LeftString(ProjectBase,last_v-1)
 END
 
 FOR i = 1 TO 1000
 	//todo kijken of seq1 map bestaat, zoja, seq2 maken, etc
-	folderName = renderName"_seq"i
-	saveDir = projectdir"/"folderName
-	tv_WriteTextFile "MkDir" '"'saveDir'"' //Now I create again
-	IF CMP (result,"Exists")==0 //Check if folder already exists
-		renderName = folderName
+	folderName = RenderName"_seq"i
+	SaveDir = ProjectDir"/"folderName
+	tv_WriteTextFile "MkDir" '"'SaveDir'"' //Now I create again
+	IF CMP (result, "Exists") == 0 //Check if folder already exists
+		RenderName = folderName
 		i = 1001
 	END
 END
 // ***********************************************************************************************************
 // Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 // ***********************************************************************************************************
-tv_markIn clip // get clip in
+tv_MarkIn clip // get clip in
 PARSE result frame state
-IF CMP(state,"set ")==1
-	inpoint = frame
+IF CMP(state, "set ") == 1
+	InPoint = frame
 ELSE
-	tv_firstImage
-	inpoint = result
+	tv_FirstImage
+	InPoint = result
 END
 //Get Clip Out
-tv_markOut clip
+tv_MarkOut clip
 PARSE result frame state
-IF CMP(state,"set ")==1
-	outpoint = frame
+IF CMP(state, "set ") == 1
+	OutPoint = frame
 ELSE
 	tv_LastImage
-	outpoint = result
+	OutPoint = result
 END
 
 // **************************
 // *** FindProject:In/Out
 // **************************
-// Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
-// for this I use tv_projectcurrentframe
-tv_layerImage inpoint
-tv_projectcurrentframe
-projIN = result
-tv_projectcurrentframe projIN
-tv_layerImage outpoint
-tv_projectcurrentframe
-projOUT = result
-tv_projectcurrentframe projOUT	
+// Because I have to use tv_Projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+// for this I use tv_Projectcurrentframe
+tv_LayerImage InPoint
+tv_Projectcurrentframe
+ProjIn = result
+tv_Projectcurrentframe ProjIn
+tv_LayerImage OutPoint
+tv_Projectcurrentframe
+ProjOut = result
+tv_Projectcurrentframe ProjOut	
 // *********************************
 // *** Getting the filename right
 // *********************************
-tv_startFrame
-startFrame = inpoint+result
-endFrame = outpoint+1
+tv_StartFrame
+StartFrame = InPoint + result
+endFrame = OutPoint+1
 //Making sure there's always _##### digits in the framebumber.
-IF startFrame < 10
-	frame = "_0000"startFrame
+IF StartFrame < 10
+	frame = "_0000"StartFrame
 ELSE
-	IF startFrame < 100
-		frame = "_000"startFrame
+	IF StartFrame < 100
+		frame = "_000"StartFrame
 	ELSE
-		IF startFrame < 1000
-			frame = "_00"startFrame
+		IF StartFrame < 1000
+			frame = "_00"StartFrame
 		ELSE
-			IF startFrame < 10000startFrame
+			IF StartFrame < 10000StartFrame
 				frame = "_0"
 			ELSE
-				frame ="_"startFrame
+				frame ="_"StartFrame
 			END
 		END
 	END
 END
-renderFile = saveDir"/"renderName""frame""ext
-tv_Request "Render frame "startFrame" to "endFrame" to '"renderFile"'?|OK|Cancel" //1|0
+RenderFile = SaveDir"/"RenderName""frame""ext
+tv_Request "Render frame "StartFrame" to "endFrame" to '"RenderFile"'?|OK|Cancel" //1|0
 IF result == 0
 	EXIT
 END
-tv_projectsavesequence '"'renderFile'"' projIN projOUT "camera"	//saving the image sequence
-tv_layerImage startImage //setting the current frame
+tv_Projectsavesequence '"'RenderFile'"' ProjIn ProjOut "camera"	//saving the image sequence
+tv_LayerImage StartImage //setting the current frame
 
 // *******************************
 // *** INCLUDE EXTRA FUNCTIONS

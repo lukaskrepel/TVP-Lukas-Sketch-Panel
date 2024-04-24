@@ -30,7 +30,7 @@ END
 IF Alt == 0 && Ctrl == 0
 	tv_ReadUserString "CutBrushRotation" "CurrentAngle" 0
 	CurrentAngle = result
-	tv_ReadUserSTring "CutBrushRotation" "RotAngle" DefaultIncrements
+	tv_ReadUserString "CutBrushRotation" "RotAngle" DefaultIncrements
 	RotAngle = Result
 	// Shift, rotate backwards
 	IF Shift == 1

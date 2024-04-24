@@ -1,11 +1,11 @@
 //Preparing
-tv_undoopenstack
-tv_updateundo
-tv_lockdisplay "Cropping clip to camera..."
+tv_UndoOpenStack
+tv_UpdateUndo
+tv_LockDisplay "Cropping clip to camera..."
 
 //Remembering current layer and frame
 tv_LayerCurrentID
-beginLayer = result
+BeginLayer = result
 tv_LayerGetImage
 beginImage = result
 
@@ -13,10 +13,10 @@ beginImage = result
 tv_getWidth
 parse result projectWidth
 tv_getHeight
-parse result projectHeight
+parse result ProjectHeight
 centX = projectWidth/2
-centY = projectHeight/2
-tv_frameRate 666 info
+centY = ProjectHeight/2
+tv_FrameRate 666 info
 PARSE result projectFramerate previewFramerate
 //Getting cam info
 tv_CameraEnumPoints
@@ -28,25 +28,25 @@ i = 0
 WHILE LayerRun
 	tv_LayerGetID i
 	curLID= result	
-	IF CMP(curLID,"NONE") == 0
+	IF CMP(curLID, "NONE") == 0
 		//*** START RUN ON LAYER
-        tv_layerSet curLID
+        tv_LayerSet curLID
         tv_LayerInfo
-		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-       	curImage = layerStart
+		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+       	CurImage = LayerStart
        	InstanceRun = 1
 		WHILE InstanceRun
-			tv_layerImage curImage
+			tv_LayerImage CurImage
 			//*** START RUN ON INSTANCE
 			//Show message
-			Message = CONCAT("Cropping layer to camera | Layer ",(layerName))
+			Message = CONCAT("Cropping layer to camera | Layer ",(LayerName))
 			Message = CONCAT(Message, (" | Image : "))
-			Message = CONCAT(Message, (curImage))
-			tv_lockdisplay Message
+			Message = CONCAT(Message, (CurImage))
+			tv_LockDisplay Message
 			//Getting image
-			tv_brushcut 0 0 projectWidth projectHeight 1 0
+			tv_brushcut 0 0 projectWidth ProjectHeight 1 0
 			//Adjusting image
-			newSize = projectHeight / (projectHeight*camSize) * 100
+			newSize = ProjectHeight / (ProjectHeight*camSize) * 100
 			newAngle = -camAngle
 			tv_restorebrush "size" newSize
 			tv_restorebrush "handle" camX camY
@@ -55,15 +55,15 @@ WHILE LayerRun
 			tv_dot centX centY
 			//*** END RUN ON INSTANCE
 			tv_exposureNext //Goes to next exposure
-			curImage = result
-			tv_exposureinfo curImage
+			CurImage = result
+			tv_exposureinfo CurImage
 			PARSE result type rest
-			IF CMP(type,"Head") == 0
+			IF CMP(type, "Head") == 0
 				InstanceRun = 0
 			END
 		END
 		//Recompute exposures because a lot might be ofscreen and we need less frames now.
-		tv_layerRecomputeExposure
+		tv_LayerRecomputeExposure
   		//*** END RUN ON LAYER
 		i = i + 1
 	ELSE		
@@ -71,12 +71,12 @@ WHILE LayerRun
 	END
 END
 //Resetting camera
-tv_camerainfo projectWidth projectHeight none projectFramerate 1
+tv_CameraInfo projectWidth ProjectHeight none projectFramerate 1
 tv_CameraSetPoint 0 centX centY 0 1
 
 //Resetting layer and frame to starting position
 tv_LayerImage beginImage
-tv_layerSet beginLayer
+tv_LayerSet BeginLayer
 
 //Finishing
 tv_undoclosestack

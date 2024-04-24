@@ -7,20 +7,20 @@ IF CMP(Shift, "1") == 1
 END
 
 Extension = jpg
-tv_savemode Extension
+tv_SaveMode Extension
 
 //Preparing
 message = "Rendering shot..."
-tv_lockdisplay message
+tv_LockDisplay message
 //
-tv_GetprojectName
+tv_GetProjectName
 ProjectPath = result
 
 tv_WriteTextFile "Exists" '"'ProjectPath'"'
 TestPath = result
 // *** Check if file is saved
-IF CMP(TestPath,ProjectPath)==0 || CMP(ProjectPath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
-	tv_warn "Please save project and try again!"
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath, "/") == 1 //TestPath is voor windows, slash-check is voor mac? Misschien is TestPath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_Warn "Please save project and try again!"
 	EXIT
 END
 
@@ -30,20 +30,20 @@ StrLen = LEN(ProjectPath)
 LastSlashPos = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
 ProjectDir = LeftString(ProjectPath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
 
-ProjectName = RightString(ProjectPath,StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
+ProjectName = RightString(ProjectPath, StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
 
 //
-LastPeriod = LastPos(ProjectName,".")
+LastPeriod = LastPos(ProjectName, ".")
 IF CMP(LastPeriod, "0") == 1
 	ProjectBase = ProjectName
 ELSE
-	Projectbase = LeftString(ProjectName, LastPeriod - 1)
+	ProjectBase = LeftString(ProjectName, LastPeriod - 1)
 END
-Last_v = FindString(Projectbase, "_v", 1) //  File should be name _v001_L or something
+Last_v = FindString(ProjectBase, "_v", 1) //  File should be name _v001_L or something
 IF CMP(Last_v, "0") == 1
-	ShotName = projectbase
+	ShotName = ProjectBase
 ELSE
-	ShotName = LeftString(projectbase, Last_v - 1)
+	ShotName = LeftString(ProjectBase, Last_v - 1)
 END
 
 // Go up a directory
@@ -55,18 +55,18 @@ EpisodeDir = LeftString(ShotsDir, LastSlashPos - 1) // Getting the directory whe
 // Renders directory
 RendersDir = EpisodeDir"/Renders"
 
-tv_markIn
+tv_MarkIn
 PARSE result Frame State
-IF CMP(State,"set ")==1
+IF CMP(State, "set ") == 1
 	InPoint = Frame
 ELSE
-	tv_firstImage
+	tv_FirstImage
 	InPoint = result
 END
 //Get Clip Out
-tv_markOut
+tv_MarkOut
 PARSE result Frame State
-IF CMP(State,"set ")==1
+IF CMP(State, "set ") == 1
 	OutPoint = Frame
 ELSE
 	tv_LastImage
@@ -87,7 +87,7 @@ tv_WriteTextFile "MkDir" '"'RendersDir'"'
 // Create directory for image sequence of current file
 tv_WriteTextFile "MkDir" '"'RendersDir"/"ShotName'"'
 IF CMP(IsPro(), 1) == 1 && CMP(Camera, 1) == 1
-	tv_warn ("CAM!")
+	tv_Warn ("CAM!")
 	tv_ProjectSaveSequence '"'ExportPath'"' "camera" InPoint OutPoint
 ELSE
 	// Save image sequence (TVP Standard! No camera)

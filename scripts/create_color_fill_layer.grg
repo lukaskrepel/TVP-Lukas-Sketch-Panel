@@ -24,7 +24,7 @@ IF CMP(Shift, "1") == 1 || CMP(ABColor, "none") || CMP(Overwrite, "none")
 	Overwrite = result
 	tv_WriteUserString ScriptName "Overwrite" Overwrite
 	//
-	tv_warn ("New settings saved.\n Click button again to create color fill layer.")
+	tv_Warn ("New settings saved.\n Click button again to create color fill layer.")
 	EXIT
 END
 
@@ -33,7 +33,7 @@ END
 tv_UndoOpenStack
 
 // Remember starting paper
-tv_paperinfo
+tv_Paperinfo
 beginPaper = result
 PARSE result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
 
@@ -55,10 +55,10 @@ END
 Position = LinePosition - 1 // init counter
 tv_LayerGetID Position
 LayerID = result // init LayerID
-While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+While CMP(LayerID, "none") == 0 // loop through all layers to find _color layers
 	tv_LayerGetID Position // get LayerID
 	LayerID = result
-	//tv_warn ("Position: "Position"   LayerID: "LayerID)
+	//tv_Warn ("Position: "Position"   LayerID: "LayerID)
 	tv_LayerSet LayerID
 	tv_LayerDisplay LayerID Off
 	Position = Position - 1 // go up only (counter)
@@ -82,7 +82,7 @@ tv_LayerSelect First TotalFrames // select all frames
 IF CMP(Overwrite, 1) == 1
 	LayerID = 0	// init LayerID
 	Counter = 0 // init counter
-	While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+	While CMP(LayerID, "none") == 0 // loop through all layers to find _color layers
 		tv_LayerGetID Counter // get LayerID
 		LayerID = result
 		tv_LayerInfo LayerID // get LayerInfo
@@ -111,7 +111,7 @@ Y1 = 0
 tv_GetActiveTool // save tool
 Tool = result
 PARSE result ToolType d	// get type of tool
-tv_cmd ToolType Mode 0 // set mode to color
+tv_Cmd ToolType Mode 0 // set mode to color
 tv_GetActiveShape // save shape setting
 Shape = result // store activeshape
 
@@ -137,13 +137,13 @@ For CurrentFrame = First to Last // loop to fill frames
 	IF CMP(FrameType, "Head") // if frame type is head(instance) then create filled figures for this frame on the Fill Layer 
 		tv_LayerSet ColorLayerID // select Color layer
 		tv_ExposureBreak CurrentFrame // convert exposure frame to instant if necessary
-		tv_clear // clear Fill Layer
+		tv_Clear // clear Fill Layer
 		tv_GetAPen
 		APenColor = result // backup A color
 		tv_SetAPen 0 0 0 // set A color to black to use as mask
 		tv_SetAPen APenColor // restore A color
 		tv_Fill X1 Y1 0	 // mask contiguous BACKGROUND around figures
-		tv_pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// change black mask into fill color
+		tv_Pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// change black mask into fill color
 		tv_LayerSet OriginalLayerID	// select line layer
 	END
 END
@@ -151,10 +151,10 @@ END
 // Loop trough layers above line layer and set opacity back to 100% - TODO instead of 100% remember opacity in first loop and reset it here
 LayerID = 0	// init LayerID
 Position = LinePosition - 1 // init counter
-While CMP(LayerID,"none") == 0 // loop through all layers to find _color layers
+While CMP(LayerID, "none") == 0 // loop through all layers to find _color layers
 	tv_LayerGetID Position // get LayerID
 	LayerID = result
-	//tv_warn ("Position: "Position"   LayerID: "LayerID)
+	//tv_Warn ("Position: "Position"   LayerID: "LayerID)
 	tv_LayerSet LayerID
 	tv_LayerDisplay LayerID On
 	Position = Position - 1 // go up only (counter)
@@ -163,10 +163,10 @@ tv_LayerSet OriginalLayerID
 // All layers above have been set to 100% - TODO instead of 100% remember opacity in first loop and reset it here
 
 // Match post/pre-behaviour of color layer to line layer
-tv_layerprebehavior OriginalLayerID
-tv_layerprebehavior ColorLayerID result
-tv_layerpostbehavior OriginalLayerID
-tv_layerpostbehavior ColorLayerID result
+tv_Layerprebehavior OriginalLayerID
+tv_Layerprebehavior ColorLayerID result
+tv_LayerPostbehavior OriginalLayerID
+tv_LayerPostbehavior ColorLayerID result
 // Match color group/label of color layer to line layer
 tv_LayerColor GET OriginalLayerID
 tv_LayerColor SET ColorLayerID result
@@ -178,8 +178,8 @@ tv_UndoCloseStack
 
 tv_SetActiveShape Shape	// restore shape parameters
 tv_AreaInit SavedFillingShape // restore FillingShape's original parameters
-tv_cmd Tool	// restore tool and parameters
-tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
+tv_Cmd Tool	// restore tool and parameters
+tv_Paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
 
 // Include extra functions
 #INCLUDE "include.grg"

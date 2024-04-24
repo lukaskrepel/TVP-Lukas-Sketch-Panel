@@ -5,4 +5,4 @@ tv_LayerColor "set" 0 25
 tv_LayerPostBehavior 0 hold
 tv_LayerGetImage
 parse result CurrentFrame
-tv_layershift LayerID CurrentFrame
+tv_Layershift LayerID CurrentFrame

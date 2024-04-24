@@ -4,67 +4,67 @@
  FixMultiply()
 
 PARAM none
-tv_saveMode "PNG"
+tv_SaveMode "PNG"
 ext = ".png"
 tv_AlphaSaveMode "NoPreMultiply"
 tv_Background "NONE"
 tv_GetProjectName
-projectpath = result
-tv_WriteTextFile "Exists" '"'projectpath'"'
-testPath = result
+ProjectPath = result
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
 renderFolder = "TVP_Output"
 
-IF CMP(testPath,projectpath)==0 || CMP(projectpath,"/")==1 //testpath is voor windows, slash-check is voor mac? Misschien is testpath wel overbodig en kan t uberhaupt met alleen de slash-check.
-	tv_warn "Please save project and try again!"
+IF CMP(TestPath,ProjectPath) == 0 || CMP(ProjectPath, "/") == 1 //TestPath is voor windows, slash-check is voor mac? Misschien is TestPath wel overbodig en kan t uberhaupt met alleen de slash-check.
+	tv_Warn "Please save project and try again!"
 ELSE
-	tv_layerGetImage //Save Current Frame So I CAN SET IT AT THE END OF SCRIPT
-	startImage = result
-	projectpath = Replace(projectpath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
-	strlen = LEN(projectpath)
-	last = LastPos(projectpath,"/") //Getting the directory where the TVPP file is saved
-	projectdir = LeftString(projectpath,last-1) // Getting the directory where the TVPP file is saved
-	projectname = RightString(projectpath,strlen-last) //Getting the name of the tvpp file without the path
+	tv_LayerGetImage //Save Current Frame So I CAN SET IT AT THE END OF SCRIPT
+	StartImage = result
+	ProjectPath = Replace(ProjectPath,'\','/') //MAKING THE SCRIPT WORK ON WINDOWS AND MAC , Windows has directory seperated by \ and mac and linux with /
+	StrLen = LEN(ProjectPath)
+	last = LastPos(ProjectPath, "/") //Getting the directory where the TVPP file is saved
+	ProjectDir = LeftString(ProjectPath,Last - 1) // Getting the directory where the TVPP file is saved
+	ProjectName = RightString(ProjectPath, StrLen - Last) //Getting the name of the tvpp file without the path
 	//Getting the name of the tvpp file without ".tvpp"
-	last = LastPos(projectname,".")
-	IF CMP(last,"0")==1
-		projectbase = projectname
+	last = LastPos(ProjectName, ".")
+	IF CMP(last, "0") == 1
+		ProjectBase = ProjectName
 	ELSE
-		projectbase = LeftString(projectname,last-1)
+		ProjectBase = LeftString(ProjectName,Last - 1)
 	END
-	last_v = FindString(projectbase, "_v", 1) //File should be name _v001_L or something
-	IF CMP(last_v,"0")==1
-		renderName = projectbase
+	last_v = FindString(ProjectBase, "_v", 1) //File should be name _v001_L or something
+	IF CMP(last_v, "0") == 1
+		RenderName = ProjectBase
 	ELSE
-		renderName = LeftString(projectbase,last_v-1)
+		RenderName = LeftString(ProjectBase,last_v-1)
 	END
-	tv_ReqString "Sequence name|"renderName
-	IF CMP(result, "Cancel")==1
+	tv_ReqString "Sequence name|"RenderName
+	IF CMP(result, "Cancel") == 1
 		EXIT
 	ELSE
-		renderName = result
+		RenderName = result
 	END
 	//todo vragen of renderFolder TVP_Output moet zijn of iets anders.
 	tv_ReqString "Render folder|TVP_Output"
-	IF CMP(result, "Cancel")==1
+	IF CMP(result, "Cancel") == 1
 		EXIT
 	END
 	renderFolder = result
-	saveDir = projectdir"/"renderFolder // Create the dir with the TIFF is saved in	print renderName	
+	SaveDir = ProjectDir"/"renderFolder // Create the dir with the TIFF is saved in	print RenderName	
 	//WAARSCHUWING: shot 001 moet "/001" heten.
-	//tv_WriteTextFile "Remove" '"'saveDir'"' //First I remove it or delete it so old files will be deleted!!
-	tv_WriteTextFile "MkDir" '"'saveDir'"' //Now I create again
-	IF CMP (result,"Exists")==1 //Check if folder already exists
-		//print "Folder already exists: "saveDir
+	//tv_WriteTextFile "Remove" '"'SaveDir'"' //First I remove it or delete it so old files will be deleted!!
+	tv_WriteTextFile "MkDir" '"'SaveDir'"' //Now I create again
+	IF CMP (result, "Exists") == 1 //Check if folder already exists
+		//print "Folder already exists: "SaveDir
 		tv_Request "Folder already exists.|Continue|Cancel" //1|0
 		IF result == 0
 			EXIT
 		END
 		tv_Request "Keep existing files?|Keep existing files, overwrite/add new images|Delete existing files" //1|0
 		IF result == 0
-			tv_Request "Are you sure you want to delete all files in ''"saveDir"''?|Delete files|Cancel" //1|0
+			tv_Request "Are you sure you want to delete all files in ''"SaveDir"''?|Delete files|Cancel" //1|0
 			IF result == 1
-				tv_WriteTextFile "Remove" '"'saveDir'"' //Delete folder
-				tv_WriteTextFile "MkDir" '"'saveDir'"' //Recreate folder
+				tv_WriteTextFile "Remove" '"'SaveDir'"' //Delete folder
+				tv_WriteTextFile "MkDir" '"'SaveDir'"' //Recreate folder
 			ELSE
 				EXIT
 			END
@@ -73,63 +73,63 @@ ELSE
 	// ***********************************************************************************************************
 	// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 	// ***********************************************************************************************************
-	tv_markIn clip // get clip in
+	tv_MarkIn clip // get clip in
 	PARSE result frame state
-	IF CMP(state,"set ")==1
-		inpoint = frame
+	IF CMP(state, "set ") == 1
+		InPoint = frame
 	ELSE
-		tv_firstImage
-		inpoint = result
+		tv_FirstImage
+		InPoint = result
 	END
 	//Get Clip Out
-	tv_markOut clip
+	tv_MarkOut clip
 	PARSE result frame state
-	IF CMP(state,"set ")==1
-		outpoint = frame
+	IF CMP(state, "set ") == 1
+		OutPoint = frame
 	ELSE
 		tv_LastImage
-		outpoint = result
+		OutPoint = result
 	END
 	
 	// **************************
 	// *** findProject:In/Out
 	// **************************
-	// Because I have to use tv_projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
-	// for this I use tv_projectcurrentframe
-	tv_layerImage inpoint
-	tv_projectcurrentframe
-	projIN = result
-	tv_projectcurrentframe projIN
-	tv_layerImage outpoint
-	tv_projectcurrentframe
-	projOUT = result
-	tv_projectcurrentframe projOUT	
+	// Because I have to use tv_Projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
+	// for this I use tv_Projectcurrentframe
+	tv_LayerImage InPoint
+	tv_Projectcurrentframe
+	ProjIn = result
+	tv_Projectcurrentframe ProjIn
+	tv_LayerImage OutPoint
+	tv_Projectcurrentframe
+	ProjOut = result
+	tv_Projectcurrentframe ProjOut	
 	// *********************************
 	// *** Getting the filename right
 	// *********************************
-	tv_startFrame
-	startFrame = inpoint+result
+	tv_StartFrame
+	StartFrame = InPoint + result
 	//Making sure there's always _##### digits in the framebumber.
-	IF startFrame < 10
-		startFrame = "_0000"startFrame
+	IF StartFrame < 10
+		StartFrame = "_0000"StartFrame
 	ELSE
-		IF startFrame < 100
-			startFrame = "_000"startFrame
+		IF StartFrame < 100
+			StartFrame = "_000"StartFrame
 		ELSE
-			IF startFrame < 1000
-				startFrame = "_00"startFrame
+			IF StartFrame < 1000
+				StartFrame = "_00"StartFrame
 			ELSE
-				IF startFrame < 10000
-					startFrame = "_0"startFrame
+				IF StartFrame < 10000
+					StartFrame = "_0"StartFrame
 				ELSE
-					startFrame ="_"startFrame
+					StartFrame ="_"StartFrame
 				END
 			END
 		END
 	END
-	renderFile = saveDir"/"renderName""startFrame""ext
-	tv_projectsavesequence '"'renderFile'"' projIN projOUT "camera"	//saving the image sequence
-	tv_layerImage startImage //setting the current frame
+	RenderFile = SaveDir"/"RenderName""StartFrame""ext
+	tv_Projectsavesequence '"'RenderFile'"' ProjIn ProjOut "camera"	//saving the image sequence
+	tv_LayerImage StartImage //setting the current frame
 END
 
 // *******************************

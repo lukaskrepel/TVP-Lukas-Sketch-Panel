@@ -8,52 +8,52 @@
 // *** Wordt in geen enkel script gebruikt, voor backup purposes staat ie hier.
 // ********************************************************************************
 FUNCTION HideStoryboardAndOverlayLayers()
-	tv_layercolor hide Display 12 // Hide Storyboard layer before rendering
-	tv_layercolor hide Display 11 // Hide Overlay layer before rendering
+	tv_LayerColor hide Display 12 // Hide Storyboard layer before rendering
+	tv_LayerColor hide Display 11 // Hide Overlay layer before rendering
 END
 
 // ***********************
 // *** Render images and save XML
 // ***********************
-FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
-	renderStart = inpoint
-	renderEnd = outpoint
-	offsetSTART= renderStart - inpoint + 1
-	offsetEND = renderEnd - inpoint + 1
-	ClipXMLfile = saveDir"/"clipName".xml" //!!!!!!!!!!!!!!!!!!
-	SequenceIn = inpoint + 1
-	SequenceOut = outpoint + 1
+FUNCTION ExportImagesAndXML(SaveDir, ClipName, InPoint, OutPoint, clipOffset)
+	renderStart = InPoint
+	renderEnd = OutPoint
+	offsetSTART= renderStart - InPoint + 1
+	offsetEND = renderEnd - InPoint + 1
+	ClipXMLfile = SaveDir"/"ClipName".xml" //!!!!!!!!!!!!!!!!!!
+	SequenceIn = InPoint + 1
+	SequenceOut = OutPoint + 1
 	tv_ProjectInfo
-	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFrameRate projectField ProjectStartframe
-	XMLbegin(ClipXMLfile, clipName, SequenceIn, SequenceOut, ProjectFrameRate)
+	PARSE result ProjectName ProjectWidth ProjectHeight projectPixelAspect ProjectFrameRate projectField ProjectStartFrame
+	XMLbegin(ClipXMLfile, ClipName, SequenceIn, SequenceOut, ProjectFrameRate)
 	ClipIn = InPoint
 	ClipOut = OutPoint
 	FileFrameNumber = ClipIn + 1
 	PrefixedFrame = addZeros("_", FileFrameNumber, 5)
-	ClipSeqPath = saveDir"/"clipName""prefixedFrame""ext
+	ClipSeqPath = SaveDir"/"ClipName""prefixedFrame""ext
 	WhiteSpace = "    "
 	//Message = "Rendering...\n"WhiteSpace""ClipSeqPath""WhiteSpace
-	//tv_lockdisplay Message
+	//tv_LockDisplay Message
 	// -----------------------------------------------------------------------------------------------
 	// TODO make camera optional for Pro version. Currently disabled
 	//IF CMP(IsPro(), 1) == 1
 	//	ClipIn = InPoint + ClipOffset
 	//	ClipOut = ClipOut + ClipOffset
-	//	tv_warn ClipSeqPath" "ClipIn" "ClipOut
+	//	tv_Warn ClipSeqPath" "ClipIn" "ClipOut
 	//	tv_ProjectSaveSequence '"'ClipSeqPath'"' "camera" ClipIn ClipOut
 	//ELSE
 		tv_SaveSequence '"'ClipSeqPath'"' ClipIn ClipOut // Default for TVP Standard, and non-camera too.
 	//END
 	// -----------------------------------------------------------------------------------------------
 	// *** Start writing XML data per frame
-	curImage = renderStart
-	WHILE curImage <= renderEnd
-		tv_layerImage curImage
-		offsetImage = curImage - inpoint + 1
+	CurImage = renderStart
+	WHILE CurImage <= renderEnd
+		tv_LayerImage CurImage
+		offsetImage = CurImage - InPoint + 1
 		frame = offsetImage + renderStart
 		prefixedFrame = addZeros("_",frame,5)
-		FileName = clipName""prefixedFrame""ext
-		FilePath = saveDir"/"FileName
+		FileName = ClipName""prefixedFrame""ext
+		FilePath = SaveDir"/"FileName
 		// Make filepath relative
 		SecondLastSlashPos = SecondLastPos(FilePath, "/")
 		RelativeFilePath = RightString(FilePath, LEN(FilePath) - SecondLastSlashPos)
@@ -62,20 +62,20 @@ FUNCTION ExportImagesAndXML(saveDir, clipName, inpoint, outpoint, clipOffset)
 		OffsetFrame = frame + clipOffset
 		FrameStart = frame
 		tv_exposureNext //Goes to next exposure
-		curImage = result
+		CurImage = result
 		// *** Find next frame
-		tv_layerImage curImage
-		offsetImage = curImage - inpoint + 1
+		tv_LayerImage CurImage
+		offsetImage = CurImage - InPoint + 1
 		frame = offsetImage + renderStart
 		FrameEnd = frame
 		// *** Check if we reached the last frame
-		tv_exposureinfo curImage
+		tv_exposureinfo CurImage
 		PARSE result type rest
 		XMLimage(ClipXMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, 0) //todo moet ClipXMLfile een parameter zijn?
-		XMLimage(TotalXMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, addsomeframes) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
-		IF CMP(type,"Head")==0 || curImage >= SequenceOut //todo OF ALS we verder zijn dan outpointje
-			addSomeFrames = addSomeFrames - inpoint - 1 + FrameEnd
-			curImage = renderEnd + 1
+		XMLimage(TotalXMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ProjectWidth, ProjectHeight, AddSomeFrames) //todo TotalXMLfile bestaat niet altijd, alleen als je meerdere clips rendert, checken op null?
+		IF CMP(type, "Head") == 0 || CurImage >= SequenceOut //todo OF ALS we verder zijn dan OutPointje
+			AddSomeFrames = AddSomeFrames - InPoint - 1 + FrameEnd
+			CurImage = renderEnd + 1
 		END
 	END
 	XMLend(ClipXMLfile)
@@ -85,41 +85,41 @@ END
 // *** Set layers named "*_Multiply" to multiply. And name all multiplied layers "*_Multiply"
 // *********************************************************************************************
 FUNCTION FixMultiply()
-	searchWord = Multiply
+	SearchWord = Multiply
 	tv_LayerCurrentID
-	beginLayer = result
-	layerRun = 1
-	layerPos = 0
-	WHILE layerRun
-		tv_LayerGetID layerPos
+	BeginLayer = result
+	LayerRun = 1
+	LayerPos = 0
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
 		layerID = result
-		IF CMP(layerID,"NONE")==0
+		IF CMP(layerID, "NONE") == 0
 			// START RUN ON LAYER
 			tv_LayerInfo layerID
-			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-	        last = LastPos(layerName,"_")
-	        strlen = LEN(layerName)
+			PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+	        last = LastPos(LayerName, "_")
+	        StrLen = LEN(LayerName)
 	        IF CMP(last,0)
-                firstWord = layerName
+                FirstWord = LayerName
             ELSE
-  		        firstWord = LeftString(layerName,last-1)
+  		        FirstWord = LeftString(LayerName,Last - 1)
             END
-            secondWord = RightString(layerName,strlen-last)
-			IF CMP(secondWord, searchWord)
-				tv_layerblendingmode layerID Multiply
+            SecondWord = RightString(LayerName, StrLen - Last)
+			IF CMP(SecondWord, SearchWord)
+				tv_Layerblendingmode layerID Multiply
 			END
-            tv_layerblendingmode layerID
-	        IF CMP(result,Multiply)
-                Multiplylayername = firstWord"_Multiply"
-                tv_LayerRename layerID Multiplylayername
+            tv_Layerblendingmode layerID
+	        IF CMP(result, Multiply)
+                MultiplyLayerName = FirstWord"_Multiply"
+                tv_LayerRename layerID MultiplyLayerName
 	        END
 			// END RUN ON LAYER
-			layerPos = layerPos + 1	
+			LayerPos = LayerPos + 1	
 		ELSE		
-			layerRun = 0
+			LayerRun = 0
 		END
 	END
-	tv_layerSet beginLayer
+	tv_LayerSet BeginLayer
 END
 
 
@@ -171,16 +171,16 @@ END
 // ******************************
 FUNCTION CreateMohoFile(sourceFile, newFile)
 	message = "Creating Moho file "newFile
-	tv_lockdisplay message
+	tv_LockDisplay message
 	loop = 1
 	line = 0
 	WHILE (loop == 1)
 		tv_readtextfile  line '"'sourceFile'"'
 		PARSE result eof a b c d e f g h i j k l m n o p q r s t u v w x y z
 		string = a""b""c""d""e""f""g""h""i""j""k""l""m""n""o""p""q""r""s""t""u""v""w""x""y""
-		tv_warn a
-		tv_warn b
-		tv_warn string
+		tv_Warn a
+		tv_Warn b
+		tv_Warn string
 		IF (CMP(eof, "EOF") == 1)
 			loop = 0
 		ELSE
@@ -205,7 +205,7 @@ FUNCTION XMLbegin(XMLfile, SequenceName, SequenceIn, SequenceOut, ProjectFrameRa
 	SequenceOut = SequenceOut * (NewFrameRate / ProjectFrameRate)
 	//
 	Duration = SequenceOut - SequenceIn // Nodig? // Klopt??? // TODO waarom is In vaak 8?
-	//tv_warn ("IN OUT DUR "SequenceIn" "SequenceOut" "Duration)
+	//tv_Warn ("IN OUT DUR "SequenceIn" "SequenceOut" "Duration)
 
 	tv_WriteTextFile "Create" '"'XMLfile'"' "<xmeml version="'"4"'">" //klopt
 	SequenceNameWithQuotes = '"'SequenceName'"'
@@ -251,9 +251,9 @@ end
 // ****************************************************
 // *** Write middle part of XML file, for each image
 // ****************************************************
-FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ImageWidth, ImageHeigth, addsomeframes)
-	FrameStart = FrameStart - inpoint - 1 + addSomeFrames
-	FrameEnd = FrameEnd - inpoint - 1 + addSomeFrames
+FUNCTION XMLimage(XMLfile, FileName, FilePath, ProjectFrameRate, FrameStart, FrameEnd, ImageWidth, ImageHeigth, AddSomeFrames)
+	FrameStart = FrameStart - InPoint - 1 + AddSomeFrames
+	FrameEnd = FrameEnd - InPoint - 1 + AddSomeFrames
 	FileNameWithQuotes = '"'FileName'"'
 
 	// Convert values to 25 fps
@@ -328,27 +328,27 @@ END
 // *********************************************************************************************
 FUNCTION DeleteInvisibleLayers()
 	tv_LayerCurrentID
-	beginLayer = result
-	layerRun = 1
-	layerPos = 0
-	WHILE layerRun
-		tv_LayerGetID layerPos
+	BeginLayer = result
+	LayerRun = 1
+	LayerPos = 0
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
 		layerID = result
 		IF CMP(layerID, "none") == 0
 			// START RUN ON LAYER
 			tv_LayerInfo layerID
-			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-			IF CMP(layerdisplay, "OFF")
-				tv_layerKill layerID
-				layerPos = layerPos-1 //Layer has been deleted, so we need to make sure the next layer does not get skipped.
+			PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+			IF CMP(LayerDisplay, "OFF")
+				tv_LayerKill layerID
+				LayerPos = LayerPos-1 //Layer has been deleted, so we need to make sure the next layer does not get skipped.
 			END
 			// END RUN ON LAYER
-			layerPos = layerPos+1	
+			LayerPos = LayerPos+1	
 		ELSE		
-			layerRun = 0
+			LayerRun = 0
 		END
 	END
-	tv_layerSet beginLayer
+	tv_LayerSet BeginLayer
 END
 
 // ***************************************************
@@ -396,7 +396,7 @@ FUNCTION Find(string,car,start)
 	i = start
 	size = LEN(string)
 	
-	IF ((start <= 0) || (start > size) || (CMP(car,"") == 1))
+	IF ((start <= 0) || (start > size) || (CMP(car, "") == 1))
 		RETURN -1
 	END
 	DO
@@ -530,7 +530,7 @@ FUNCTION FindString(string,search,start)
 	lstr = LEN(string)
 	lsrch = LEN(search)
 	
-	IF (CMP(search,"") == 1)
+	IF (CMP(search, "") == 1)
 		RETURN -1
 	END
 	WHILE ((pos = Find(string,CHAR(search,1),lastpos)) > 0)
@@ -912,7 +912,7 @@ FUNCTION NewParse(string,divider)
 	pos = 1
 	workstr = string
 	
-	IF ((CMP(workstr,"") == 0) && (CMP(divider,"") == 0) && (CMP(workstr,divider) == 0))
+	IF ((CMP(workstr, "") == 0) && (CMP(divider, "") == 0) && (CMP(workstr,divider) == 0))
 		WHILE ((pos = Find(workstr,divider,1)) > 0)
 			IF ((pos != 1) && (pos != LEN(workstr)))
 				i = i+1
@@ -997,15 +997,15 @@ FUNCTION FileRequester(title,path,file,pattern)
 	fullname = Result
 	size = LEN(fullname)
 	
-	IF (CMP(fullname,"Cancel") == 1)
+	IF (CMP(fullname, "Cancel") == 1)
 		RETURN 0
 	ELSE
-		IF ((point = LastPos(fullname,".")) != 0)
+		IF ((point = LastPos(fullname, ".")) != 0)
 			extension = CUT(fullname,point+1,size)
 			size = point-1
 			fullname = CUT(fullname,1,size)
 		END
-		IF ((slash = LastPos(fullname,"\")) != 0)
+		IF ((slash = LastPos(fullname, "\")) != 0)
 			filename = CUT(fullname,slash+1,size)
 			size = slash-1
 			pathname = CUT(fullname,1,size)
@@ -1025,10 +1025,10 @@ END
 //RETURNS : Boolean 
 //DEPENDS : project_getPath()
 FUNCTION tvp_canWrite()
-	LOCAL projectpath rest project canWrite
-	projectpath =  project_getPath()
-	tv_writetextfile "Exists" projectpath
-	IF CMP(result,"Forbidden")==1
+	LOCAL ProjectPath rest project canWrite
+	ProjectPath =  project_getPath()
+	tv_writetextfile "Exists" ProjectPath
+	IF CMP(result, "Forbidden") == 1
 		canWrite = 0
 	ELSE
 		canWrite = 1
@@ -1046,7 +1046,7 @@ FUNCTION tvp_getSlash()
 
 	tv_version "ComputerOS"
 
-	IF CMP(result,"WIN32")==1 || CMP(result,"WIN64")==1 
+	IF CMP(result, "WIN32") == 1 || CMP(result, "WIN64") == 1 
 		mySlash = "\"
 	ELSE
 		mySlash = "/"
@@ -1074,12 +1074,12 @@ END
 //Returns a Boolean to tell if current Project is saved or not
 //DEPEND on project_getPath()
 FUNCTION project_isSaved()
-	LOCAL projectpath exists slash myResult
-	projectpath =  project_getPath()
-	tv_writetextfile "Exists" projectpath
-	exists = projectpath 
+	LOCAL ProjectPath exists slash myResult
+	ProjectPath =  project_getPath()
+	tv_writetextfile "Exists" ProjectPath
+	exists = ProjectPath 
 	slash = tvp_getSlash()
-	IF CMP(exists,projectpath)!=1||CMP(exists,slash )
+	IF CMP(exists,ProjectPath)!=1||CMP(exists,slash )
 		myResult = 0
 	ELSE
 		myResult = 1
@@ -1107,19 +1107,19 @@ END
 
 //{{{ project_getBaseName()
 FUNCTION project_getBaseName()
-	LOCAL projectName strlen last projectbase
-	projectName = project_getName()
-	IF CMP(projectName,"-1")==1
+	LOCAL ProjectName StrLen last ProjectBase
+	ProjectName = project_getName()
+	IF CMP(ProjectName, "-1") == 1
 		result = -1
 	ELSE
-		strlen = LEN(projectname)
-		last = LastPos(projectname,".")
-		IF CMP(last,"0")==1
-			projectbase = projectname
+		StrLen = LEN(ProjectName)
+		last = LastPos(ProjectName, ".")
+		IF CMP(last, "0") == 1
+			ProjectBase = ProjectName
 		ELSE
-			projectbase = LeftString(projectname,last-1)
+			ProjectBase = LeftString(ProjectName,Last - 1)
 		END
-		result = projectbase
+		result = ProjectBase
 	END
 	RETURN result
 END
@@ -1165,14 +1165,14 @@ FUNCTION project_incrementalSave(divider,part,ask,minimumDigitLength)
 	//CHANGELOG
 	//2014-11-11 project name can start with a number like "0001_v01.tvpp" without the leading zeros disappear when saving
 	project_isSaved()
-	IF CMP(result,"1")1==1
+	IF CMP(result, "1")1==1
 		name = project_getName()
 		slash = tvp_getSlash()
 		name="/"name
 		dir = project_getParent()
 		string_incrementalPart(name,divider,part,minimumDigitLength)
 		newName = dir""result
-		IF CMP(ask,"1")==1
+		IF CMP(ask, "1") == 1
 			tv_Request "Increment and save : "newName" |Save|CANCEL"
 			IF result
 				tv_SaveProject newName
@@ -1220,37 +1220,37 @@ END
 FUNCTION char_isDigit(char)
 	LOCAL myResult
 	myResult = 0
-	IF CMP('"0"',char)==1
+	IF CMP('"0"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"1"',char)==1
+	IF CMP('"1"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"2"',char)==1
+	IF CMP('"2"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"3"',char)==1
+	IF CMP('"3"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"4"',char)==1
+	IF CMP('"4"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"5"',char)==1
+	IF CMP('"5"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"6"',char)==1
+	IF CMP('"6"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"7"',char)==1
+	IF CMP('"7"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"8"',char)==1
+	IF CMP('"8"',char) == 1
 		myResult = 1
 	END
-	IF CMP('"9"',char)==1
+	IF CMP('"9"',char) == 1
 		myResult = 1
 	END
-	IF CMP('" "',char)==1
+	IF CMP('" "',char) == 1
 		myResult = 0
 	END
 	result = myResult
@@ -1387,7 +1387,7 @@ END
 
 //{{{ file_getExt(path)
 FUNCTION file_getExt(path)
-	newParse(path,".")
+	newParse(path, ".")
 	result = var(2)
 	RETURN result
 END
@@ -1395,15 +1395,15 @@ END
 
 //{{{ file_getParent(path)
 FUNCTION file_getParent(path)
-	LOCAL strlen last 
+	LOCAL StrLen last 
 	path = Replace(path,'\','/')
-	strlen = LEN(path)
-	last = LastPos(path,"/")
-	path = LeftString(path,last-1)
-	IF CMP(last,strlen)==1
-		strlen = LEN(path)
-		last = LastPos(path,"/")
-		path = LeftString(path,last-1)
+	StrLen = LEN(path)
+	last = LastPos(path, "/")
+	path = LeftString(path,Last - 1)
+	IF CMP(last, StrLen) == 1
+		StrLen = LEN(path)
+		last = LastPos(path, "/")
+		path = LeftString(path,Last - 1)
 	END
 	result = path
 	RETURN result
@@ -1413,12 +1413,12 @@ END
 //{{{ file_exists(path)
 FUNCTION file_exists(path)
 	LOCAL exists
-	IF CMP(path,"0")==1
+	IF CMP(path, "0") == 1
 		exists = 0
 	ELSE
 		tv_WriteTextFile "Exists" path
 		exists=result
-		if CMP(exists,path)==1
+		if CMP(exists,path) == 1
 			exists = 1
 		ELSE
 			exists = 0
@@ -1431,14 +1431,14 @@ END
 
 //{{{ file_getName(path)
 FUNCTION file_getName(path)
-	LOCAL  FileName strlen last
-	IF CMP(path,"/")==1 || CMP(path,"\")==1
+	LOCAL  FileName StrLen last
+	IF CMP(path, "/") == 1 || CMP(path, "\") == 1
 		FileName = -1
 	ELSE
 		path = Replace(path,'\','/')
-		strlen = LEN(path)
+		StrLen = LEN(path)
 		last = LastPos(path,'/')
-		FileName = RightString(path,strlen-last)
+		FileName = RightString(path, StrLen - Last)
 		
 	END
 	result = FileName
@@ -1453,7 +1453,7 @@ FUNCTION file_readTextFile(textFilePath)
 	tv_WriteTextFile "Exists" textFilePath
 	fileExists = result
 	
-	IF CMP(fileExists,textFilePath)==1
+	IF CMP(fileExists,textFilePath) == 1
 		loop = 1
 		i=0
 		WHILE loop==1
@@ -1490,18 +1490,18 @@ END
 
 FUNCTION count_layers()
 	// Count layers:
-	layerRun = 1
-	layerPos = 0
-	WHILE layerRun
-		tv_LayerGetID layerPos
+	LayerRun = 1
+	LayerPos = 0
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
 		lid = result
-		IF CMP(lid,"NONE")==0
-			layerPos = layerPos+1
+		IF CMP(lid, "NONE") == 0
+			LayerPos = LayerPos+1
 		ELSE		
-			layerRun = 0
+			LayerRun = 0
 		END
 	END
-	layerCount = layerPos - 1
+	layerCount = LayerPos - 1
 	RETURN layerCount
 END
 
@@ -1513,36 +1513,36 @@ FUNCTION draw_shotNumber(text)
 	shotNumberLayerName = "Shotnumber"
 	// Remember starting layer:
 	tv_LayerCurrentID
-	Beginlayer = result
+	BeginLayer = result
 	// Count layers:
 	layerCount = count_layers()
 	// Loop backwards trough layers and delete all existing shotnumber-layers:
-	layerRun = 1
-	layerPos = layerCount
-	WHILE layerRun
-		tv_LayerGetID layerPos
+	LayerRun = 1
+	LayerPos = layerCount
+	WHILE LayerRun
+		tv_LayerGetID LayerPos
 		lid = result
-		IF CMP(lid,"NONE")==0
+		IF CMP(lid, "NONE") == 0
 			// START RUN ON LAYER 
 			tv_LayerInfo lid
-			PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-			IF CMP(layerName, shotNumberLayerName)==1
+			PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+			IF CMP(LayerName, shotNumberLayerName) == 1
 				tv_LayerKill lid
 			END
 			// END RUN ON LAYER
-			layerPos = layerPos - 1 // We're going backwards so we're subtracting 1 instead of adding 1.
+			LayerPos = LayerPos - 1 // We're going backwards so we're subtracting 1 instead of adding 1.
 		ELSE		
-			layerRun = 0
+			LayerRun = 0
 		END
 	END
 	// Only add new shotnumbers if ALT is NOT pressed:
-	IF CMP(alt,1)==0
+	IF CMP(alt,1) == 0
 		// Create layer:
 		tv_LayerCreate shotNumberLayerName
 		shotNumberLayer = result
-		tv_layerSet shotNumberLayer
+		tv_LayerSet shotNumberLayer
 		tv_LayerMove 0
-		tv_layerpostbehavior shotNumberLayer "hold"
+		tv_LayerPostbehavior shotNumberLayer "hold"
 		// Set text tool:
 		fontName = "Consolas"
 		fontSize = 50
@@ -1574,14 +1574,14 @@ FUNCTION draw_shotNumber(text)
 		click = 0
 		tv_Line x1 y1 x2 y2 click
 		// Return to starting layer:
-		tv_layerSet Beginlayer
+		tv_LayerSet BeginLayer
 	END
 END
 
 // Check for pro vers
 FUNCTION IsPro()
 	tv_Version
-	Pro = FindString(result,"Pro",1)
+	Pro = FindString(result, "Pro",1)
 	IF CMP(Pro, 0) == 1
 		RETURN 0
 	ELSE

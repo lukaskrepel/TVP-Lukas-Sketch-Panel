@@ -13,14 +13,14 @@ FUNCTION project_incrementalSaveWithoutAsking(divider,part,ask,minimumDigitLengt
 	//CHANGELOG
 	//2014-11-11 project name can start with a number like "0001_v01.tvpp" without the leading zeros disappear when saving
 	project_isSaved()
-	IF CMP(result,"1")1==1
+	IF CMP(result, "1")1==1
 		name = project_getName()
 		slash = tvp_getSlash()
 		name="/"name
 		dir = project_getParent()
 		string_incrementalPart(name,divider,part,minimumDigitLength)
 		newName = dir""result
-		IF CMP(ask,"1")==1
+		IF CMP(ask, "1") == 1
 			tv_SaveProject newName
 		ELSE
 			tv_SaveProject newName

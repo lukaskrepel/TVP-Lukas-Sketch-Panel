@@ -1,35 +1,35 @@
 // Variables
-dialogueLayerName = "DIALOGUE"
-dialogueLayerColor = 7
+DialogueLayerName = "DIALOGUE"
+DialogueLayerColor = 7
 
 // Ask user to insert the dialogue
 tv_ReadUserString "LukasSketchPanel" "Dialogue" ""
-text_to_add = result
-IF CMP(text_to_add, "0") // tv_ReadUserString returns 0 if it doesn't exist yet
-	text_to_add = ""
+TextToAdd = result
+IF CMP(TextToAdd, "0") // tv_ReadUserString returns 0 if it doesn't exist yet
+	TextToAdd = ""
 END
-tv_ReqString "multiline" "Dialogue|"text_to_add
+tv_ReqString "multiline" "Dialogue|"TextToAdd
 IF CMP(result, "Cancel") || CMP(result, "")
 	EXIT
 END
-text_to_add = result
-tv_writeUserString "LukasSketchPanel" "Dialogue" text_to_add
-text_to_add = "'"text_to_add"'"
-text_to_add = Replace(text_to_add, "\n", "' '")
-text_to_add = text_to_add" 'none'" // 'none' is always used as a terminator in the packed string
+TextToAdd = result
+tv_WriteUserString "LukasSketchPanel" "Dialogue" TextToAdd
+TextToAdd = "'"TextToAdd"'"
+TextToAdd = Replace(TextToAdd, "\n", "' '")
+TextToAdd = TextToAdd" 'none'" // 'none' is always used as a terminator in the packed string
 Rest = "" // remaining string
 LineCount = 1	// Item count
 Lines(0) = 0 // Array of lines
-While CMP(Rest,"none") == 0
-	Parse text_to_add Line Rest
+While CMP(Rest, "none") == 0
+	Parse TextToAdd Line Rest
 	Lines(LineCount) = Line
-	text_to_add = Rest
+	TextToAdd = Rest
 	LineCount = LineCount + 1
 END
 
 // Paste brush at center of screen
 tv_ProjectInfo
-PARSE result projectname ProjectWidth projectheight projectpixelaspect projectframerate projectfield projectprojectstartframe
+PARSE result ProjectName ProjectWidth ProjectHeight projectpixelaspect projectframerate projectfield projectprojectStartFrame
 
 // ----------------------------------------------------
 // Remember settings to revert to after script finished
@@ -38,7 +38,7 @@ PARSE result projectname ProjectWidth projectheight projectpixelaspect projectfr
 tv_GetAPen
 PARSE result R G B A
 // Remember paper
-tv_paperinfo
+tv_Paperinfo
 OriginalPaper = result
 parse result z paperHardness z paperInvert z paperSize z paperAngle z paperOffsetX z paperOffsetY z paperFlipX z paperFlipY z paperActive z paperName
 // Remember shape (line etc)
@@ -82,29 +82,29 @@ IF FontSize > MaxFontSize
 END
 
 // Loop backwards trough layers to find DIALOGUE layer:
-layerRun = 1
-layerPos = 0
-WHILE layerRun
-	tv_LayerGetID layerPos
+LayerRun = 1
+LayerPos = 0
+WHILE LayerRun
+	tv_LayerGetID LayerPos
 	lid = result
-	IF CMP(lid,"NONE") == 0
+	IF CMP(lid, "NONE") == 0
 		// Start run on layer
 		tv_LayerInfo lid
-		PARSE result layerDisplay layerPosition layerOpacity layerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
-		IF CMP(layerName, dialogueLayerName) == 1
-			tv_layerSet lid
-			layerRun = 0
+		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+		IF CMP(LayerName, DialogueLayerName) == 1
+			tv_LayerSet lid
+			LayerRun = 0
 		END
 		// End run on layer
-		layerPos = layerPos + 1
+		LayerPos = LayerPos + 1
 	ELSE
 		// Create or go to the dialogue layer
-		tv_LayerCreate dialogueLayerName
+		tv_LayerCreate DialogueLayerName
 		DialogueLayerID = result
-		tv_layercolor "set" 0 dialogueLayerColor
+		tv_LayerColor "set" 0 DialogueLayerColor
 		tv_LayerMove 0 // Move the dialogue layer to top
-		tv_layershift DialogueLayerID OriginalFrame
-		layerRun = 0
+		tv_Layershift DialogueLayerID OriginalFrame
+		LayerRun = 0
 	END
 END
 
@@ -125,8 +125,8 @@ textColB = 255
 tv_SetAPen textColR textColG textColB
 
 // Clear frame of dialogue layer
-tv_layeranim
-currentFrame = tv_projectcurrentframe
+tv_Layeranim
+currentFrame = tv_Projectcurrentframe
 tv_exposurebreak currentFrame
 tv_Clear 0
 
@@ -142,18 +142,18 @@ FOR i = 1 to LineCount-1 // loop to display elements which are now in an array
 END
 
 // Revert layer (Disabled)
-//tv_layerSet OriginalLayer
+//tv_LayerSet OriginalLayer
 
 // Revert brush
 tv_brushrestore OriginalBrush
 // Revert tool
-tv_cmd OriginalTool
+tv_Cmd OriginalTool
 // Revert shape mode
 tv_SetActiveShape OriginalActiveShape
 // Revert A color
 tv_SetAPen R" "G" "B" "A // Reset A pen color to start color
 // Revert Paper
-tv_paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
+tv_Paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
 
 // Include
 #INCLUDE "Include.grg"

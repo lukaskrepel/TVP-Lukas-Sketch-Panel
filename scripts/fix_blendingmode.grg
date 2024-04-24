@@ -30,46 +30,46 @@ Blendingmode[27] = "Saturation"
 Blendingmode[28] = "Overlay2" // * Added in TVP v11.0.3
 Blendingmode[29] = "Alpha Diff" // * Added in TVP v11.0.9
 
-tv_undoOpenStacktack
+tv_UndoOpenStacktack
 
 tv_LayerCurrentID
-Beginlayer = result
+BeginLayer = result
 
-layerRun = 1
-layerPos = 0
-WHILE layerRun	
+LayerRun = 1
+LayerPos = 0
+WHILE LayerRun	
 
-	tv_LayerGetID layerPos	
+	tv_LayerGetID LayerPos	
 	lid = result	
 	
-	IF CMP(lid,"NONE")==0
+	IF CMP(lid, "NONE") == 0
 		//---START RUN ON LAYER---
 		
 		//PARSE LAYER INFO
 		tv_LayerInfo lid
-		PARSE result layerDisplay layerPosition layerOpacity LayerName layerType layerStart layerEnd layerPrelighttable layerPostlighttable layerSelection
+		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
 		
 		//REPLACE SPACES IN LayerName BY UNDERSCORES
-		PARSE LayerName LayerName1 LayerName2 LayerName3 LayerName4 Layername5
-		IF CMP(Layername5,"")==0
-			PRINT "This layername has too many spaces: "LayerName
+		PARSE LayerName LayerName1 LayerName2 LayerName3 LayerName4 LayerName5
+		IF CMP(LayerName5, "") == 0
+			PRINT "This LayerName has too many spaces: "LayerName
 		END
-		IF CMP(LayerName4,"")==0
+		IF CMP(LayerName4, "") == 0
 			LayerName = LayerName1"_"LayerName2"_"LayerName3"_"LayerName4
 		ELSE
-			IF CMP(LayerName3,"")==0
+			IF CMP(LayerName3, "") == 0
 				LayerName = LayerName1"_"LayerName2"_"LayerName3
 			ELSE
-				IF CMP(LayerName2,"")==0
+				IF CMP(LayerName2, "") == 0
 					LayerName = LayerName1"_"LayerName2
 				END
 			END
 		END
 		
-		lastUnderscore = LastPos(LayerName,"_")
+		lastUnderscore = LastPos(LayerName, "_")
 		
-		strlen = LEN(LayerName)
-		LastWord = RightString(LayerName,strlen-lastUnderscore)	
+		StrLen = LEN(LayerName)
+		LastWord = RightString(LayerName, StrLen - LastUnderscore)	
 		IF CMP(lastUnderscore,0)
 			FirstPart = LayerName
 		ELSE
@@ -79,8 +79,8 @@ WHILE layerRun
 
 		FOR i = 2 TO 29
 			//CHECK LAYERBLENDING AND SET NAME TO MULTIPLY
-			tv_layerblendingmode lid
-			IF CMP(result,Blendingmode[i]) && CMP(LastWord,Blendingmode[i])==0
+			tv_Layerblendingmode lid
+			IF CMP(result,Blendingmode[i]) && CMP(LastWord,Blendingmode[i]) == 0
 				LastWord = Blendingmode[i]
 				LayerName = LayerName"_"LastWord
 				tv_LayerRename lid LayerName
@@ -94,19 +94,19 @@ WHILE layerRun
 			
 			//SET LAYER TO BLENDINGMODE IF NAME IS BLENDINGMODE
 			IF CMP(LastWord, Blendingmode[i])
-				tv_layerblendingmode lid Blendingmode[i]
+				tv_Layerblendingmode lid Blendingmode[i]
 			END
-			tv_layerblendingmode lid LastWord
+			tv_Layerblendingmode lid LastWord
 		END
 		
 		//---END RUN ON LAYER---
-		layerPos = layerPos+1
+		LayerPos = LayerPos+1
 	ELSE
-		layerRun = 0
+		LayerRun = 0
 	END
 END
 
-tv_layerSet Beginlayer
+tv_LayerSet BeginLayer
 
 tv_undoCloseStack
 

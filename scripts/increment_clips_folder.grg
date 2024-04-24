@@ -1,38 +1,38 @@
 // Get project info
 tv_ProjectInfo
-PARSE result projectName projectWidth projectHeight projectPixelAspect projectFramerate projectField projectProjectStartframe
-tv_GetprojectName
+PARSE result ProjectName projectWidth ProjectHeight projectPixelAspect projectFramerate projectField projectProjectStartFrame
+tv_GetProjectName
 ProjectPath = result
 ProjectPath = Replace(ProjectPath,'\','/') //Making the script work on Windows and Unix, Windows has directory seperated by \ and mac and linux with /
-strlen = LEN(ProjectPath)
-LastSlashPos = LastPos(projectpath,"/") // Getting the directory where the TVPP file is saved
-projectDir = LeftString(projectpath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
-projectName = RightString(projectpath,strlen - LastSlashPos) // Getting the name of the tvpp file without the path
-strlen = LEN(projectName) // Getting the name of the tvpp file without ".tvpp"
+StrLen = LEN(ProjectPath)
+LastSlashPos = LastPos(ProjectPath, "/") // Getting the directory where the TVPP file is saved
+ProjectDir = LeftString(ProjectPath, LastSlashPos - 1) // Getting the directory where the TVPP file is saved
+ProjectName = RightString(ProjectPath, StrLen - LastSlashPos) // Getting the name of the tvpp file without the path
+StrLen = LEN(ProjectName) // Getting the name of the tvpp file without ".tvpp"
 //
-LastPeriodPos = LastPos(projectName,".")
+LastPeriodPos = LastPos(ProjectName, ".")
 IF CMP(LastPeriodPos, "0") == 1
-	projectbase = projectName
+	ProjectBase = ProjectName
 ELSE
-	projectbase = LeftString(projectName, LastPeriodPos - 1)
+	ProjectBase = LeftString(ProjectName, LastPeriodPos - 1)
 END
-last_v = FindString(projectbase, "_v", 1) //  File should be name _v001_L or something
-IF CMP(last_v,"0") == 1
-	projectName = projectbase
+last_v = FindString(ProjectBase, "_v", 1) //  File should be name _v001_L or something
+IF CMP(last_v, "0") == 1
+	ProjectName = ProjectBase
 ELSE
-	projectName = LeftString(projectbase,last_v - 1)
+	ProjectName = LeftString(ProjectBase,last_v - 1)
 END
 // *** Create folder
 FOR i = 1 TO 1000
-	RenderFolder = projectName"_clips"i
-	saveDir = projectDir"/"RenderFolder
-	tv_WriteTextFile "Exists" '"'saveDir'"'
+	RenderFolder = ProjectName"_clips"i
+	SaveDir = ProjectDir"/"RenderFolder
+	tv_WriteTextFile "Exists" '"'SaveDir'"'
 	IF CMP (result, "" ) == 1 // Folder doesn't exist yet!
 		i = i - 1
-		RenderFolder = projectName"_clips"i
-		tv_Request "Create empty folder?\n\n"saveDir"|OK|Cancel" //1|0
+		RenderFolder = ProjectName"_clips"i
+		tv_Request "Create empty folder?\n\n"SaveDir"|OK|Cancel" //1|0
 		IF CMP(result, 1) == 1
-			tv_WriteTextFile "MkDir" '"'saveDir'"'
+			tv_WriteTextFile "MkDir" '"'SaveDir'"'
 		END
 		i = 1001
 	END

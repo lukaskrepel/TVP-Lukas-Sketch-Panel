@@ -1,6 +1,6 @@
-tv_clipcurrentid
+tv_Clipcurrentid
 selCID = result
-tv_lastImage
+tv_LastImage
 lastFrame = result
 
 tv_LayerGetImage
@@ -19,24 +19,24 @@ parse result ThisFrame //BEFORE advancing cursor to next Head-frame test cursor-
 // *** --
 // *********************************************************************************************
 FUNCTION SelectNextClip()
-	tv_clipcurrentid
+	tv_Clipcurrentid
 	selCID = result
 	loop=1
 	i=0
 	WHILE loop
-		tv_clipenumid -1 i
+		tv_ClipEnumID -1 i
 	 	curCID = result
-		IF CMP(curCID,"none")==1
+		IF CMP(curCID, "none") == 1
 			SelectNextFrame()
 			loop = 0
 		ELSE
-			tv_clipHidden curCID
-			IF CMP(result,"0")==1
+			tv_ClipHidden curCID
+			IF CMP(result, "0") == 1
 				IF CMP (curCID, selCID)
-					tv_clipenumid -1 i+1
+					tv_ClipEnumID -1 i+1
 					nextCID = result
-					IF CMP(nextCID,"none")==0
-						tv_clipSelect nextCID
+					IF CMP(nextCID, "none") == 0
+						tv_ClipSelect nextCID
 						SelectFirstInstanceOfClip()
 					END
 					loop = 0
@@ -59,7 +59,7 @@ FUNCTION SelectNextFrame()
 	//
 	//TODO hier checken of nextframe een instance head is van any layer????
 	//print NextFrame
-	//tv_lastImage
+	//tv_LastImage
 	//lastFrame = result
 	//IF ThisFrame > lastFrame
 	//	ThisFrame = lastFrame
@@ -67,43 +67,43 @@ FUNCTION SelectNextFrame()
 	frameRun = 1
 	WHILE frameRun
 		TargetFrame = TargetFrame + 1
-		layerRun = 1
+		LayerRun = 1
 		i = 0
-		WHILE layerRun
+		WHILE LayerRun
 			tv_LayerGetID i
 			curLID = result	
-			IF CMP(curLID,"NONE")==0		
+			IF CMP(curLID, "NONE") == 0		
 				// START RUN ON LAYER
-				tv_layerSet curLID
+				tv_LayerSet curLID
 	           	tv_exposureinfo TargetFrame
 	           	parse result exposureType d d
-	           	IF CMP (exposureType, "Head")==1
+	           	IF CMP (exposureType, "Head") == 1
 	        		frameRun = 0
-	           		layerRun = 0
+	           		LayerRun = 0
 				ELSE
-					IF CMP (exposureType, "None")==1
+					IF CMP (exposureType, "None") == 1
 						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze layer was en of die niet op hold staat
 						FrameBeforeNone = TargetFrame - 1 //beetje onduidelijke namen
 						tv_exposureinfo FrameBeforeNone
 						parse result exposureType d d
-						IF CMP (exposureType, "None")==0
-							tv_layerpostbehavior curLID
+						IF CMP (exposureType, "None") == 0
+							tv_LayerPostbehavior curLID
 							IF CMP (result, "none")
 								frameRun = 0
-	           					layerRun = 0
+	           					LayerRun = 0
 	           				END
 						END
 					END
 				END
 				// END RUN ON LAYER
 			ELSE
-				layerRun = 0
+				LayerRun = 0
 			END
 			i = i + 1
 		END
 		IF TargetFrame == lastFrame
 			//print "Hier controleren of geen enkele layer een head of exposure na hold is"
-			IF CMP (exposureType, "Head")==0
+			IF CMP (exposureType, "Head") == 0
 				SelectNextClip()
 			END
 			frameRun = 0
@@ -114,7 +114,7 @@ FUNCTION SelectNextFrame()
 		TargetFrame = lastFrame
 	END
 	tv_LayerImage TargetFrame
-	tv_layerSet startLayerID
+	tv_LayerSet startLayerID
 END
 
 // *********************************************************************************************
@@ -134,37 +134,37 @@ FUNCTION SelectFirstInstanceOfClip()
 	frameRun = 1
 	WHILE frameRun
 		TargetFrame = TargetFrame + 1
-		layerRun = 1
+		LayerRun = 1
 		i = 0
-		WHILE layerRun
+		WHILE LayerRun
 			tv_LayerGetID i
 			curLID = result	
-			IF CMP(curLID,"NONE")==0		
+			IF CMP(curLID, "NONE") == 0		
 				// START RUN ON LAYER
-				tv_layerSet curLID
+				tv_LayerSet curLID
 	           	tv_exposureinfo TargetFrame
 	           	parse result exposureType d d
-	           	IF CMP (exposureType, "Head")==1
+	           	IF CMP (exposureType, "Head") == 1
 	        		frameRun = 0
-	           		layerRun = 0
+	           		LayerRun = 0
 				ELSE
-					IF CMP (exposureType, "None")==1
+					IF CMP (exposureType, "None") == 1
 						//Geen exposure, nu controleren of het vorige frame het laatste frame van deze layer was en of die niet op hold staat
 						FrameBeforeNone = TargetFrame - 1 //beetje onduidelijke namen
 						tv_exposureinfo FrameBeforeNone
 						parse result exposureType d d
-						IF CMP (exposureType, "None")==0
-							tv_layerpostbehavior curLID
+						IF CMP (exposureType, "None") == 0
+							tv_LayerPostbehavior curLID
 							IF CMP (result, "none")
 								frameRun = 0
-	           					layerRun = 0
+	           					LayerRun = 0
 	           				END
 						END
 					END
 				END
 				// END RUN ON LAYER
 			ELSE
-				layerRun = 0
+				LayerRun = 0
 			END
 			i = i + 1
 		END
@@ -177,5 +177,5 @@ FUNCTION SelectFirstInstanceOfClip()
 		TargetFrame = firstFrame
 	END
 	tv_LayerImage TargetFrame
-	tv_layerSet startLayerID
+	tv_LayerSet startLayerID
 END
