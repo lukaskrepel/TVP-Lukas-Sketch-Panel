@@ -36,9 +36,7 @@ IF CMP(State, "clip") == 1
 	END
 	// Get Name
 	ClipString = "Current Clip"
-	ExtraS = ""
 	IF SelectedClipCount > 1
-		ExtraS = "s"
 		ClipString = SelectedClipCount" Clips"
 	END
 	tv_GetCurrentID
@@ -67,10 +65,32 @@ IF CMP(State, "clip") == 1
 	END
 ELSE
 	// Layer
+	// Count layers
+	LayerRun = 1
+	LayerPos = 0
+	SelectedLayerCount = 0
+	WHILE LayerRun	
+		tv_LayerGetID LayerPos	
+		LayerID = result	
+		IF CMP(LayerID, "none") == 1
+			LayerRun = 0
+		ELSE
+			tv_layerselection LayerID
+			Selected = result
+			IF CMP(Selected, 1) == 1
+				SelectedLayerCount = SelectedLayerCount + 1
+			END
+		END
+		LayerPos = LayerPos + 1
+	END
 	// Get name
+	LayerString = "Current Layer"
+	IF SelectedLayerCount > 1
+		LayerString = SelectedLayerCount" Layers"
+	END
 	tv_LayerInfo 0
 	PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPrelighttable LayerPostlighttable LayerSelection
-	tv_ReqString "Rename SELECTED Layers:|"LayerName
+	tv_ReqString "Rename "LayerString":|"Name
 	NewName = result
 	// Set name
 	tv_LayerRename 0 NewName // Rename current layer
