@@ -32,6 +32,9 @@ END
 
 tv_UndoOpenStack
 
+tv_LockDisplay "Creating color fill layer..."
+tv_LockUser
+
 // Remember starting paper
 tv_Paperinfo
 beginPaper = result
@@ -125,6 +128,8 @@ ELSE
 	PARSE result Fr Fg Fb Fa
 END
 
+tv_Paper active 0
+
 tv_LayerStencil OriginalLayerID OFF // confirm stencil for line layer is off
 tv_LayerStencil FillLayerID OFF	NORMAL // assures that fill layer stencil mask is OFF
 SavedFillingShape = result // saves original FillingShape parameters (result always equals previous parameters)
@@ -133,7 +138,7 @@ tv_AreaInit MODE 1 MAP_GRADIENT 0 OPACITY 100 GAP 0 EXPAND 2 RANGE 10 SRC 1 SMOO
 For CurrentFrame = First to Last // loop to fill frames
 	tv_LayerImage CurrentFrame // move to current frame on Line layer
 	tv_ExposureInfo CurrentFrame // test this frame type" head(instance) or exposure?
-	PARSE result FrameType d // store type of frame
+	PARSE result FrameType RepeatCount Zero // store type of frame
 	IF CMP(FrameType, "Head") // if frame type is head(instance) then create filled figures for this frame on the Fill Layer 
 		tv_LayerSet ColorLayerID // select Color layer
 		tv_ExposureBreak CurrentFrame // convert exposure frame to instant if necessary
@@ -145,6 +150,12 @@ For CurrentFrame = First to Last // loop to fill frames
 		tv_Fill X1 Y1 0	 // mask contiguous BACKGROUND around figures
 		tv_Pixelmatrix 1 0 0 0 Fr   0 1 0 0 Fg   0 0 1 0 Fb   0 0 0 -1 255	// change black mask into fill color
 		tv_LayerSet OriginalLayerID	// select line layer
+	ELSE
+		IF RepeatCount > 0
+			tv_LayerSet ColorLayerID // select Color layer
+			tv_exposureFauxFixe CurrentFrame RepeatCount
+			tv_LayerSet OriginalLayerID	// select line layer
+		END
 	END
 END
 
@@ -180,6 +191,9 @@ tv_SetActiveShape Shape	// restore shape parameters
 tv_AreaInit SavedFillingShape // restore FillingShape's original parameters
 tv_Cmd Tool	// restore tool and parameters
 tv_Paper "active" paperActive "offsetx" paperOffsetX "offsety" paperOffsetY "flipx" paperFlipX "flipy" paperFlipY "hardness" paperHardness "invert" paperInvert "size" paperSize "angle" paperAngle "name" paperName
+
+tv_UnlockDisplay
+tv_UnlockUser
 
 // Include extra functions
 #INCLUDE "include.grg"
