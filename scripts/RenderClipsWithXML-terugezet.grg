@@ -205,7 +205,7 @@ XMLend(TotalXMLfile)
 //Finishing
 tv_ProjectClose
 //tv_undoclosestack
-//tv_unlockdisplay
+//tv_Unlockdisplay
 tv_Warn "ALL CLIPS RENDERED."
 
 

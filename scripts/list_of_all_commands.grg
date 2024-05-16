@@ -53,7 +53,7 @@ tv_Display "layerattenuation" [0|1|"on"|"off"|"toggle"] ["value" 0-100]
 tv_Display [0|1|"all"|"current"]
 tv_ghostline 0|1 iX1 iY1 iX2 iY2
 tv_Lockcacheflush
-tv_unlockcacheflush
+tv_Unlockcacheflush
 tv_recorder "start"|"mode" ["layer"|"display"]
 tv_recorder "pause"|"resume"|"unpause"|"continue"|"stop"|"save"
 tv_healingsource ["current"|"before"|"after"|"display"|"paper"|"spare" [iOffsetX iOffsetY]]
@@ -289,11 +289,11 @@ tv_host2back
 tv_gauge "on"|"off"
 tv_LockDisplay [iText]
 tv_LockDisplay "quiet"
-tv_unlockdisplay
+tv_Unlockdisplay
 tv_Lockmouse iMouse
-tv_unlockmouse
-tv_Lockuser
-tv_unlockuser
+tv_Unlockmouse
+tv_LockUser
+tv_Unlockuser
 tv_resetdisplay
 tv_menushow
 tv_menushow ["current"] "showui"|"hideui"
@@ -1186,7 +1186,7 @@ Use it when you play a preview with your display device and when you don't want 
 
 // ------------------------------------------------------------------------------------------------------
 
-tv_unlockcacheflush
+tv_Unlockcacheflush
 
 Unlocks the redraw function in the project view
 
@@ -11093,7 +11093,7 @@ tv_LockDisplay [iText]
 
 Lock the display and display a message in a warning
 When TVPaint draws a lot of things on the screen, locking the display can significantly increase the working speed (refreshment of the screen takes time)
-When the drawing is finished you must unlock the display, using the tv_unlockdisplay command
+When the drawing is finished you must unlock the display, using the tv_Unlockdisplay command
 You can temporarily force a redisplay while the display is locked by pressing on the Space bar (to view the work being done)
 
 // [PARAMETERS]
@@ -11105,7 +11105,7 @@ tv_LockDisplay "quiet"
 
 Lock the display and display a message in a warning
 When TVPaint draws a lot of things on the screen, locking the display can significantly increase the working speed (refreshment of the screen takes time)
-When the drawing is finished you must unlock the display, using the tv_unlockdisplay command
+When the drawing is finished you must unlock the display, using the tv_Unlockdisplay command
 You can temporarily force a redisplay while the display is locked by pressing on the Space bar (to view the work being done)
 
 // [PARAMETERS]
@@ -11113,7 +11113,7 @@ You can temporarily force a redisplay while the display is locked by pressing on
 
 // ------------------------------------------------------------------------------------------------------
 
-tv_unlockdisplay
+tv_Unlockdisplay
 
 Unlock the display after a tv_LockDisplay
 
@@ -11146,19 +11146,19 @@ iMouse    enum    The shape (some shapes may be unavailable on some OS)
 
 // ------------------------------------------------------------------------------------------------------
 
-tv_unlockmouse
+tv_Unlockmouse
 
 Reset the mouse cursor to the one before tv_Lockmouse
 
 // ------------------------------------------------------------------------------------------------------
 
-tv_Lockuser
+tv_LockUser
 
 Disable interaction of the user with the interface
 
 // ------------------------------------------------------------------------------------------------------
 
-tv_unlockuser
+tv_Unlockuser
 
 Enable interaction of the user with the interface
 
