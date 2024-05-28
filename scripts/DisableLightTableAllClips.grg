@@ -30,7 +30,6 @@ WHILE loop
 				END
 			END
 			tv_LayerSet BeginLayer // Zet alle lagen LT uit
-			tv_LayerDensity 100 // Zet layer op 100% zichtbaar
 			tv_LightTableMode Interval Color ModePrev Color ModeNext Range Density 0 BlendMode Back Value -1 1 Value 1 1  Value -2 1 Value 2 1 Value -3 1 Value 3 1 Value -4 1 Value 4 1 Value -5 1 Value 5 1 Value -6 1 Value 6 1 Value -7 1 Value 7 1 Value -8 1 Value 8 1 Value -9 1 Value 9 1 Value -10 1 Value 10 1 // reset LT
 			tv_LightTableMode Interval Color ModePrev Color ModeNext Color Density 100 BlendMode Back Value -1 50 Value 1 50  Value -2 0 Value 2 0 Value -3 0 Value 3 0 Value -4 0 Value 4 0 Value -5 0 Value 5 0 Value -6 0 Value 6 0 Value -7 0 Value 7 0 Value -8 0 Value 8 0 Value -9 0 Value 9 0 Value -10 0 Value 10 0 // LT 1-1 zodat je wel nog LT toggle kan
 			//
