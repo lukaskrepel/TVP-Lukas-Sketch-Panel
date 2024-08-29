@@ -136,6 +136,9 @@ SavedFillingShape = result // saves original FillingShape parameters (result alw
 tv_LayerSet ColorLayerID // move to fill layer
 tv_AreaInit MODE 1 MAP_GRADIENT 0 OPACITY 100 GAP 0 EXPAND 2 RANGE 10 SRC 1 SMOOTH 1 AALIASING 0 // set fill parameters (user tweakable)
 For CurrentFrame = First to Last // loop to fill frames
+	tv_layermarkget OriginalLayerID CurrentFrame // get frame label of frame on linelayer
+	FrameLabel = result
+	tv_layermarkset ColorLayerID CurrentFrame FrameLabel // match colorlayer frame label
 	tv_LayerImage CurrentFrame // move to current frame on Line layer
 	tv_ExposureInfo CurrentFrame // test this frame type" head(instance) or exposure?
 	PARSE result FrameType RepeatCount Zero // store type of frame
