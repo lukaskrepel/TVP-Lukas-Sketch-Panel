@@ -1,0 +1,36 @@
+// **********************************
+// *** ALLE CLIPS DOORLOPEN START ***
+// **********************************
+
+tv_guidelinevisible "global" "off"
+visibility = result
+
+loop=1
+i=0
+WHILE loop
+	tv_ClipEnumID -1 i
+ 	curCID = result
+	IF CMP(curCID, "none") == 1
+		loop=0
+	ELSE
+		tv_ClipHidden curCID
+		IF CMP(result, "0") == 1
+			//
+			tv_guidelineremove "all"
+			tv_guidelineadd "marks" countx 1  county 1
+			//
+			if (cmp(visibility, "1") == 1)
+			     tv_guidelinevisible "global" "off"
+			else
+			     tv_guidelinevisible "global" "on"
+			end
+			//
+		END
+	END
+	i=i+1
+END // *** EINDE VAN HET CLIPS DOORLOPEN LOOPJE ***
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"

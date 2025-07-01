@@ -1,0 +1,25 @@
+// **********************************
+// *** ALLE CLIPS DOORLOPEN START ***
+// **********************************
+loop=1
+i=0
+WHILE loop
+	tv_ClipEnumID -1 i
+ 	curCID = result
+	IF CMP(curCID, "none") == 1
+		loop=0
+	ELSE
+		tv_ClipHidden curCID
+		IF CMP(result, "0") == 1
+			tv_ClipSelect curCID
+			tv_background "check" 192 192 192 186 186 186
+
+		END
+	END
+	i=i+1
+END // *** EINDE VAN HET CLIPS DOORLOPEN LOOPJE ***
+
+// *****************************
+// *** Include extra functions
+// *****************************
+#INCLUDE "Include.grg"
