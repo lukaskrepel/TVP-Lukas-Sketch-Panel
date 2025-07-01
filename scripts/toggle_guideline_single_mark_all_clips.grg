@@ -25,6 +25,7 @@ WHILE loop
 			     tv_guidelinevisible "global" "on"
 			end
 			//
+			tv_guidelinesnap "global" "off"
 		END
 	END
 	i=i+1
