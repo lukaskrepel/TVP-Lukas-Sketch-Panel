@@ -1,3 +1,7 @@
+Message = ("Fixing blendingmodes for all clips and layers...")
+tv_LockDisplay Message
+tv_LockUser
+
 // Fix multiply stuff from non-pro .tvpp files
 
 Blendingmode[1] = "Color"
@@ -32,82 +36,108 @@ Blendingmode[29] = "Alpha Diff" // * Added in TVP v11.0.9
 
 tv_UndoOpenStacktack
 
+tv_ClipCurrentID
+startClip = result
 tv_LayerCurrentID
 BeginLayer = result
 
-LayerRun = 1
-LayerPos = 0
-WHILE LayerRun	
-
-	tv_LayerGetID LayerPos	
-	lid = result	
-	
-	IF CMP(lid, "NONE") == 0
-		//---START RUN ON LAYER---
-		
-		//PARSE LAYER INFO
-		tv_LayerInfo lid
-		PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
-		
-		//REPLACE SPACES IN LayerName BY UNDERSCORES
-		PARSE LayerName LayerName1 LayerName2 LayerName3 LayerName4 LayerName5
-		IF CMP(LayerName5, "") == 0
-			PRINT "This LayerName has too many spaces: "LayerName
-		END
-		IF CMP(LayerName4, "") == 0
-			LayerName = LayerName1"_"LayerName2"_"LayerName3"_"LayerName4
-		ELSE
-			IF CMP(LayerName3, "") == 0
-				LayerName = LayerName1"_"LayerName2"_"LayerName3
-			ELSE
-				IF CMP(LayerName2, "") == 0
-					LayerName = LayerName1"_"LayerName2
-				END
-			END
-		END
-		
-		lastUnderscore = LastPos(LayerName, "_")
-		
-		StrLen = LEN(LayerName)
-		LastWord = RightString(LayerName, StrLen - LastUnderscore)	
-		IF CMP(lastUnderscore,0)
-			FirstPart = LayerName
-		ELSE
-			FirstPart = LeftString(LayerName,lastUnderscore-1)
-		END
-
-
-		FOR i = 2 TO 29
-			//CHECK LAYERBLENDING AND SET NAME TO MULTIPLY
-			tv_Layerblendingmode lid
-			IF CMP(result,Blendingmode[i]) && CMP(LastWord,Blendingmode[i]) == 0
-				LastWord = Blendingmode[i]
-				LayerName = LayerName"_"LastWord
-				tv_LayerRename lid LayerName
-			ELSE
-				IF CMP(result,Blendingmode[i])
-					LastWord = Blendingmode[i]
-					LayerName = FirstPart"_"LastWord
-					tv_LayerRename lid LayerName
-				END
-			END
-			
-			//SET LAYER TO BLENDINGMODE IF NAME IS BLENDINGMODE
-			IF CMP(LastWord, Blendingmode[i])
-				tv_Layerblendingmode lid Blendingmode[i]
-			END
-			tv_Layerblendingmode lid LastWord
-		END
-		
-		//---END RUN ON LAYER---
-		LayerPos = LayerPos+1
+loop=1
+ci=0
+WHILE loop
+	tv_ClipEnumID -1 ci
+ 	curCID = result
+	IF CMP(curCID, "none") == 1
+		loop=0
 	ELSE
-		LayerRun = 0
+		tv_ClipHidden curCID
+		IF CMP(result, "0") == 1
+			tv_ClipSelect curCID
+			tv_ClipName
+			ClipName = result
+			tv_LockDisplay "Fixing "ClipName"..."
+			//---START RUN ON CLIP---
+			LayerRun = 1
+			LayerPos = 0
+			WHILE LayerRun	
+
+				tv_LayerGetID LayerPos	
+				lid = result	
+				
+				IF CMP(lid, "NONE") == 0
+					//---START RUN ON LAYER---
+					
+					//PARSE LAYER INFO
+					tv_LayerInfo lid
+					PARSE result LayerDisplay LayerPosition LayerOpacity LayerName LayerType LayerStart LayerEnd LayerPreLightTable LayerPostLightTable LayerSelection
+					
+					//REPLACE SPACES IN LayerName BY UNDERSCORES
+					PARSE LayerName LayerName1 LayerName2 LayerName3 LayerName4 LayerName5
+					IF CMP(LayerName5, "") == 0
+						PRINT "This LayerName has too many spaces: "LayerName
+					END
+					IF CMP(LayerName4, "") == 0
+						LayerName = LayerName1"_"LayerName2"_"LayerName3"_"LayerName4
+					ELSE
+						IF CMP(LayerName3, "") == 0
+							LayerName = LayerName1"_"LayerName2"_"LayerName3
+						ELSE
+							IF CMP(LayerName2, "") == 0
+								LayerName = LayerName1"_"LayerName2
+							END
+						END
+					END
+					
+					lastUnderscore = LastPos(LayerName, "_")
+					
+					StrLen = LEN(LayerName)
+					LastWord = RightString(LayerName, StrLen - LastUnderscore)	
+					IF CMP(lastUnderscore,0)
+						FirstPart = LayerName
+					ELSE
+						FirstPart = LeftString(LayerName,lastUnderscore-1)
+					END
+
+
+					FOR i = 2 TO 29
+						//CHECK LAYERBLENDING AND SET NAME TO MULTIPLY
+						tv_Layerblendingmode lid
+						IF CMP(result,Blendingmode[i]) && CMP(LastWord,Blendingmode[i]) == 0
+							LastWord = Blendingmode[i]
+							LayerName = LayerName"_"LastWord
+							tv_LayerRename lid LayerName
+						ELSE
+							IF CMP(result,Blendingmode[i])
+								LastWord = Blendingmode[i]
+								LayerName = FirstPart"_"LastWord
+								tv_LayerRename lid LayerName
+							END
+						END
+						
+						//SET LAYER TO BLENDINGMODE IF NAME IS BLENDINGMODE
+						IF CMP(LastWord, Blendingmode[i])
+							tv_Layerblendingmode lid Blendingmode[i]
+						END
+						tv_Layerblendingmode lid LastWord
+					END
+					
+					//---END RUN ON LAYER---
+					LayerPos = LayerPos+1
+				ELSE
+					LayerRun = 0
+				END
+			END
+			//---END RUN ON CLIP---
+		END
+		ci=ci+1
 	END
 END
 
+tv_ClipSelect startClip
 tv_LayerSet BeginLayer
 
 tv_undoCloseStack
+
+tv_UnlockDisplay
+tv_UnlockUser
 
 #INCLUDE "Include.grg"
