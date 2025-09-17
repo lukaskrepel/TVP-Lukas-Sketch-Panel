@@ -41,7 +41,7 @@ WHILE loop
 		PARAM none
 		tv_SaveMode "PNG"
 		ext = ".png"
-		tv_AlphaSaveMode "PreMultiply" // Of moet dit NoPreMultiply zijn?
+		tv_AlphaSaveMode "NoPreMultiply" // Of moet dit NoPreMultiply zijn?
 		tv_Background "NONE"
 		tv_GetProjectName
 		ProjectPath = result
@@ -111,8 +111,6 @@ WHILE loop
 				tv_LastImage
 				OutPoint = result
 			END
-			
-			//findProjectInout
 			// Because I have to use tv_Projectsavesequence to use the camera out I have to get the clip in and out in the project timeline
 			// for this I use tv_Projectcurrentframe
 			tv_LayerImage InPoint
@@ -123,12 +121,17 @@ WHILE loop
 			tv_Projectcurrentframe
 			ProjOut = result
 			tv_Projectcurrentframe ProjOut
-			
 			// getting the name of the current clip to file prefix
 			tv_StartFrame
 			StartFrame = InPoint + result
+
 			// setting the name of the first file
-			RenderFile = SaveDir"/"ClipName"_0000"StartFrame""ext
+			IF CMP(InPoint, OutPoint) == 1
+				RenderFile = SaveDir"/"ClipName""ext // No frame number in filename for single frame clips!
+			ELSE
+				RenderFile = SaveDir"/"ClipName"_0000"StartFrame""ext // Filename with frame numbering for multi frame clips!
+			END
+
 			// saving the sequence
 			tv_Projectsavesequence '"'RenderFile'"' ProjIn ProjOut "camera"
 			// setting the current frame again
@@ -137,6 +140,7 @@ WHILE loop
 	END
 	tv_background "check" 192 192 192 186 186 186
 END // *** EINDE VAN HET CLIPS DOORLOPEN LOOPJE ***
+
 
 // *****************************
 // *** Include extra functions
