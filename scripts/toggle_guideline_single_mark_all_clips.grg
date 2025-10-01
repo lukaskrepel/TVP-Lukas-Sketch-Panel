@@ -1,9 +1,12 @@
-// **********************************
-// *** ALLE CLIPS DOORLOPEN START ***
-// **********************************
-
-tv_guidelinevisible "global" "off"
+// Check if guidelines are globally visible
+tv_guidelinevisible "global" "false"
 visibility = result
+
+// On first click no guidlines exist yet, so even though global guidelines visibility is true, we will act as if it is false
+tv_guidelineenum 0
+IF CMP(result, "none")
+	visibility = false
+END
 
 loop=1
 i=0
@@ -13,12 +16,23 @@ WHILE loop
 	IF CMP(curCID, "none") == 1
 		loop=0
 	ELSE
+		// **********************************
+		// *** ALLE CLIPS DOORLOPEN START ***
+		// **********************************
 		tv_ClipHidden curCID
 		IF CMP(result, "0") == 1
-			//
+			// Clip is not hidden.
+
+			// Remove guidelines
 			tv_guidelineremove "all"
+			// Add single marker guideline in center
 			tv_guidelineadd "marks" countx 1  county 1
+			// Add big cross in center
+			tv_ProjectInfo
+			PARSE result ProjectName projectWidth ProjectHeight projectPixelAspect projectFramerate projectField projectProjectStartFrame
+			tv_guidelineadd "grid" x projectWidth/2 y ProjectHeight/2 w 1000000000000000000000.00 h 1000000000000000000000.00
 			//
+
 			if (cmp(visibility, "1") == 1)
 			     tv_guidelinevisible "global" "off"
 			else
