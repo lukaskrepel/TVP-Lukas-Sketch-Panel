@@ -79,18 +79,16 @@ WHILE loop
 			ProjectName = LeftString(ProjectName,first-1)
 			
 			RenderFolder = ProjectName //Alles tot de eerste underscore
-			RenderFolder = TVP_Output
+			RenderFolder = "tvp_output"
 
 			// Create the dir where we will save our sequence   
-			SaveDir = ProjectDir"/"RenderFolder"/"ClipName //WAARSCHUWING: shot 001 moet "/001" heten. Ik denk dat de clip gewoon "Walk_R" mag heten
+			//SaveDir = ProjectDir"/"RenderFolder"/"ClipName //WAARSCHUWING: shot 001 moet "/001" heten. Ik denk dat de clip gewoon "Walk_R" mag heten
 			renderDir = ProjectDir"/"RenderFolder
-			clipDir = ProjectDir"/"RenderFolder"/"ClipName
+			//clipDir = ProjectDir"/"RenderFolder"/"ClipName
 			// First I remove it or delete it so old files will be deleted!!
-			//tv_WriteTextFile "Remove" '"'renderDir'"'
-			//tv_WriteTextFile "Remove" '"'clipDir'"'
+			//tv_WriteTextFile "Remove" '"'renderDir'"' /////NOT HERE THIS WILL DELETE IT AFTER EVERY CLIP RENDER, MOVE ALL THIS CODE OUT OF HERE IT IS RUNNING TOO OFTEN
 			// now I create again
 			tv_WriteTextFile "MkDir" '"'renderDir'"'
-			tv_WriteTextFile "MkDir" '"'clipDir'"'
 			
 			// Here I get the in point and out point of the clip if the marks is disabled I get the clip in out instead
 			//get clip in
@@ -121,17 +119,41 @@ WHILE loop
 			tv_Projectcurrentframe
 			ProjOut = result
 			tv_Projectcurrentframe ProjOut
+
+			// Set filename
 			// getting the name of the current clip to file prefix
 			tv_StartFrame
 			StartFrame = InPoint + result
-
-			// setting the name of the first file
 			IF CMP(InPoint, OutPoint) == 1
-				RenderFile = SaveDir"/"ClipName""ext // No frame number in filename for single frame clips!
+				// No frame numbering in filename for single frame clips
+				FileName = ClipName""ext
 			ELSE
-				RenderFile = SaveDir"/"ClipName"_0000"StartFrame""ext // Filename with frame numbering for multi frame clips!
+				// Frame numbering in filename for sequences
+				FileName = ClipName"_0000"StartFrame""ext
 			END
 
+			// Set dir
+			first_underscore = FirstPos(ClipName, "_")
+			prefix = LeftString(ClipName,first_underscore-1)
+			IF CMP(InPoint, OutPoint) == 1 && CMP(prefix, "bg")
+				// BG sprites in a 'bg' folder
+				backgroundFolderName = "bg"
+				SaveDir = ProjectDir"/"RenderFolder"/"backgroundFolderName
+			ELSE
+				IF CMP(InPoint, OutPoint) == 1
+					// (non BG) Solo sprites in the render folder root
+					SaveDir = ProjectDir"/"RenderFolder
+				ELSE
+					// Sequences in their own folder!
+					SaveDir = ProjectDir"/"RenderFolder"/"ClipName
+					tv_WriteTextFile "Remove" '"'SaveDir'"'
+				END
+			END
+			
+			// Complete render path
+			RenderFile = SaveDir"/"FileName
+			
+			tv_WriteTextFile "MkDir" '"'SaveDir'"'
 			// saving the sequence
 			tv_Projectsavesequence '"'RenderFile'"' ProjIn ProjOut "camera"
 			// setting the current frame again
