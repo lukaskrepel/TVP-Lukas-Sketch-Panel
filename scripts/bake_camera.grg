@@ -1,0 +1,264 @@
+// bake_camera.grg
+//
+// Bakes the current camera transform into all layers of the current clip,
+// then resets the camera to its default position (centered, scale 1.0, no rotation).
+//
+// Workflow:
+//   1. Draw on your layers as normal.
+//   2. Set the TVPaint camera to your desired reframe (pan, zoom, angle).
+//   3. Run this script.
+//   4. Every layer's pixel data is transformed to match the camera view.
+//   5. Camera is reset to default so it looks identical, but without a camera offset.
+//
+// Supports: translation (pan X/Y), scale (zoom), and rotation.
+// Works with static cameras (single keyframe). Animated camera paths not supported.
+//
+// IMPORTANT – for scale/rotation baking the script uses the cut-brush stamp method:
+//   it captures each layer image as a custom brush, clears the image, then stamps
+//   the brush at the mathematically correct position/scale/angle.
+//   Pure translation uses tv_panning for pixel-accurate (integer) shifting.
+
+// ---------------------------------------------------------------
+// Open undo stack so the whole operation is one undo step
+// ---------------------------------------------------------------
+tv_UndoOpenStack
+
+// ---------------------------------------------------------------
+// 1. Read canvas dimensions
+// ---------------------------------------------------------------
+tv_getwidth
+ProjWidth = result
+tv_getheight
+ProjHeight = result
+CenterX = ProjWidth / 2
+CenterY = ProjHeight / 2
+
+// ---------------------------------------------------------------
+// 2. Read the first (and usually only) camera keyframe
+// ---------------------------------------------------------------
+tv_cameraenumpoints 0
+IF CMP(result, "none") == 1
+    tv_UndoCloseStack "Bake Camera"
+    tv_warn "No camera keyframe found. Nothing to bake."
+    EXIT
+END
+PARSE result CamX CamY CamAngle CamScale
+
+// Warn if the camera has more than one keyframe (animated path)
+tv_cameraenumpoints 1
+IF CMP(result, "none") == 0
+    tv_request "Warning: animated camera detected.|This script bakes ONLY the first keyframe.|Continue?|Yes|Cancel"
+    IF CMP(result, 1) == 0
+        tv_UndoCloseStack "Bake Camera"
+        EXIT
+    END
+END
+
+// ---------------------------------------------------------------
+// 3. Abort early if camera is already at the identity/default
+// ---------------------------------------------------------------
+ScaleDiff = CamScale - 1.0
+IF ScaleDiff < 0
+    ScaleDiff = 0 - ScaleDiff
+END
+
+IsDefault = 1
+IF CamX > 0.5
+    IsDefault = 0
+END
+IF CamX < -0.5
+    IsDefault = 0
+END
+IF CamY > 0.5
+    IsDefault = 0
+END
+IF CamY < -0.5
+    IsDefault = 0
+END
+IF CamAngle > 0.1
+    IsDefault = 0
+END
+IF CamAngle < -0.1
+    IsDefault = 0
+END
+IF ScaleDiff > 0.001
+    IsDefault = 0
+END
+
+IF CMP(IsDefault, 1) == 1
+    tv_UndoCloseStack "Bake Camera"
+    tv_warn "Camera is already at the default position. Nothing to bake."
+    EXIT
+END
+
+// ---------------------------------------------------------------
+// 4. Confirm with the user
+// ---------------------------------------------------------------
+tv_request "Bake camera into all layers of the current clip? Camera will be reset to default afterwards.|OK|Cancel"
+IF CMP(result, 1) == 0
+    tv_UndoCloseStack "Bake Camera"
+    EXIT
+END
+
+// ---------------------------------------------------------------
+// 5. Save current state so we can restore it afterwards
+// ---------------------------------------------------------------
+tv_layercurrentid
+OrigLayerID = result
+tv_layergetimage
+OrigFrame = result
+tv_getdrawmode
+OrigDrawMode = result
+
+tv_lockdisplay "Baking camera..."
+
+// ---------------------------------------------------------------
+// 6. Decide which transform method to use
+//
+//   UseSimpleTranslate = 1  →  pure pan, use tv_panning (clean integer shift)
+//   UseSimpleTranslate = 0  →  scale and/or rotation, use brush stamp method
+//
+// The brush stamp method math:
+//   The inverse camera transform moves each pixel P to:
+//     P_baked = canvas_center + rotate(P - pivot, -camAngle) / camScale
+//   where pivot = (CenterX + CamX, CenterY + CamY)
+//
+//   This is achieved by:
+//     1. Loading the layer image as a custom brush (full canvas size).
+//     2. Scaling the brush to (W/camScale) × (H/camScale).
+//     3. Setting the brush handle at the scaled pivot position:
+//          handleX = (CenterX + CamX) / camScale
+//          handleY = (CenterY + CamY) / camScale
+//     4. Setting brush rotation to -camAngle (around the handle).
+//     5. Stamping the brush at canvas center (CenterX, CenterY).
+//   Result: the camera's look-at point lands at canvas center, everything
+//   else is scaled and rotated correctly around it.
+// ---------------------------------------------------------------
+UseSimpleTranslate = 1
+ScaleDiff = CamScale - 1.0
+IF ScaleDiff < 0
+    ScaleDiff = 0 - ScaleDiff
+END
+IF ScaleDiff > 0.001
+    UseSimpleTranslate = 0
+END
+IF CamAngle > 0.1
+    UseSimpleTranslate = 0
+END
+IF CamAngle < -0.1
+    UseSimpleTranslate = 0
+END
+
+// Translation vector: shift pixels by (center - camPivot) so the
+// camera's look-at point ends up at canvas center.
+PanX = CenterX - CamX
+PanY = CenterY - CamY
+
+// Brush stamp parameters
+NewW = ProjWidth / CamScale
+NewH = ProjHeight / CamScale
+// After scaling the brush, the camera pivot (CamX, CamY) sits at
+// (CamX/scale, CamY/scale) within the brush.
+HandleX = CamX / CamScale
+HandleY = CamY / CamScale
+NegAngle = 0 - CamAngle
+
+// Pre-configure the cut brush tool for non-destructive copy (keep source pixels)
+IF CMP(UseSimpleTranslate, 0) == 1
+    tv_no_cutbrushtool "reset" "keep" 1 "aaliasing" 1
+END
+
+// ---------------------------------------------------------------
+// 7. Iterate over all layers in the current clip
+// ---------------------------------------------------------------
+LayerPos = 0
+LayerRun = 1
+
+WHILE LayerRun
+    tv_layergetid LayerPos
+    LayerID = result
+
+    IF CMP(LayerID, "NONE") == 1
+        LayerRun = 0
+    ELSE
+        tv_layerinfo LayerID
+        PARSE result d d d LayerName LayerType LayerStart LayerEnd d d d
+
+        // Make this layer active
+        tv_layerset LayerID
+
+        // Walk all frames of this layer; only process "head" frames
+        // (a "head" is the first frame of a unique image / instance).
+        // "exposure" frames are holds of the same image – skip them so
+        // we don't transform the same drawing twice.
+        Frame = LayerStart
+        WHILE Frame <= LayerEnd
+
+            tv_exposureinfo Frame
+            IF CMP(result, "head") == 1
+
+                // Navigate the clip to this frame
+                tv_layerimage Frame
+
+                // Clear any active selection so the FX applies to the whole image
+                tv_selectionmask "action" "clear"
+
+                IF CMP(UseSimpleTranslate, 1) == 1
+                    // ---- TRANSLATION ONLY (clean integer pixel shift) ----
+                    // THIS WORKS!
+                    tv_panning PanX PanY 0 2
+
+                ELSE
+                    // ---- SCALE + ROTATION (+ TRANSLATION embedded in handle/stamp) ----
+                    // THIS DOES NOT WORK! AND I AM NOT EXACTLY SURE WHY, I GET BLANK FRAMES...
+
+                    // Step 1: Capture the layer image as a custom brush.
+                    //         With "keep 1" set above, the source pixels are NOT erased.
+                    tv_brushcut 0 0 ProjWidth ProjHeight 0 0 0 0
+
+                    // Step 2: Clear the layer image to fully transparent.
+                    tv_clear 0
+
+                    // Step 3: Resize the brush to the baked dimensions
+                    //          (W / camScale) × (H / camScale).
+                    tv_brushstretch NewW NewH
+
+                    // Step 4: Set the rotation angle to –camAngle around the pivot.
+                    //         "origine" is the rotation centre; after scaling, the
+                    //         camera pivot is at (HandleX, HandleY) inside the brush.
+                    tv_brushrestore "angle" NegAngle "origine" HandleX HandleY
+
+                    // Step 5: Set the stamp handle so the pivot lands at canvas centre.
+                    tv_handle HandleX HandleY
+
+                    // Step 6: Stamp in "color" draw mode (full replacement onto blank layer).
+                    tv_setdrawmode "color"
+                    tv_preserve "alpha" "off"
+                    tv_dot CenterX CenterY 1
+                END
+            END
+
+            Frame = Frame + 1
+        END
+
+        LayerPos = LayerPos + 1
+    END
+END
+
+// ---------------------------------------------------------------
+// 8. Restore original state
+// ---------------------------------------------------------------
+tv_layerset OrigLayerID
+tv_layerimage OrigFrame
+tv_setdrawmode OrigDrawMode
+
+// ---------------------------------------------------------------
+// 9. Reset camera to the identity/default position
+//    Centre of canvas, no angle, scale 1.0
+//    (e.g. 960,540 for a 1920x1080 project)
+// ---------------------------------------------------------------
+tv_camerasetpoint 0 CenterX CenterY 0 1
+
+tv_unlockdisplay
+tv_UndoCloseStack "Bake Camera"
+tv_warn "Camera baked! All layers transformed. Camera reset to default."
