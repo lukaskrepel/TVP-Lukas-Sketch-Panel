@@ -100,7 +100,7 @@ END
 // ---------------------------------------------------------------
 // 4. Confirm with the user
 // ---------------------------------------------------------------
-tv_request "Bake camera into all layers of the current clip? Camera will be reset to default afterwards.|OK|Cancel"
+tv_request "Bake camera into all layers of the current clip?|OK|Cancel"
 IF CMP(result, 1) == 0
     tv_UndoCloseStack "Bake Camera"
     EXIT
