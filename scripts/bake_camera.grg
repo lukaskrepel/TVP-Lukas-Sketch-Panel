@@ -11,7 +11,7 @@
 //   5. Camera is reset to default so it looks identical, but without a camera offset.
 //
 // Supports: translation (pan X/Y), scale (zoom), and rotation.
-// Works with static cameras (single keyframe). Animated camera paths not supported.
+// Works with both static (single keyframe) and animated camera paths.
 //
 // IMPORTANT – for scale/rotation baking the script uses the cut-brush stamp method:
 //   it captures each layer image as a custom brush, clears the canvas, then stamps
@@ -34,7 +34,7 @@ CenterX = ProjWidth / 2
 CenterY = ProjHeight / 2
 
 // ---------------------------------------------------------------
-// 2. Read the first (and usually only) camera keyframe
+// 2. Read camera keyframes and clip frame range
 // ---------------------------------------------------------------
 tv_cameraenumpoints 0
 IF CMP(result, "none") == 1
@@ -44,51 +44,57 @@ IF CMP(result, "none") == 1
 END
 PARSE result CamX CamY CamAngle CamScale
 
-// Warn if the camera has more than one keyframe (animated path)
+// Check if the camera path is animated (more than one keyframe)
 tv_cameraenumpoints 1
-IF CMP(result, "none") == 0
-    tv_request "Warning: animated camera detected. This script bakes ONLY the first keyframe. Continue?|Yes|Cancel"
-    IF CMP(result, 1) == 0
-        tv_UndoCloseStack "Bake Camera"
-        EXIT
-    END
+IF CMP(result, "none") == 1
+    IsAnimated = 0
+ELSE
+    IsAnimated = 1
 END
+
+// Get clip frame range for interpolation (needed for animated cameras)
+tv_clipinfo
+PARSE result d d d d d d d d d d d ClipFirstFrame d ClipLastFrame d ClipFrameCount
+ClipLength = ClipLastFrame - ClipFirstFrame
 
 // ---------------------------------------------------------------
 // 3. Abort early if camera is already at the identity/default
+//    (only meaningful for static cameras; animated cameras always proceed)
 // ---------------------------------------------------------------
-ScaleDiff = CamScale - 1.0
-IF ScaleDiff < 0
-    ScaleDiff = 0 - ScaleDiff
-END
+IF CMP(IsAnimated, 0) == 1
+    ScaleDiff = CamScale - 1.0
+    IF ScaleDiff < 0
+        ScaleDiff = 0 - ScaleDiff
+    END
 
-IsDefault = 1
-IF CamX > 0.5
-    IsDefault = 0
-END
-IF CamX < -0.5
-    IsDefault = 0
-END
-IF CamY > 0.5
-    IsDefault = 0
-END
-IF CamY < -0.5
-    IsDefault = 0
-END
-IF CamAngle > 0.1
-    IsDefault = 0
-END
-IF CamAngle < -0.1
-    IsDefault = 0
-END
-IF ScaleDiff > 0.001
-    IsDefault = 0
-END
+    IsDefault = 1
+    IF CamX > 0.5
+        IsDefault = 0
+    END
+    IF CamX < -0.5
+        IsDefault = 0
+    END
+    IF CamY > 0.5
+        IsDefault = 0
+    END
+    IF CamY < -0.5
+        IsDefault = 0
+    END
+    IF CamAngle > 0.1
+        IsDefault = 0
+    END
+    IF CamAngle < -0.1
+        IsDefault = 0
+    END
+    IF ScaleDiff > 0.001
+        IsDefault = 0
+    END
 
-IF CMP(IsDefault, 1) == 1
-    tv_UndoCloseStack "Bake Camera"
-    tv_warn "Camera is already at the default position. Nothing to bake."
-    EXIT
+    IF CMP(IsDefault, 1) == 1
+        tv_UndoCloseStack "Bake Camera"
+        tv_warn "Camera is already at the default position. Nothing to bake."
+        EXIT
+    END
 END
 
 // ---------------------------------------------------------------
@@ -113,45 +119,46 @@ OrigDrawMode = result
 tv_lockdisplay "Baking camera..."
 
 // ---------------------------------------------------------------
-// 6. Decide which transform method to use
+// 6. Choose transform strategy
 //
-//   UseSimpleTranslate = 1  →  pure pan, use tv_panning (clean integer shift)
-//   UseSimpleTranslate = 0  →  scale and/or rotation, use brush stamp method
+//    For static cameras (single keyframe), parameters are pre-computed.
+//    For animated cameras, parameters are computed per-frame inside the loop
+//    using tv_camerainterpolation.
 //
-// The brush stamp method:
-//   1. Scale the brush to (W/camScale) × (H/camScale).
-//   2. Set the handle at the camera look-at point, scaled by 1/camScale.
-//   3. Set brush rotation to -camAngle (rotates around the handle).
-//   4. Stamp the handle at canvas centre.
-//   Result: the camera look-at point lands at canvas centre, everything
-//   else is scaled and rotated correctly around it.  No trig needed.
+//    The brush stamp method (used for scale/rotation):
+//      1. Scale the brush to (W/camScale) × (H/camScale).
+//      2. Set the handle at the camera look-at point, scaled by 1/camScale.
+//      3. Set brush rotation to -camAngle (rotates around the handle).
+//         Use "Angle" keyword, not "rotate" (different brush parameter!).
+//      4. Stamp the handle at canvas centre.
+//      All set in one tv_brushrestore call to prevent values being reset.
 // ---------------------------------------------------------------
-UseSimpleTranslate = 1
-ScaleDiff = CamScale - 1.0
-IF ScaleDiff < 0
-    ScaleDiff = 0 - ScaleDiff
-END
-IF ScaleDiff > 0.001
-    UseSimpleTranslate = 0
-END
-IF CamAngle > 0.1
-    UseSimpleTranslate = 0
-END
-IF CamAngle < -0.1
-    UseSimpleTranslate = 0
-END
 
-// Translation vector: shift pixels by (center - camPivot) so the
-// camera's look-at point ends up at canvas center.
-PanX = CenterX - CamX
-PanY = CenterY - CamY
+// Pre-compute static camera parameters (used when IsAnimated == 0)
+IF CMP(IsAnimated, 0) == 1
+    UseSimpleTranslate = 1
+    ScaleDiff = CamScale - 1.0
+    IF ScaleDiff < 0
+        ScaleDiff = 0 - ScaleDiff
+    END
+    IF ScaleDiff > 0.001
+        UseSimpleTranslate = 0
+    END
+    IF CamAngle > 0.1
+        UseSimpleTranslate = 0
+    END
+    IF CamAngle < -0.1
+        UseSimpleTranslate = 0
+    END
 
-// Brush stamp parameters
-NewW = ProjWidth / CamScale
-NewH = ProjHeight / CamScale
-NegAngle = 0 - CamAngle
-HandleX = CamX / CamScale
-HandleY = CamY / CamScale
+    PanX = CenterX - CamX
+    PanY = CenterY - CamY
+    NewW = ProjWidth / CamScale
+    NewH = ProjHeight / CamScale
+    NegAngle = 0 - CamAngle
+    HandleX = CamX / CamScale
+    HandleY = CamY / CamScale
+END
 
 
 
@@ -175,18 +182,79 @@ WHILE LayerRun
         // Make this layer active
         tv_layerset LayerID
 
-        // Walk all frames of this layer; only process "head" frames
-        // (a "head" is the first frame of a unique image / instance).
-        // "exposure" frames are holds of the same image – skip them so
-        // we don't transform the same drawing twice.
+        // For animated cameras, break all exposure holds FIRST so every
+        // frame has its own unique image before any pixels are changed.
+        IF CMP(IsAnimated, 1) == 1
+            Frame = LayerStart
+            WHILE Frame <= LayerEnd
+                tv_exposureinfo Frame
+                IF CMP(result, "head") == 0
+                    tv_exposurebreak Frame
+                END
+                Frame = Frame + 1
+            END
+        END
+
+        // Now iterate frames and transform pixels.
+        // For animated cameras every frame is processed (all are now heads).
+        // For static cameras only original head frames are processed.
         Frame = LayerStart
         WHILE Frame <= LayerEnd
 
             tv_exposureinfo Frame
+            IsHead = 0
             IF CMP(result, "head") == 1
+                IsHead = 1
+            END
+
+            DoProcess = 0
+            IF CMP(IsAnimated, 0) == 1
+                IF CMP(IsHead, 1) == 1
+                    DoProcess = 1
+                END
+            ELSE
+                DoProcess = 1
+            END
+
+            IF CMP(DoProcess, 1) == 1
 
                 // Navigate the clip to this frame
                 tv_layerimage Frame
+
+                // For animated cameras, compute per-frame camera state
+                IF CMP(IsAnimated, 1) == 1
+                    IF CMP(ClipLength, 0) == 1
+                        CamT = 0
+                    ELSE
+                        CamT = (Frame - ClipFirstFrame) / ClipLength
+                    END
+                    tv_camerainterpolation CamT
+                    PARSE result CamX CamY CamAngle CamScale
+
+                    // Decide method per-frame
+                    UseSimpleTranslate = 1
+                    ScaleDiff = CamScale - 1.0
+                    IF ScaleDiff < 0
+                        ScaleDiff = 0 - ScaleDiff
+                    END
+                    IF ScaleDiff > 0.001
+                        UseSimpleTranslate = 0
+                    END
+                    IF CamAngle > 0.1
+                        UseSimpleTranslate = 0
+                    END
+                    IF CamAngle < -0.1
+                        UseSimpleTranslate = 0
+                    END
+
+                    PanX = CenterX - CamX
+                    PanY = CenterY - CamY
+                    NewW = ProjWidth / CamScale
+                    NewH = ProjHeight / CamScale
+                    NegAngle = 0 - CamAngle
+                    HandleX = CamX / CamScale
+                    HandleY = CamY / CamScale
+                END
 
                 // Clear any active selection so the FX applies to the whole image
                 tv_selectionmask "action" "clear"
