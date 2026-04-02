@@ -14,7 +14,7 @@
 // Works with static cameras (single keyframe). Animated camera paths not supported.
 //
 // IMPORTANT – for scale/rotation baking the script uses the cut-brush stamp method:
-//   it captures each layer image as a custom brush, clears the image, then stamps
+//   it captures each layer image as a custom brush, clears the canvas, then stamps
 //   the brush at the mathematically correct position/scale/angle.
 //   Pure translation uses tv_panning for pixel-accurate (integer) shifting.
 
@@ -209,9 +209,9 @@ WHILE LayerRun
                     // ---- SCALE + TRANSLATION (brush stamp method) ----
                     // NOTE: rotation not yet supported; camera angle is ignored here.
 
-                    // Step 1: Cut the full canvas into the custom brush.
-                    //         Last param 0 = erase source, so canvas is blank after this.
+                    // Step 1: Copy the full canvas into the custom brush, then clear it.
                     tv_brushcut 0 0 ProjWidth ProjHeight 0 0 0 0
+                    tv_clear
 
                     // Step 2: Scale the brush to the inverse camera zoom.
                     tv_brushstretch NewW NewH
@@ -222,7 +222,7 @@ WHILE LayerRun
 
                     // Step 4: Stamp onto the now-blank canvas.
                     tv_setdrawmode "color"
-                    tv_dot CenterX CenterY 1
+                    tv_dot CenterX CenterY 0
                 END
             END
 
