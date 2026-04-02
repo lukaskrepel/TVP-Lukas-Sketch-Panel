@@ -1,0 +1,5 @@
+tv_getwidth
+ProjWidth = result
+tv_getheight
+ProjHeight = result
+tv_brushcut 0 0 ProjWidth ProjHeight 0 0 0 0
