@@ -118,21 +118,13 @@ tv_lockdisplay "Baking camera..."
 //   UseSimpleTranslate = 1  →  pure pan, use tv_panning (clean integer shift)
 //   UseSimpleTranslate = 0  →  scale and/or rotation, use brush stamp method
 //
-// The brush stamp method math:
-//   The inverse camera transform moves each pixel P to:
-//     P_baked = canvas_center + rotate(P - pivot, -camAngle) / camScale
-//   where pivot = (CenterX + CamX, CenterY + CamY)
-//
-//   This is achieved by:
-//     1. Loading the layer image as a custom brush (full canvas size).
-//     2. Scaling the brush to (W/camScale) × (H/camScale).
-//     3. Setting the brush handle at the scaled pivot position:
-//          handleX = (CenterX + CamX) / camScale
-//          handleY = (CenterY + CamY) / camScale
-//     4. Setting brush rotation to -camAngle (around the handle).
-//     5. Stamping the brush at canvas center (CenterX, CenterY).
-//   Result: the camera's look-at point lands at canvas center, everything
-//   else is scaled and rotated correctly around it.
+// The brush stamp method:
+//   1. Scale the brush to (W/camScale) × (H/camScale).
+//   2. Set the handle at the camera look-at point, scaled by 1/camScale.
+//   3. Set brush rotation to -camAngle (rotates around the handle).
+//   4. Stamp the handle at canvas centre.
+//   Result: the camera look-at point lands at canvas centre, everything
+//   else is scaled and rotated correctly around it.  No trig needed.
 // ---------------------------------------------------------------
 UseSimpleTranslate = 1
 ScaleDiff = CamScale - 1.0
@@ -157,11 +149,9 @@ PanY = CenterY - CamY
 // Brush stamp parameters
 NewW = ProjWidth / CamScale
 NewH = ProjHeight / CamScale
-// After scaling the brush, the camera pivot (CamX, CamY) sits at
-// (CamX/scale, CamY/scale) within the brush.
+NegAngle = 0 - CamAngle
 HandleX = CamX / CamScale
 HandleY = CamY / CamScale
-NegAngle = 0 - CamAngle
 
 
 
@@ -170,6 +160,7 @@ NegAngle = 0 - CamAngle
 // ---------------------------------------------------------------
 LayerPos = 0
 LayerRun = 1
+
 
 WHILE LayerRun
     tv_layergetid LayerPos
@@ -202,12 +193,12 @@ WHILE LayerRun
 
                 IF CMP(UseSimpleTranslate, 1) == 1
                     // ---- TRANSLATION ONLY (clean integer pixel shift) ----
+
                     // THIS WORKS!
                     tv_panning PanX PanY 0 2
 
                 ELSE
-                    // ---- SCALE + TRANSLATION (brush stamp method) ----
-                    // NOTE: rotation not yet supported; camera angle is ignored here.
+                    // ---- SCALE / ROTATION (brush stamp method) ----
 
                     // Step 1: Copy the full canvas into the custom brush, then clear it.
                     tv_brushcut 0 0 ProjWidth ProjHeight 0 0 0 0
@@ -216,11 +207,13 @@ WHILE LayerRun
                     // Step 2: Scale the brush to the inverse camera zoom.
                     tv_brushstretch NewW NewH
 
-                    // Step 3: Set the anchor to the camera pivot in scaled-brush coordinates.
-                    //         Stamping at canvas centre will land this pivot at canvas centre.
-                    tv_handle HandleX HandleY
+                    // Step 3: Set handle at camera look-at point (scaled coordinates)
+                    //         and rotate by the inverse camera angle, in one call.
+                    //         "Angle" is the correct keyword for custom brush rotation
+                    //         (not "rotate", which is a different brush parameter).
+                    tv_brushrestore Handle HandleX HandleY Angle NegAngle SubPixel 2
 
-                    // Step 4: Stamp onto the now-blank canvas.
+                    // Step 4: Stamp with the handle (= camera look-at) at canvas centre.
                     tv_setdrawmode "color"
                     tv_dot CenterX CenterY 0
                 END
