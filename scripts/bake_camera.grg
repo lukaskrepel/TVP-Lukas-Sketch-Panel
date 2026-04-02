@@ -47,7 +47,7 @@ PARSE result CamX CamY CamAngle CamScale
 // Warn if the camera has more than one keyframe (animated path)
 tv_cameraenumpoints 1
 IF CMP(result, "none") == 0
-    tv_request "Warning: animated camera detected.|This script bakes ONLY the first keyframe.|Continue?|Yes|Cancel"
+    tv_request "Warning: animated camera detected. This script bakes ONLY the first keyframe. Continue?|Yes|Cancel"
     IF CMP(result, 1) == 0
         tv_UndoCloseStack "Bake Camera"
         EXIT
@@ -163,10 +163,7 @@ HandleX = CamX / CamScale
 HandleY = CamY / CamScale
 NegAngle = 0 - CamAngle
 
-// Pre-configure the cut brush tool for non-destructive copy (keep source pixels)
-IF CMP(UseSimpleTranslate, 0) == 1
-    tv_no_cutbrushtool "reset" "keep" 1 "aaliasing" 1
-END
+
 
 // ---------------------------------------------------------------
 // 7. Iterate over all layers in the current clip
@@ -209,31 +206,22 @@ WHILE LayerRun
                     tv_panning PanX PanY 0 2
 
                 ELSE
-                    // ---- SCALE + ROTATION (+ TRANSLATION embedded in handle/stamp) ----
-                    // THIS DOES NOT WORK! AND I AM NOT EXACTLY SURE WHY, I GET BLANK FRAMES...
+                    // ---- SCALE + TRANSLATION (brush stamp method) ----
+                    // NOTE: rotation not yet supported; camera angle is ignored here.
 
-                    // Step 1: Capture the layer image as a custom brush.
-                    //         With "keep 1" set above, the source pixels are NOT erased.
+                    // Step 1: Cut the full canvas into the custom brush.
+                    //         Last param 0 = erase source, so canvas is blank after this.
                     tv_brushcut 0 0 ProjWidth ProjHeight 0 0 0 0
 
-                    // Step 2: Clear the layer image to fully transparent.
-                    tv_clear 0
-
-                    // Step 3: Resize the brush to the baked dimensions
-                    //          (W / camScale) × (H / camScale).
+                    // Step 2: Scale the brush to the inverse camera zoom.
                     tv_brushstretch NewW NewH
 
-                    // Step 4: Set the rotation angle to –camAngle around the pivot.
-                    //         "origine" is the rotation centre; after scaling, the
-                    //         camera pivot is at (HandleX, HandleY) inside the brush.
-                    tv_brushrestore "angle" NegAngle "origine" HandleX HandleY
-
-                    // Step 5: Set the stamp handle so the pivot lands at canvas centre.
+                    // Step 3: Set the anchor to the camera pivot in scaled-brush coordinates.
+                    //         Stamping at canvas centre will land this pivot at canvas centre.
                     tv_handle HandleX HandleY
 
-                    // Step 6: Stamp in "color" draw mode (full replacement onto blank layer).
+                    // Step 4: Stamp onto the now-blank canvas.
                     tv_setdrawmode "color"
-                    tv_preserve "alpha" "off"
                     tv_dot CenterX CenterY 1
                 END
             END
@@ -254,9 +242,18 @@ tv_setdrawmode OrigDrawMode
 
 // ---------------------------------------------------------------
 // 9. Reset camera to the identity/default position
-//    Centre of canvas, no angle, scale 1.0
-//    (e.g. 960,540 for a 1920x1080 project)
+//    Remove all existing keyframes, then set a single default one
+//    at canvas centre, no angle, scale 1.0
 // ---------------------------------------------------------------
+CamKeyRun = 1
+WHILE CamKeyRun
+    tv_cameraenumpoints 0
+    IF CMP(result, "none") == 1
+        CamKeyRun = 0
+    ELSE
+        tv_cameraremovepoint 0
+    END
+END
 tv_camerasetpoint 0 CenterX CenterY 0 1
 
 tv_unlockdisplay
