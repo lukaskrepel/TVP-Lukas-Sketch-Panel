@@ -1,0 +1,112 @@
+// ************************************************************
+// *** JOIN SELECTED CLIPS INTO ONE SCENE
+// ***
+// *** Moves all selected clips into the scene of the first
+// *** selected clip, and applies the first clip's color to
+// *** all selected clips.
+// ************************************************************
+
+ScriptName = "join_selected_clips_to_scene"
+
+// ---------------------------------------------------------------
+// PASS 1: Enumerate all clips globally, collect selected clip IDs
+// ---------------------------------------------------------------
+SelectedCount = 0
+GlobalPos = 0
+RunEnum = 1
+
+WHILE RunEnum
+	tv_ClipEnumID -1 GlobalPos
+	ClipID = result
+	IF CMP(ClipID, "none") == 1
+		RunEnum = 0
+	ELSE
+		tv_ClipSelection ClipID
+		IsSelected = result
+		IF CMP(IsSelected, "1") == 1
+			tv_WriteUserString ScriptName "Clip_"SelectedCount ClipID
+			SelectedCount = SelectedCount + 1
+		END
+		GlobalPos = GlobalPos + 1
+	END
+END
+
+// ---------------------------------------------------------------
+// Validate: need at least 2 selected clips
+// ---------------------------------------------------------------
+IF SelectedCount < 2
+	tv_Warn "Please select at least 2 clips to join into a scene."
+	EXIT
+END
+
+// ---------------------------------------------------------------
+// Open undo stack so the whole operation can be undone in one step
+// ---------------------------------------------------------------
+tv_UpdateUndo
+tv_UndoOpenStack
+
+// ---------------------------------------------------------------
+// Get anchor clip (first selected): its scene ID and color index
+// ---------------------------------------------------------------
+tv_ReadUserString ScriptName "Clip_0"
+AnchorClipID = result
+
+tv_ClipCurrentID
+OriginalClipID = result
+
+tv_ClipSelect AnchorClipID
+tv_SceneCurrentID
+AnchorSceneID = result
+
+tv_ClipColor AnchorClipID
+AnchorColor = result
+
+// ---------------------------------------------------------------
+// Count how many clips are currently in the anchor scene,
+// so we know where to start appending moved clips.
+// ---------------------------------------------------------------
+AppendPos = 0
+RunScene = 1
+WHILE RunScene
+	tv_ClipEnumID AnchorSceneID AppendPos
+	SceneClipID = result
+	IF CMP(SceneClipID, "none") == 1
+		RunScene = 0
+	ELSE
+		AppendPos = AppendPos + 1
+	END
+END
+
+// ---------------------------------------------------------------
+// PASS 2: Process each stored selected clip:
+//   - If not already in the anchor scene, move it there.
+//   - Apply the anchor color to every selected clip.
+// ---------------------------------------------------------------
+i = 0
+WHILE i < SelectedCount
+	tv_ReadUserString ScriptName "Clip_"i
+	CurClipID = result
+
+	// Determine which scene this clip currently belongs to
+	tv_ClipSelect CurClipID
+	tv_SceneCurrentID
+	CurSceneID = result
+
+	IF CMP(CurSceneID, AnchorSceneID) == 0
+		// Clip is not in the anchor scene — move it there
+		tv_ClipMove CurClipID AnchorSceneID AppendPos
+		AppendPos = AppendPos + 1
+	END
+
+	// Apply anchor color to all selected clips
+	tv_ClipColor CurClipID AnchorColor
+
+	i = i + 1
+END
+
+// ---------------------------------------------------------------
+// Restore original active clip
+// ---------------------------------------------------------------
+tv_ClipSelect OriginalClipID
+
+tv_UndoCloseStack "Join selected clips to scene"
