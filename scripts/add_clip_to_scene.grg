@@ -1,0 +1,51 @@
+// ************************************************************
+// *** ADD CLIP TO SCENE
+// ***
+// *** Creates a new clip immediately after the current clip,
+// *** places it in the same scene, and gives it the same
+// *** color group as the current clip.
+// ************************************************************
+
+tv_UndoOpenStack
+
+// --- Get current clip and scene info ---
+tv_ClipCurrentID
+CurrentClipID = result
+
+tv_SceneCurrentID
+CurrentSceneID = result
+
+tv_ClipColor CurrentClipID
+CurrentColor = result
+
+// --- Find position of current clip within its scene ---
+CurrentPos = 0
+RunEnum = 1
+WHILE RunEnum
+	tv_ClipEnumID CurrentSceneID CurrentPos
+	EnumClipID = result
+	IF CMP(EnumClipID, "none") == 1
+		RunEnum = 0
+	ELSE
+		IF CMP(EnumClipID, CurrentClipID) == 1
+			RunEnum = 0
+		ELSE
+			CurrentPos = CurrentPos + 1
+		END
+	END
+END
+
+InsertPos = CurrentPos + 1
+
+// --- Create a new clip (lands in its own new scene) ---
+tv_ClipNew "Untitled"
+tv_ClipCurrentID
+NewClipID = result
+
+// --- Move new clip into the current scene right after the current clip ---
+tv_ClipMove NewClipID CurrentSceneID InsertPos
+
+// --- Apply the same color as the source clip ---
+tv_ClipColor NewClipID CurrentColor
+
+tv_UndoCloseStack "Add clip to scene"
