@@ -1,0 +1,61 @@
+// Render the entire current project as .mp4 next to the .tvpp file
+
+tv_GetProjectName
+ProjectPath = result
+
+// Check if project is saved
+tv_WriteTextFile "Exists" '"'ProjectPath'"'
+TestPath = result
+IF CMP(TestPath, ProjectPath) == 0 || CMP(ProjectPath, "/") == 1
+	tv_Warn "Please save project and try again!"
+	EXIT
+END
+
+// Normalise path separators (Windows uses \, Mac/Linux use /)
+ProjectPath = Replace(ProjectPath, "\", "/")
+StrLen = LEN(ProjectPath)
+LastSlashPos = LastPos(ProjectPath, "/")
+ProjectDir = LeftString(ProjectPath, LastSlashPos - 1)
+ProjectName = RightString(ProjectPath, StrLen - LastSlashPos)
+
+// Strip extension to get base name
+LastPeriod = LastPos(ProjectName, ".")
+IF CMP(LastPeriod, "0") == 1
+	ProjectBase = ProjectName
+ELSE
+	ProjectBase = LeftString(ProjectName, LastPeriod - 1)
+END
+
+// Build output path
+OutputPath = ProjectDir"/"ProjectBase".mp4"
+
+// Check if output file already exists, adjust confirm message accordingly
+tv_WriteTextFile "Exists" '"'OutputPath'"'
+IF CMP(result, OutputPath) == 1
+	tv_Request "File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
+ELSE
+	tv_Request "Render entire project as .mp4?\n"OutputPath"|Render|Cancel"
+END
+IF result == 0
+	EXIT
+END
+
+// Set save format to QuickTime (.mp4)
+tv_SaveMode "qt"
+
+// Lock display during render
+tv_LockDisplay "Rendering as .mp4, please wait..."
+
+// Render the entire project sequence
+tv_ProjectSaveSequence '"'OutputPath'"'
+RenderResult = result
+
+tv_UnlockDisplay
+
+IF CMP(RenderResult, "0") == 1 || RenderResult == 0
+	tv_Warn "Render complete!\n"OutputPath
+ELSE
+	tv_Warn "Render failed (error: "RenderResult")"
+END
+
+#INCLUDE "Include.grg"
