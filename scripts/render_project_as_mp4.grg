@@ -32,9 +32,9 @@ OutputPath = ProjectDir"/"ProjectBase".mp4"
 // Check if output file already exists, adjust confirm message accordingly
 tv_WriteTextFile "Exists" '"'OutputPath'"'
 IF CMP(result, OutputPath) == 1
-	tv_Request "File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
+	tv_Request "Render entire project as .mp4 alongside .tvpp file?\n\nWARNING: File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
 ELSE
-	tv_Request "Render entire project as .mp4?\n"OutputPath"|Render|Cancel"
+	tv_Request "Render entire project as .mp4 alongside .tvpp file?|Render|Cancel"
 END
 IF result == 0
 	EXIT
@@ -44,7 +44,7 @@ END
 tv_SaveMode "qt"
 
 // Lock display during render
-tv_LockDisplay "Rendering as .mp4, please wait..."
+tv_LockDisplay "Rendering .mp4:\n"OutputPath" \n\nPlease wait..." // Whitespace after output path is intentional so last character is not cut off in the GUI.
 
 // Render the entire project sequence
 tv_ProjectSaveSequence '"'OutputPath'"'
