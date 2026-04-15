@@ -1,4 +1,8 @@
 // Render the entire current project as .mp4 next to the .tvpp file
+// Default: half resolution. Hold SHIFT for full resolution.
+
+tv_GetModifiers
+PARSE result Shift Ctrl Alt
 
 tv_GetProjectName
 ProjectPath = result
@@ -32,9 +36,17 @@ OutputPath = ProjectDir"/"ProjectBase".mp4"
 // Check if output file already exists, adjust confirm message accordingly
 tv_WriteTextFile "Exists" '"'OutputPath'"'
 IF CMP(result, OutputPath) == 1
-	tv_Request "Render entire project as .mp4 alongside .tvpp file?\n\nWARNING: File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
+	IF CMP(Shift, "1") == 1
+		tv_Request "Render .mp4 at FULL resolution alongside .tvpp file ?\n\nWARNING: File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
+	ELSE
+		tv_Request "Render .mp4 at HALF resolution alongside .tvpp file?\n\nWARNING: File already exists! Overwrite?\n"OutputPath"|Overwrite|Cancel"
+	END
 ELSE
-	tv_Request "Render entire project as .mp4 alongside .tvpp file?|Render|Cancel"
+	IF CMP(Shift, "1") == 1
+		tv_Request "Render at FULL resolution as .mp4?\n"OutputPath"|Render|Cancel"
+	ELSE
+		tv_Request "Render at HALF resolution as .mp4?\n"OutputPath"|Render|Cancel"
+	END
 END
 IF result == 0
 	EXIT
@@ -43,14 +55,38 @@ END
 // Set save format to QuickTime (.mp4)
 tv_SaveMode "qt"
 
+// For half resolution: duplicate project, scale it down, render, then close it
+IF CMP(Shift, "1") == 0
+	tv_ProjectCurrentId
+	OrigProjectId = result
+	tv_GetWidth
+	HalfWidth = result / 2
+	tv_GetHeight
+	HalfHeight = result / 2
+	tv_LockDisplay "Preparing temporary project duplicate with half resolution..."
+	tv_ProjectDuplicate
+	DupProjectId = result
+	tv_ProjectSelect DupProjectId
+	tv_ResizePage HalfWidth HalfHeight 2 // 2 = stretch content to new size
+	tv_ProjectCurrentId
+	HalfProjectId = result
+	tv_UnlockDisplay
+END
+
 // Lock display during render
-tv_LockDisplay "Rendering .mp4:\n"OutputPath" \n\nPlease wait..." // Whitespace after output path is intentional so last character is not cut off in the GUI.
+tv_LockDisplay "Rendering .mp4:\n"OutputPath" \n\nPlease wait..."
 
 // Render the entire project sequence
 tv_ProjectSaveSequence '"'OutputPath'"'
 RenderResult = result
 
 tv_UnlockDisplay
+
+// Close the temp half-res project and return to original
+IF CMP(Shift, "1") == 0
+	tv_ProjectClose HalfProjectId
+	tv_ProjectSelect OrigProjectId
+END
 
 IF CMP(RenderResult, "0") == 1 || RenderResult == 0
 	tv_Warn "Render complete!\n"OutputPath
