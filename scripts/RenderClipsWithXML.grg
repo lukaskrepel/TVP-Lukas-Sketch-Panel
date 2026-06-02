@@ -104,6 +104,13 @@ IF CMP(last_v, "0") == 1
 ELSE
 	ProjectName = LeftString(ProjectBase,last_v-1)
 END
+// Extract project code (first underscore-delimited token) for file prefix
+FirstUnderscore = FindString(ProjectName, "_", 1)
+IF CMP(FirstUnderscore, "0") == 1
+	ProjectCode = ProjectName
+ELSE
+	ProjectCode = LeftString(ProjectName, FirstUnderscore - 1)
+END
 // *** Create folder
 FOR i = 1 TO 1000
 	RenderFolder = ProjectName"_clips"i
@@ -220,6 +227,8 @@ WHILE loop
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
 		clipDir = ProjectDir"/"RenderFolder"/"ClipName
 		tv_WriteTextFile "MkDir" '"'clipDir'"'
+		// Prepend project code to clip name for file naming (directory stays clean)
+		ClipName = ProjectCode"_"ClipName
 		//Clear in/out marks of clip (hack)
 		tv_MarkIn clear
 		tv_MarkOut clear
