@@ -154,6 +154,8 @@ loop = 1
 i = 0
 AddSomeFrames = 0
 clipOffset = 0//-1 // Start
+chapterNumber = 0
+clipInChapter = 0
 colorLabel = "Blue"
 //tv_Warn ("before loop")
 WHILE loop
@@ -180,11 +182,24 @@ WHILE loop
 		END
 		tv_ClipName
 		ClipName = result
-		UnderscorePos = FindString(ClipName, "_", 1)
-		IF UnderscorePos < 1
-			clipNumber = addZeroesPostfix("_",i,3)
-			ClipName = clipNumber""ClipName // 001_Untitled for example
+		// Check if this clip marks a new chapter (name starts with *)
+		FirstChar = LeftString(ClipName, 1)
+		IF CMP(FirstChar, "*") == 1
+			chapterNumber = chapterNumber + 1
+			clipInChapter = 0
+			// Remove the * prefix from the name
+			ClipName = RightString(ClipName, LEN(ClipName) - 1)
 		END
+		clipInChapter = clipInChapter + 1
+		// Calculate chapter-based number (chapters are max 100 shots)
+		clipNumber = chapterNumber * 100 + clipInChapter
+		// Strip any existing numbering prefix (e.g. "001_") if present
+		UnderscorePos = FindString(ClipName, "_", 1)
+		IF UnderscorePos > 0
+			ClipName = RightString(ClipName, LEN(ClipName) - UnderscorePos)
+		END
+		// Prepend chapter-based number
+		ClipName = addZeroesPostfix("_", clipNumber, 3)""ClipName
 		// *** Delete all invisible layers, because they won't get merged correctly by TVPaint.
 		DeleteInvisibleLayers() //Function is in Include file
 		// *** Fix multiply layers if working on both standard and Pro TVPaint versions
@@ -204,7 +219,7 @@ WHILE loop
 		renderDir = ProjectDir"/"RenderFolder
 		tv_WriteTextFile "MkDir" '"'renderDir'"'
 		clipDir = ProjectDir"/"RenderFolder"/"ClipName
-		tv_WriteTextFile "MkDir" '"'clipDir'"'		
+		tv_WriteTextFile "MkDir" '"'clipDir'"'
 		//Clear in/out marks of clip (hack)
 		tv_MarkIn clear
 		tv_MarkOut clear
